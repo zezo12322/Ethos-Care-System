@@ -58,6 +58,20 @@ export default function Sidebar() {
           <span className="material-symbols-outlined">analytics</span>
           <span>التقارير</span>
         </Link>
+        <Link
+          href="/dashboard/partners"
+          className="flex items-center gap-3 px-4 py-3 text-emerald-200/70 hover:text-white transition-colors hover:bg-emerald-800/30 rounded-lg"
+        >
+          <span className="material-symbols-outlined">handshake</span>
+          <span>الشركاء</span>
+        </Link>
+        <Link
+          href="/dashboard/locations"
+          className="flex items-center gap-3 px-4 py-3 text-emerald-200/70 hover:text-white transition-colors hover:bg-emerald-800/30 rounded-lg"
+        >
+          <span className="material-symbols-outlined">location_on</span>
+          <span>النطاق الجغرافي</span>
+        </Link>
         <div className="pt-6 mt-6 border-t border-emerald-800/50 space-y-2">
           <Link
             href="/dashboard/admin"

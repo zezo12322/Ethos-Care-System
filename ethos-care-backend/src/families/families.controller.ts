@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
 import { FamiliesService } from './families.service';
 import { CreateFamilyDto } from './dto/create-family.dto';
 
@@ -39,5 +39,25 @@ export class FamiliesController {
       lastVisit: f.lastVisit ? f.lastVisit.toISOString().split('T')[0] : "غير محدد",
       status: f.status
     };
+  }
+
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() updateData: any) {
+    const f = await this.familiesService.update(id, updateData);
+    return {
+      id: f.id,
+      headName: f.headName,
+      membersCount: f.membersCount,
+      income: `${f.income} ج.م`,
+      address: f.address,
+      phone: f.phone,
+      lastVisit: f.lastVisit ? f.lastVisit.toISOString().split('T')[0] : "غير محدد",
+      status: f.status
+    };
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    return this.familiesService.remove(id);
   }
 }

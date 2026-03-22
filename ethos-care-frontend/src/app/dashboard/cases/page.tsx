@@ -11,7 +11,11 @@ export default function CasesPage() {
   const [filterStatus, setFilterStatus] = useState("الكل");
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingCase, setEditingCase] = useState<any>(null);
+
+  const fetchCases = () => {
+    setLoading(true);
     api.get('/cases').then(res => {
       setCases(res.data);
       setLoading(false);
@@ -19,6 +23,10 @@ export default function CasesPage() {
       console.error(err);
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    fetchCases();
   }, []);
 
   const handleExport = () => {
@@ -32,6 +40,41 @@ export default function CasesPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleEditClick = (c: any) => {
+    setEditingCase({...c});
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateCase = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.patch(`/cases/${editingCase.id}`, {
+        applicantName: editingCase.name,
+        caseType: editingCase.type,
+        status: editingCase.status,
+        priority: editingCase.priority,
+        location: editingCase.location,
+      });
+      setIsEditModalOpen(false);
+      setEditingCase(null);
+      fetchCases();
+    } catch (err) {
+      console.error(err);
+      alert("حدث خطأ أثناء تعديل الحالة");
+    }
+  };
+
+  const handleDeleteClick = async (id: string) => {
+    if (confirm("هل أنت متأكد من حذف هذه الحالة؟")) {
+      try {
+        await api.delete(`/cases/${id}`);
+        fetchCases();
+      } catch (err) {
+        console.error(err);
+      }
+    }
   };
 
   const filteredCases = cases.filter(c => {
@@ -133,8 +176,11 @@ export default function CasesPage() {
                   </td>
                   <td className="px-6 py-4 text-center">
                      <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                       <button className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors">
+                       <button onClick={() => handleEditClick(c)} className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors">
                           <span className="material-symbols-outlined text-[18px]">edit</span>
+                       </button>
+                       <button onClick={() => handleDeleteClick(c.id)} className="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-colors">
+                          <span className="material-symbols-outlined text-[18px]">delete</span>
                        </button>
                     </div>
                   </td>
@@ -144,6 +190,59 @@ export default function CasesPage() {
           </table>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {isEditModalOpen && editingCase && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl leading-relaxed">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold">تعديل الحالة</h3>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-outline hover:text-on-surface"><span className="material-symbols-outlined">close</span></button>
+            </div>
+            <form onSubmit={handleUpdateCase} className="space-y-4 text-right">
+              <div>
+                <label className="block text-sm font-bold mb-2">الاسم بالكامل</label>
+                <input required type="text" value={editingCase.name} onChange={e => setEditingCase({...editingCase, name: e.target.value})} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">نوع التدخل</label>
+                <select value={editingCase.type} onChange={e => setEditingCase({...editingCase, type: e.target.value})} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary">
+                  <option value="تمكين اقتصادي">تمكين اقتصادي</option>
+                  <option value="تدخل طبي">تدخل طبي</option>
+                  <option value="سكن كريم">سكن كريم</option>
+                  <option value="تعليم">تعليم</option>
+                  <option value="غير محدد">غير محدد</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">الأولوية</label>
+                <select value={editingCase.priority} onChange={e => setEditingCase({...editingCase, priority: e.target.value})} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary">
+                  <option value="عاجل">عاجل</option>
+                  <option value="عالي">عالي</option>
+                  <option value="عادي">عادي</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">المدينة / المكان</label>
+                <input required type="text" value={editingCase.location} onChange={e => setEditingCase({...editingCase, location: e.target.value})} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">حالة الملف</label>
+                <select value={editingCase.status} onChange={e => setEditingCase({...editingCase, status: e.target.value})} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary">
+                  <option value="قيد المراجعة">قيد المراجعة</option>
+                  <option value="نشط">نشط</option>
+                  <option value="مكتمل">مكتمل</option>
+                  <option value="مرفوض">مرفوض</option>
+                </select>
+              </div>
+              <div className="pt-4 flex gap-3">
+                <button type="submit" className="flex-1 bg-primary text-white py-3 rounded-xl font-bold hover:bg-primary-container transition-colors">حفظ التعديلات</button>
+                <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 bg-surface-container-highest text-on-surface py-3 rounded-xl font-bold hover:bg-surface-container-high transition-colors">إلغاء</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

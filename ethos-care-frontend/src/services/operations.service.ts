@@ -15,4 +15,9 @@ export const operationsService = {
     const response = await api.get(`/operations/${id}`);
     return response.data;
   },
+
+  create: async (data: any) => {
+    const response = await api.post("/operations", data);
+    return response.data;
+  },
 };

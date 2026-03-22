@@ -7,9 +7,6 @@ export class SearchController {
 
   @Get()
   async search(@Query('q') query: string) {
-    if (!query) {
-      return { found: false, message: 'حقل البحث فارغ' };
-    }
-    return this.searchService.searchByNationalId(query);
+    return this.searchService.searchAll(query);
   }
 }

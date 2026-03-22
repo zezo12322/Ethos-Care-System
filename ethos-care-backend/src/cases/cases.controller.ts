@@ -1,41 +1,92 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query
+} from '@nestjs/common';
 import { CasesService } from './cases.service';
 import { CreateCaseDto } from './dto/create-case.dto';
+import { UpdateCaseDto } from './dto/update-case.dto';
 
 @Controller('cases')
 export class CasesController {
-  constructor(private casesService: CasesService) {}
+  constructor(private readonly casesService: CasesService) {}
+
+  @Post()
+  create(@Body() createCaseDto: CreateCaseDto) {
+    return this.casesService.create(createCaseDto);
+  }
+
+  @Get('queues/urgent')
+  getUrgentQueue() {
+    return this.casesService.getUrgentQueue();
+  }
+
+  @Get('queues/missing-national-id')
+  getMissingNationalIdQueue() {
+    return this.casesService.getMissingNationalIdQueue();
+  }
+
+  @Get('queues/under-review')
+  getUnderReviewQueue() {
+    return this.casesService.getUnderReviewQueue();
+  }
+
+  @Get('queues/awaiting-execution')
+  getAwaitingExecutionQueue() {
+    return this.casesService.getAwaitingExecutionQueue();
+  }
 
   @Get()
-  async findAll() {
-    const cases = await this.casesService.findAll();
-    return cases.map(c => ({
-      id: c.id,
-      name: c.applicantName,
-      type: c.caseType,
-      status: c.status,
-      priority: c.priority,
-      date: c.createdAt.toISOString().split('T')[0],
-      location: c.location
-    }));
+  findAll(
+    @Query('status') status?: string,
+    @Query('type') type?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.casesService.findAll({ status, type, search });
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string) {
     return this.casesService.findOne(id);
   }
 
-  @Post()
-  async create(@Body() newCase: CreateCaseDto) {
-    const created = await this.casesService.create(newCase);
-    return {
-      id: created.id,
-      name: created.applicantName,
-      type: created.caseType,
-      status: created.status,
-      priority: created.priority,
-      date: created.createdAt.toISOString().split('T')[0],
-      location: created.location
-    };
+  @Get(':id/history')
+  getHistory(@Param('id') id: string) {
+    return this.casesService.getHistory(id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateCaseDto: UpdateCaseDto) {
+    return this.casesService.update(id, updateCaseDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.casesService.remove(id);
+  }
+
+  @Post(':id/transitions/review')
+  transitionReview(@Param('id') id: string, @Body() body: any) {
+    return this.casesService.transition(id, 'INTAKE_REVIEW', 'PENDING_DECISION', 'review', body.reason);
+  }
+
+  @Post(':id/transitions/approve')
+  transitionApprove(@Param('id') id: string, @Body() body: any) {
+    return this.casesService.transition(id, 'APPROVED', 'APPROVED', 'approve', body.reason);
+  }
+
+  @Post(':id/transitions/reject')
+  transitionReject(@Param('id') id: string, @Body() body: any) {
+    return this.casesService.transition(id, 'REJECTED', 'REJECTED', 'reject', body.reason);
+  }
+
+  @Post(':id/transitions/complete')
+  transitionComplete(@Param('id') id: string, @Body() body: any) {
+    return this.casesService.transition(id, 'COMPLETED', 'APPROVED', 'complete', body.reason);
   }
 }

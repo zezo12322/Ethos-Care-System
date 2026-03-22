@@ -5,39 +5,34 @@ import { PrismaService } from '../prisma/prisma.service';
 export class SearchService {
   constructor(private prisma: PrismaService) {}
 
-  async searchByNationalId(nationalId: string) {
-    // 1. Search in Families
-    const family = await this.prisma.family.findFirst({
-      where: { nationalId: nationalId }
-    });
-
-    // 2. Search in Cases
-    const cases = await this.prisma.case.findMany({
-      where: { nationalId: nationalId }
-    });
-
-    if (!family && cases.length === 0) {
-      return { found: false };
+  async searchAll(query: string) {
+    if (!query || query.trim() === '') {
+      return { cases: [], families: [] };
     }
 
-    return {
-      found: true,
-      family: family ? {
-        id: family.id,
-        name: family.headName,
-        status: family.status,
-        income: family.income,
-        membersCount: family.membersCount,
-        address: family.address,
-        lastVisit: family.lastVisit
-      } : null,
-      cases: cases.map(c => ({
-        id: c.id,
-        name: c.applicantName,
-        type: c.caseType,
-        status: c.status,
-        date: c.createdAt,
-      }))
-    };
+    const cases = await this.prisma.case.findMany({
+      where: {
+        OR: [
+          { applicantName: { contains: query } },
+          { nationalId: { contains: query } },
+          { id: { contains: query } },
+        ]
+      },
+      take: 20
+    });
+
+    const families = await this.prisma.family.findMany({
+      where: {
+        OR: [
+          { headName: { contains: query } },
+          { nationalId: { contains: query } },
+          { phone: { contains: query } },
+          { id: { contains: query } },
+        ]
+      },
+      take: 20
+    });
+
+    return { cases, families };
   }
 }

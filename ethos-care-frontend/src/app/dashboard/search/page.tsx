@@ -1,10 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import React, { useState, useEffect } from "react";
+import api from "@/lib/api";
 
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [results, setResults] = useState({ cases: [], families: [] });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (searchTerm.trim() !== "") {
+        performSearch();
+      } else {
+        setResults({ cases: [], families: [] });
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
+
+  const performSearch = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/search?q=${encodeURIComponent(searchTerm)}`);
+      setResults(res.data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -27,53 +53,57 @@ export default function SearchPage() {
                value={searchTerm}
                onChange={(e) => setSearchTerm(e.target.value)}
              />
-             <button className="absolute left-3 top-1/2 -translate-y-1/2 bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-primary-container transition-colors">
+             <button onClick={performSearch} className="absolute left-3 top-1/2 -translate-y-1/2 bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-primary-container transition-colors">
                بحث
              </button>
-          </div>
-          
-          <div className="flex flex-wrap justify-center gap-2 text-sm">
-            <span className="text-on-surface-variant">خيارات سريعة:</span>
-            <span className="px-3 py-1 bg-surface-container-low rounded-full cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors">حالات التدخل الطبي</span>
-            <span className="px-3 py-1 bg-surface-container-low rounded-full cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors">المرفوضين آخر شهر</span>
-            <span className="px-3 py-1 bg-surface-container-low rounded-full cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors">قرية بياض العرب</span>
           </div>
         </div>
       </div>
 
-      {/* Mock Search Results (Shown only if typing) */}
       {searchTerm && (
         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
           <h3 className="font-bold text-lg border-b border-outline-variant/30 pb-2">نتائج البحث ({searchTerm})</h3>
           
           <div className="bg-white rounded-2xl border border-outline-variant/30 overflow-hidden divide-y divide-outline-variant/20">
-             <Link href="/dashboard/cases/C-2024-001" className="flex items-center gap-4 p-4 hover:bg-surface-container-lowest transition-colors group">
-               <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
-                 <span className="material-symbols-outlined">folder_shared</span>
-               </div>
-               <div className="flex-1">
-                 <h4 className="font-bold text-lg">محمد رمضان أحمد <span className="text-sm font-normal text-on-surface-variant ml-2">(حالة)</span></h4>
-                 <p className="text-sm text-on-surface-variant flex gap-4">
-                   <span>رقم الملف: C-2024-001</span>
-                   <span>تمكين اقتصادي</span>
-                 </p>
-               </div>
-               <span className="material-symbols-outlined text-outline rtl:rotate-180">chevron_right</span>
-             </Link>
+             {loading && <div className="p-6 text-center text-outline font-bold animate-pulse">جاري البحث...</div>}
              
-             <Link href="/dashboard/families/F-2024-101" className="flex items-center gap-4 p-4 hover:bg-surface-container-lowest transition-colors group">
-               <div className="w-12 h-12 rounded-xl bg-[#fcb900]/20 text-[#bf8c00] flex items-center justify-center group-hover:scale-110 transition-transform">
-                 <span className="material-symbols-outlined">family_restroom</span>
+             {!loading && results.cases.length === 0 && results.families.length === 0 && (
+                <div className="p-6 text-center text-outline">لا توجد نتائج مطابقة لبحثك</div>
+             )}
+
+             {!loading && results.cases.map((c: any) => (
+               <div key={`case-${c.id}`} className="flex items-center gap-4 p-4 hover:bg-surface-container-lowest transition-colors group cursor-pointer">
+                 <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+                   <span className="material-symbols-outlined">folder_shared</span>
+                 </div>
+                 <div className="flex-1">
+                   <h4 className="font-bold text-lg">{c.applicantName} <span className="text-sm font-normal text-on-surface-variant ml-2">(حالة)</span></h4>
+                   <p className="text-sm text-on-surface-variant flex gap-4">
+                     <span className="font-mono">ID: {c.id.substring(0,8)}</span>
+                     <span>{c.caseType}</span>
+                     <span>{c.nationalId}</span>
+                   </p>
+                 </div>
+                 <span className="material-symbols-outlined text-outline rtl:rotate-180">chevron_right</span>
                </div>
-               <div className="flex-1">
-                 <h4 className="font-bold text-lg">أسرة / محمود عبدالرحمن السيد <span className="text-sm font-normal text-on-surface-variant ml-2">(أسرة)</span></h4>
-                 <p className="text-sm text-on-surface-variant flex gap-4">
-                   <span>قرية باروط - بني سويف</span>
-                   <span>5 أفراد</span>
-                 </p>
+             ))}
+
+             {!loading && results.families.map((f: any) => (
+               <div key={`family-${f.id}`} className="flex items-center gap-4 p-4 hover:bg-surface-container-lowest transition-colors group cursor-pointer">
+                 <div className="w-12 h-12 rounded-xl bg-[#fcb900]/20 text-[#bf8c00] flex items-center justify-center group-hover:scale-110 transition-transform">
+                   <span className="material-symbols-outlined">family_restroom</span>
+                 </div>
+                 <div className="flex-1">
+                   <h4 className="font-bold text-lg">{f.headName} <span className="text-sm font-normal text-on-surface-variant ml-2">(أسرة)</span></h4>
+                   <p className="text-sm text-on-surface-variant flex gap-4">
+                     <span className="font-mono">ID: {f.id.substring(0,8)}</span>
+                     <span>{f.address}</span>
+                     <span>{f.nationalId}</span>
+                   </p>
+                 </div>
+                 <span className="material-symbols-outlined text-outline rtl:rotate-180">chevron_right</span>
                </div>
-               <span className="material-symbols-outlined text-outline rtl:rotate-180">chevron_right</span>
-             </Link>
+             ))}
           </div>
         </div>
       )}

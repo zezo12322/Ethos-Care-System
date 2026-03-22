@@ -8,7 +8,11 @@ export default function FamiliesPage() {
   const [families, setFamilies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingFamily, setEditingFamily] = useState<any>(null);
+
+  const fetchFamilies = () => {
+    setLoading(true);
     api.get('/families').then(res => {
       setFamilies(res.data);
       setLoading(false);
@@ -16,7 +20,55 @@ export default function FamiliesPage() {
       console.error(err);
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    fetchFamilies();
   }, []);
+
+  const handleEditClick = (f: any) => {
+    setEditingFamily({
+      id: f.id,
+      headName: f.headName,
+      membersCount: f.membersCount,
+      income: f.income.replace(' ج.م', ''),
+      address: f.address,
+      phone: f.phone,
+      status: f.status
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateFamily = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.patch(`/families/${editingFamily.id}`, {
+        headName: editingFamily.headName,
+        membersCount: editingFamily.membersCount,
+        income: editingFamily.income,
+        address: editingFamily.address,
+        phone: editingFamily.phone,
+        status: editingFamily.status
+      });
+      setIsEditModalOpen(false);
+      setEditingFamily(null);
+      fetchFamilies();
+    } catch (err) {
+      console.error(err);
+      alert("حدث خطأ أثناء تعديل بيانات الأسرة");
+    }
+  };
+
+  const handleDeleteClick = async (id: string) => {
+    if (confirm("هل أنت متأكد من حذف هذه الأسرة؟")) {
+      try {
+        await api.delete(`/families/${id}`);
+        fetchFamilies();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -66,7 +118,7 @@ export default function FamiliesPage() {
                 <tr key={family.id} className="hover:bg-surface-container-lowest/50 transition-colors group">
                   <td className="px-6 py-4">
                     <p className="font-bold text-on-surface">{family.headName}</p>
-                    <p className="text-xs text-on-surface-variant font-mono mt-1">{family.id}</p>
+                    <p className="text-xs text-on-surface-variant font-mono mt-1">{family.id.substring(0,8)}...</p>
                   </td>
                   <td className="px-6 py-4">
                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-surface-container-high rounded-lg text-xs font-bold text-on-surface">
@@ -74,7 +126,7 @@ export default function FamiliesPage() {
                         {family.membersCount} أفراد
                      </span>
                   </td>
-                  <td className="px-6 py-4 text-on-surface-variant">{family.income}</td>
+                  <td className="px-6 py-4 text-on-surface-variant text-left" dir="ltr">{family.income}</td>
                   <td className="px-6 py-4 text-on-surface-variant max-w-[200px] truncate">{family.address}</td>
                   <td className="px-6 py-4 text-on-surface-variant">{family.lastVisit}</td>
                   <td className="px-6 py-4">
@@ -88,8 +140,11 @@ export default function FamiliesPage() {
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                       <button className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors">
-                          <span className="material-symbols-outlined text-[18px]">visibility</span>
+                       <button onClick={() => handleEditClick(family)} className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors">
+                          <span className="material-symbols-outlined text-[18px]">edit</span>
+                       </button>
+                       <button onClick={() => handleDeleteClick(family.id)} className="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-colors">
+                          <span className="material-symbols-outlined text-[18px]">delete</span>
                        </button>
                     </div>
                   </td>
@@ -99,6 +154,54 @@ export default function FamiliesPage() {
           </table>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {isEditModalOpen && editingFamily && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl leading-relaxed">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold">تعديل بيانات الأسرة</h3>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-outline hover:text-on-surface"><span className="material-symbols-outlined">close</span></button>
+            </div>
+            <form onSubmit={handleUpdateFamily} className="space-y-4 text-right">
+              <div>
+                <label className="block text-sm font-bold mb-2">اسم العائل</label>
+                <input required type="text" value={editingFamily.headName} onChange={e => setEditingFamily({...editingFamily, headName: e.target.value})} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold mb-2">عدد الأفراد</label>
+                  <input required type="number" value={editingFamily.membersCount} onChange={e => setEditingFamily({...editingFamily, membersCount: e.target.value})} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-2">متوسط الدخل</label>
+                  <input required type="number" value={editingFamily.income} onChange={e => setEditingFamily({...editingFamily, income: e.target.value})} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">العنوان</label>
+                <input required type="text" value={editingFamily.address} onChange={e => setEditingFamily({...editingFamily, address: e.target.value})} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">الهاتف</label>
+                <input required type="text" value={editingFamily.phone} onChange={e => setEditingFamily({...editingFamily, phone: e.target.value})} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2 px-3 outline-none text-left focus:border-primary" dir="ltr" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">حالة التقييم</label>
+                <select value={editingFamily.status} onChange={e => setEditingFamily({...editingFamily, status: e.target.value})} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary">
+                  <option value="تحت التقييم">تحت التقييم</option>
+                  <option value="مستحق">مستحق</option>
+                  <option value="غير مستحق">غير مستحق</option>
+                </select>
+              </div>
+              <div className="pt-4 flex gap-3">
+                <button type="submit" className="flex-1 bg-primary text-white py-3 rounded-xl font-bold hover:bg-primary-container transition-colors">حفظ التعديلات</button>
+                <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 bg-surface-container-highest text-on-surface py-3 rounded-xl font-bold hover:bg-surface-container-high transition-colors">إلغاء</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

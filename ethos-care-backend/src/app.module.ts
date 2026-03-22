@@ -14,6 +14,7 @@ import { FamiliesService } from './families/families.service';
 import { OperationsService } from './operations/operations.service';
 import { StatsModule } from './stats/stats.module';
 import { SearchModule } from './search/search.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { SearchModule } from './search/search.module';
     PrismaModule,
     StatsModule,
     SearchModule,
+    UsersModule,
   ],
   controllers: [AppController, FamiliesController, OperationsController],
   providers: [AppService, FamiliesService, OperationsService],

@@ -15,21 +15,56 @@ model User {
   role      String   @default("CASE_WORKER")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  assignedCases Case[]
+  actions CaseHistory[]
 }
 
 model Case {
-  id            String   @id @default(uuid())
-  applicantName String
-  nationalId    String? 
-  caseType      String   @default("غير محدد")
-  status        String   @default("قيد المراجعة")
-  priority      String   @default("عادي")
-  location      String   @default("بني سويف")
-  description   String?
-  familyId      String?
-  family        Family?  @relation(fields: [familyId], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                      String   @id @default(uuid())
+  applicantName           String
+  nationalId              String? 
+  caseType                String   @default("غير محدد")
+  
+  // Legacy status
+  status                  String   @default("قيد المراجعة")
+  
+  // New workflow fields
+  lifecycleStatus         String   @default("DRAFT")
+  completenessStatus      String   @default("MISSING_DOCUMENTS")
+  decisionStatus          String   @default("PENDING_DECISION")
+  
+  priority                String   @default("NORMAL")
+  location                String   @default("بني سويف")
+  description             String?
+  familyId                String?
+  family                  Family?  @relation(fields: [familyId], references: [id])
+  
+  assignedToId            String?
+  assignedTo              User?    @relation(fields: [assignedToId], references: [id])
+  
+  requiresCommitteeReview Boolean  @default(false)
+  lastActionAt            DateTime @default(now())
+  
+  history                 CaseHistory[]
+  
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+model CaseHistory {
+  id                  String   @id @default(uuid())
+  caseId              String
+  case                Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  fromLifecycleStatus String?
+  toLifecycleStatus   String
+  fromDecisionStatus  String?
+  toDecisionStatus    String
+  action              String
+  reason              String?
+  performedById       String?
+  performedBy         User?    @relation(fields: [performedById], references: [id])
+  metadataJson        String?
+  performedAt         DateTime @default(now())
 }
 
 model Family {
@@ -64,4 +99,25 @@ model Operation {
   volunteers Int      @default(0)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model Partner {
+  id        String   @id @default(uuid())
+  name      String
+  type      String   @default("مؤسسة مانحة")
+  contact   String?
+  email     String?
+  status    String   @default("نشط")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  name      String
+  type      String   @default("قرية")
+  region    String   @default("بني سويف")
+  status    String   @default("مفعل")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
