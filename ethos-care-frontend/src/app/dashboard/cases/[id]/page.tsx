@@ -1,167 +1,359 @@
 "use client";
-
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import React from "react";
+import { useParams, useRouter } from "next/navigation";
+import api from "@/lib/api";
 
-export default function CaseDetailsPage({ params }: { params: { id: string } }) {
-  // Using a mock ID just for presentation since param might be a placeholder
-  const caseId = params.id || "C-2024-001";
+export default function CaseDetailsPage() {
+  const { id } = useParams();
+  const router = useRouter();
+
+  const [caseData, setCaseData] = useState<any>(null);
+  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [currentRole, setCurrentRole] = useState<"CASE_MANAGER" | "EXECUTIVE_DIRECTOR" | "EXECUTION_OFFICER" | "ADMIN">("ADMIN");
+
+  useEffect(() => {
+    fetchData();
+  }, [id]);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [caseRes, historyRes] = await Promise.all([
+        api.get(`/cases/${id}`),
+        api.get(`/cases/${id}/history`)
+      ]);
+      setCaseData(caseRes.data);
+      setHistoryData(historyRes.data);
+    } catch (err) {
+      console.error(err);
+      alert("حدث خطأ في تحميل تفاصيل الحالة");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTransition = async (action: string) => {
+    try {
+      setActionLoading(true);
+      const url = `/cases/${id}/transitions/${action}`;
+      await api.post(url, { reason: "تحديث من النظام" });
+      alert("تم تحديث حالة الطلب بنجاح");
+      fetchData(); // reload
+    } catch (err) {
+      console.error(err);
+      alert("حدث خطأ أثناء محاولة تحديث الحالة");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-surface flex justify-center items-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!caseData) {
+    return (
+      <div className="min-h-screen flex justify-center items-center flex-col gap-4">
+        <span className="material-symbols-outlined text-6xl text-error">error</span>
+        <h2 className="text-2xl font-bold">الحالة غير موجودة</h2>
+        <button onClick={() => router.back()} className="text-primary hover:underline">
+          العودة للسابقة
+        </button>
+      </div>
+    );
+  }
+
+  // Maps
+  const lifecycleMap: any = {
+    DRAFT: { label: "مسودة", color: "bg-surface-container text-on-surface" },
+    INTAKE_REVIEW: { label: "مراجعة مبدئية", color: "bg-warning/20 text-warning" },
+    FIELD_VERIFICATION: { label: "تحقق ميداني", color: "bg-warning/30 text-warning-dark" },
+    COMMITTEE_REVIEW: { label: "مراجعة اللجنة", color: "bg-tertiary/20 text-tertiary" },
+    APPROVED: { label: "تمت الموافقة", color: "bg-success/20 text-success" },
+    IN_PROGRESS: { label: "قيد التنفيذ", color: "bg-primary/20 text-primary" },
+    COMPLETED: { label: "مكتملة", color: "bg-success text-on-success" },
+    REJECTED: { label: "مرفوضة", color: "bg-error/20 text-error" },
+    ON_HOLD: { label: "معلقة", color: "bg-surface-variant text-on-surface-variant" },
+    ARCHIVED: { label: "مؤرشفة", color: "bg-outline text-surface" },
+  };
+
+  const decisionMap: any = {
+    PENDING_DECISION: { label: "قيد القرار", bg: "bg-warning/20 text-warning" },
+    APPROVED: { label: "مقبول", bg: "bg-success/20 text-success" },
+    REJECTED: { label: "مرفوض", bg: "bg-error/20 text-error" },
+    RETURNED_FOR_COMPLETION: { label: "مردود للاستكمال", bg: "bg-tertiary/20 text-tertiary" },
+  };
+
+  const completenessMap: any = {
+    COMPLETE: { label: "مكتمل الملفات", bg: "bg-primary/20 text-primary" },
+    MISSING_NATIONAL_ID: { label: "ينقص رقم قومي", bg: "bg-error/20 text-error" },
+    MISSING_DOCUMENTS: { label: "مستندات ناقصة", bg: "bg-warning/20 text-warning" },
+  };
+
+
+  const isCaseManager = currentRole === "CASE_MANAGER" || currentRole === "ADMIN";
+  const isExecDirector = currentRole === "EXECUTIVE_DIRECTOR" || currentRole === "ADMIN";
+  const isExecOfficer = currentRole === "EXECUTION_OFFICER" || currentRole === "ADMIN";
+
+  const lc = lifecycleMap[caseData.lifecycleStatus] || { label: caseData.lifecycleStatus, color: "bg-surface-container" };
+ 
+  const ds = decisionMap[caseData.decisionStatus] || { label: caseData.decisionStatus, bg: "bg-surface-container" };
+  const cs = completenessMap[caseData.completenessStatus] || { label: caseData.completenessStatus, bg: "bg-surface-container" };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-surface">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard/cases" className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-outline-variant/30 hover:bg-surface-container-low transition-colors">
-            <span className="material-symbols-outlined rtl:rotate-180">arrow_back</span>
-          </Link>
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold font-headline text-on-surface">محمد رمضان أحمد</h1>
-              <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold font-body">نشط</span>
+
+      {/* Role Switcher for Simulation */}
+      <div className="bg-surface-container-lowest border-b border-outline-variant/30 px-6 py-2 flex items-center justify-between z-30 relative">
+        <div className="flex items-center gap-3">
+          <span className="material-symbols-outlined text-outline">shield_person</span>
+          <span className="text-sm font-bold opacity-70">محاكي الصلاحيات (RBAC)</span>
+        </div>
+        <select 
+          value={currentRole}
+          onChange={(e) => setCurrentRole(e.target.value as any)}
+          className="bg-surface-container-low border border-outline-variant/50 text-sm rounded-lg px-3 py-1 outline-none font-bold"
+        >
+          <option value="ADMIN">مسؤول النظام (Admin)</option>
+          <option value="CASE_MANAGER">مدير الحالات (Case Manager)</option>
+          <option value="EXECUTIVE_DIRECTOR">المدير التنفيذي (Executive Director)</option>
+          <option value="EXECUTION_OFFICER">مسؤول التنفيذ (Execution Officer)</option>
+        </select>
+      </div>
+      <header
+ className="bg-surface border-b border-outline-variant/30 sticky top-0 z-20">
+        <div className="max-w-[1600px] mx-auto px-6 py-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex gap-4 items-center">
+              <button 
+                onClick={() => router.back()}
+                className="w-10 h-10 rounded-full hover:bg-surface-variant flex items-center justify-center transition-colors text-on-surface-variant"
+              >
+                <span className="material-symbols-outlined rtl:rotate-180">arrow_back</span>
+              </button>
+              <div>
+                <div className="flex items-center gap-3 mb-1">
+                  <h1 className="text-2xl font-bold text-on-surface">{caseData.applicantName}</h1>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${lc.color}`}>
+                    {lc.label}
+                  </span>
+                </div>
+                <p className="text-on-surface-variant text-sm flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm">tag</span>
+                  الحالة: {caseData.id.slice(0, 8).toUpperCase()}
+                </p>
+              </div>
             </div>
-            <p className="text-sm text-on-surface-variant font-bold tracking-widest" dir="ltr">{caseId}</p>
+
+            <div className="flex gap-3">
+              {/* Transition actions based on statuses */}
+              {(caseData.lifecycleStatus === 'DRAFT' || caseData.lifecycleStatus === 'INTAKE_REVIEW') && (
+                <button disabled={actionLoading} onClick={() => handleTransition('review')} className="px-5 py-2 bg-surface-variant text-on-surface hover:bg-surface-container-highest rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                  <span className="material-symbols-outlined">rate_review</span>
+                  طلب مراجعة
+                </button>
+              )}
+              
+              {(caseData.decisionStatus === 'PENDING_DECISION' || caseData.lifecycleStatus === 'COMMITTEE_REVIEW') && (
+                <>
+                  <button disabled={actionLoading} onClick={() => handleTransition('approve')} className="px-5 py-2 bg-success text-on-success hover:bg-success/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                    <span className="material-symbols-outlined">check_circle</span>
+                    الموافقة
+                  </button>
+                  <button disabled={actionLoading} onClick={() => handleTransition('reject')} className="px-5 py-2 bg-error text-on-error hover:bg-error/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                    <span className="material-symbols-outlined">cancel</span>
+                    الرفض
+                  </button>
+                </>
+              )}
+
+              {isExecOfficer && caseData.lifecycleStatus === 'APPROVED' && (
+                <button disabled={actionLoading} onClick={() => handleTransition('complete')} className="px-5 py-2 bg-primary text-on-primary hover:bg-primary/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                  <span className="material-symbols-outlined">done_all</span>
+                  تنفيذ واكتمال
+                </button>
+              )}
+              
+              <Link href={`/dashboard/cases/${id}/edit`} className="px-5 py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                <span className="material-symbols-outlined text-lg">edit</span>
+                تعديل البيانات
+              </Link>
+            </div>
           </div>
         </div>
-        <div className="flex gap-2">
-           <button className="px-4 py-2 bg-white border border-outline-variant/50 hover:bg-surface-container-lowest rounded-xl font-bold text-sm text-primary flex items-center gap-2 transition-colors">
-             <span className="material-symbols-outlined text-[18px]">edit</span>
-             تعديل
-           </button>
-           <button className="px-4 py-2 bg-primary text-white hover:bg-primary-container rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-md">
-             <span className="material-symbols-outlined text-[18px]">gavel</span>
-             اتخاذ قرار
-           </button>
-        </div>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Info Column */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-3xl border border-outline-variant/30 p-6 shadow-sm">
-            <h2 className="text-lg font-bold font-headline mb-6 border-b border-outline-variant/30 pb-3">تفاصيل الطلب</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4 mb-6">
-              <div>
-                <p className="text-xs text-on-surface-variant mb-1">نوع التدخل</p>
-                <div className="font-bold flex items-center gap-1"><span className="material-symbols-outlined text-primary text-[18px]">trending_up</span> تمكين اقتصادي</div>
-              </div>
-              <div>
-                <p className="text-xs text-on-surface-variant mb-1">تاريخ التسجيل</p>
-                <div className="font-bold" dir="ltr">2024-10-25</div>
-              </div>
-              <div>
-                <p className="text-xs text-on-surface-variant mb-1">الأولوية</p>
-                <div className="font-bold text-red-600 flex items-center gap-1"><span className="material-symbols-outlined text-[18px]">error</span> عاجل</div>
-              </div>
-              <div>
-                <p className="text-xs text-on-surface-variant mb-1">الباحث المسؤول</p>
-                <div className="font-bold">سارة محمود</div>
-              </div>
-              <div>
-                <p className="text-xs text-on-surface-variant mb-1">رقم التليفون للتواصل</p>
-                <div className="font-bold" dir="ltr">01099887766</div>
-              </div>
-            </div>
+      <main className="max-w-[1600px] mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          <div className="lg:col-span-2 space-y-6">
             
-            <div className="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/30 mb-6">
-               <h3 className="font-bold text-sm mb-2 text-primary">وصف الحالة</h3>
-               <p className="text-sm leading-relaxed text-on-surface-variant">حالة الشاب محمد رمضان يحتاج إلى ماكينة خياطة ليبدأ مشروعاً صغيراً يعيل به أسرته المكونة من 5 أفراد، بعد تعرضه لحادث أقعده عن العمل في المعمار. تم إجراء بحث ميداني وتبين استحقاقه الفوري للدعم.</p>
+            {/* Status overview cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-surface border border-outline-variant/30 rounded-2xl p-4 flex gap-3 items-center">
+                 <div className={`p-3 rounded-full ${lc.color}`}>
+                   <span className="material-symbols-outlined text-lg">autorenew</span>
+                 </div>
+                 <div>
+                   <span className="text-xs text-on-surface-variant block">دورة حياة الحالة</span>
+                   <span className="font-bold text-sm">{lc.label}</span>
+                 </div>
+              </div>
+              <div className="bg-surface border border-outline-variant/30 rounded-2xl p-4 flex gap-3 items-center">
+                 <div className={`p-3 rounded-full ${ds.bg}`}>
+                   <span className="material-symbols-outlined text-lg">gavel</span>
+                 </div>
+                 <div>
+                   <span className="text-xs text-on-surface-variant block">قرارات اللجنة</span>
+                   <span className="font-bold text-sm">{ds.label}</span>
+                 </div>
+              </div>
+              <div className="bg-surface border border-outline-variant/30 rounded-2xl p-4 flex gap-3 items-center">
+                 <div className={`p-3 rounded-full ${cs.bg}`}>
+                   <span className="material-symbols-outlined text-lg">task</span>
+                 </div>
+                 <div>
+                   <span className="text-xs text-on-surface-variant block">حالة استيفاء الملف</span>
+                   <span className="font-bold text-sm">{cs.label}</span>
+                 </div>
+              </div>
             </div>
 
-            <h3 className="font-bold text-sm mb-3">المرفقات (3)</h3>
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              <div className="flex-shrink-0 w-32 h-24 bg-surface-container-highest rounded-xl flex flex-col items-center justify-center border border-outline-variant/50 cursor-pointer hover:bg-outline-variant/20 transition-colors">
-                <span className="material-symbols-outlined text-outline text-2xl mb-1">description</span>
-                <span className="text-[10px] font-bold">صورة البطاقة</span>
+            <div className="bg-surface border border-outline-variant/30 rounded-3xl p-6 shadow-sm">
+              <h2 className="text-xl font-bold text-on-surface mb-6 flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">info</span>
+                تفاصيل الحالة
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="text-sm text-on-surface-variant mb-1 block">نوع التدخل المطلوب</label>
+                  <p className="font-bold text-on-surface">{caseData.caseType}</p>
+                </div>
+                <div>
+                  <label className="text-sm text-on-surface-variant mb-1 block">الأولوية</label>
+                  <p className={`font-bold inline-flex items-center gap-1 ${caseData.priority === 'URGENT' || caseData.priority === 'عاجل' ? 'text-error' : 'text-on-surface'}`}>
+                    {caseData.priority === 'URGENT' || caseData.priority === 'عاجل' ? <span className="material-symbols-outlined text-base">warning</span> : null}
+                    {caseData.priority === 'URGENT' ? 'عاجل' : (caseData.priority === 'HIGH' ? 'عالي' : (caseData.priority === 'NORMAL' ? 'تلقائي' : caseData.priority))}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm text-on-surface-variant mb-1 block">تاريخ التسجيل</label>
+                  <p className="font-bold text-on-surface">{new Date(caseData.createdAt).toLocaleDateString("ar-EG")}</p>
+                </div>
+                <div>
+                  <label className="text-sm text-on-surface-variant mb-1 block">الرقم القومي المحول</label>
+                  <p className="font-bold text-on-surface">{caseData.nationalId || "غير متوفر"}</p>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-on-surface-variant mb-1 block">الموقع الميداني</label>
+                  <p className="font-bold text-on-surface flex items-center gap-1">
+                    <span className="material-symbols-outlined text-base text-on-surface-variant">location_on</span>
+                    {caseData.location}
+                  </p>
+                </div>
               </div>
-              <div className="flex-shrink-0 w-32 h-24 bg-surface-container-highest rounded-xl flex flex-col items-center justify-center border border-outline-variant/50 cursor-pointer hover:bg-outline-variant/20 transition-colors">
-                <span className="material-symbols-outlined text-outline text-2xl mb-1">description</span>
-                <span className="text-[10px] font-bold">بحث الحالة</span>
+
+              <div className="mt-8 pt-6 border-t border-outline-variant/30">
+                <h3 className="font-bold text-on-surface mb-3 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">description</span>
+                  وصف الحالة والأسباب
+                </h3>
+                <p className="text-on-surface-variant leading-relaxed p-4 bg-surface-container-lowest rounded-xl">
+                  {caseData.description || "لا يوجد وصف مدون لهذه الحالة."}
+                </p>
               </div>
-              <div className="flex-shrink-0 w-32 h-24 bg-surface-container-highest rounded-xl flex flex-col items-center justify-center border border-outline-variant/50 cursor-pointer hover:bg-outline-variant/20 transition-colors">
-                <span className="material-symbols-outlined text-outline text-2xl mb-1">image</span>
-                <span className="text-[10px] font-bold">صورة المنزل</span>
+            </div>
+
+            <div className="bg-surface border border-outline-variant/30 rounded-3xl p-6 shadow-sm">
+              <h2 className="text-xl font-bold text-on-surface mb-6 flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">history</span>
+                سجل التعاملات (History)
+              </h2>
+              <div className="relative border-r-2 border-outline-variant/50 pr-6 gap-6 flex flex-col rtl:border-l-2 rtl:border-r-0 rtl:pl-6 rtl:pr-0">
+                {historyData.map((item, idx) => (
+                  <div key={item.id || idx} className="relative">
+                    <div className="absolute top-1 -right-8 rtl:-left-8 w-4 h-4 rounded-full bg-primary border-4 border-surface shadow-sm"></div>
+                    <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/20 -mt-2">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-bold text-on-surface">{item.action === 'CREATED_WITH_FAMILY' || item.action === 'CREATED' ? 'إنشاء الحالة' : `تحديث: ${item.action}`}</h4>
+                        <span className="text-xs font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded-md">
+                          {new Date(item.performedAt).toLocaleString("ar-EG")}
+                        </span>
+                      </div>
+                      <p className="text-sm text-on-surface-variant mt-1">تم نقل دورة الحياة إلى: <span className="font-bold">{lifecycleMap[item.toLifecycleStatus]?.label || item.toLifecycleStatus}</span> / القرار: <span className="font-bold">{decisionMap[item.toDecisionStatus]?.label || item.toDecisionStatus}</span></p>
+                      {item.reason && (
+                        <p className="text-sm mt-2 text-primary font-medium bg-primary/5 p-2 rounded-lg border border-primary/10">ملاحظة: {item.reason}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {historyData.length === 0 && (
+                  <p className="text-on-surface-variant text-sm">لا توجد حركات مسجلة</p>
+                )}
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl border border-outline-variant/30 p-6 shadow-sm">
-             <h2 className="text-lg font-bold font-headline mb-6 border-b border-outline-variant/30 pb-3">تحديثات وسجل الحالة</h2>
-             <div className="space-y-6">
-                <div className="flex gap-4 relative">
-                  <div className="w-[2px] bg-primary absolute right-[11px] top-[24px] bottom-[-24px]"></div>
-                  <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 z-10">
-                    <span className="material-symbols-outlined text-[12px]">done</span>
+          <div className="space-y-6">
+            <div className="bg-surface border border-outline-variant/30 rounded-3xl p-6 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-2 h-full bg-tertiary"></div>
+              <h2 className="text-lg font-bold text-on-surface mb-6 flex items-center gap-2">
+                <span className="material-symbols-outlined text-tertiary">family_home</span>
+                الأسرة المرتبطة
+              </h2>
+              
+              {caseData.family ? (
+                <>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-14 h-14 bg-tertiary/10 rounded-full flex items-center justify-center text-tertiary">
+                      <span className="material-symbols-outlined text-2xl">group</span>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-on-surface">{caseData.family.headName}</h3>
+                      <p className="text-sm text-on-surface-variant">{caseData.family.membersCount} أفراد</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-sm">البدء في التسليم</h4>
-                    <p className="text-xs text-on-surface-variant my-1">تمت الموافقة من لجنة الإدارة وجاري شراء الماكينة.</p>
-                    <span className="text-[10px] text-outline font-bold">اليوم، 10:30 صباحاً</span>
+                  
+                  <div className="space-y-4 mb-6">
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="material-symbols-outlined text-on-surface-variant w-5">phone</span>
+                      <span className="text-on-surface font-medium">{caseData.family.phone || 'بدون رقم'}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="material-symbols-outlined text-on-surface-variant w-5">location_on</span>
+                      <span className="text-on-surface font-medium truncate">{caseData.family.address || 'بدون عنوان'}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="material-symbols-outlined text-on-surface-variant w-5">work</span>
+                      <span className="text-on-surface font-medium">{caseData.family.job || 'لا يوجد وظيفة'}</span>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="flex gap-4 relative">
-                  <div className="w-[2px] bg-outline-variant/50 absolute right-[11px] top-[24px] bottom-[-24px]"></div>
-                  <div className="w-6 h-6 rounded-full bg-surface-container-high border-2 border-primary text-primary flex items-center justify-center flex-shrink-0 z-10">
-                    <span className="material-symbols-outlined text-[12px]">search</span>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm">الزيارة الميدانية</h4>
-                    <p className="text-xs text-on-surface-variant my-1">قامت سارة محمود بإجراء الزيارة الميدانية ورفع التقرير.</p>
-                    <span className="text-[10px] text-outline font-bold">24 أكتوبر، 02:15 مساءً</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 relative">
-                  <div className="w-6 h-6 rounded-full bg-surface-container-high border-2 border-outline flex items-center justify-center flex-shrink-0 z-10">
-                    <span className="material-symbols-outlined text-[12px]">add</span>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm">تسجيل مبدئي</h4>
-                    <p className="text-xs text-on-surface-variant my-1">تم إدخال الحالة للنظام من قبل أحمد محمد.</p>
-                    <span className="text-[10px] text-outline font-bold">20 أكتوبر، 09:00 صباحاً</span>
-                  </div>
-                </div>
-             </div>
-             <div className="mt-6 flex gap-2">
-               <input type="text" placeholder="اكتب تحديثاً أو ملاحظة..." className="flex-1 bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 text-sm outline-none" />
-               <button className="px-4 py-2 bg-primary/10 text-primary font-bold rounded-xl hover:bg-primary/20">إرسال</button>
-             </div>
+                  
+                  <Link 
+                    href={`/dashboard/families/${caseData.familyId}`}
+                    className="w-full py-2.5 bg-tertiary/10 text-tertiary hover:bg-tertiary/20 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
+                  >
+                    <span>فتح ملف الأسرة</span>
+                    <span className="material-symbols-outlined text-sm rtl:rotate-180">arrow_forward</span>
+                  </Link>
+                </>
+              ) : (
+                <p className="text-sm text-on-surface-variant">لا توجد أسرة مرتبطة مباشرة أو حدث خطأ في استرجاعها.</p>
+              )}
+            </div>
           </div>
+
         </div>
-
-        {/* Sidebar Info */}
-        <div className="space-y-6">
-          <div className="bg-surface-container-lowest rounded-3xl border border-outline-variant/30 p-6 shadow-sm">
-             <h3 className="font-bold font-headline mb-4 flex items-center gap-2">
-               <span className="material-symbols-outlined text-primary">family_restroom</span>
-               بيانات الأسرة المرتبطة
-             </h3>
-             <div className="bg-white rounded-2xl p-4 border border-outline-variant/30 mb-4">
-               <h4 className="font-bold text-primary mb-1">عائلة / محمود رمضان</h4>
-               <p className="text-xs text-on-surface-variant mb-3 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">location_on</span> بني سويف - ببا</p>
-               <div className="flex justify-between text-xs font-bold pt-3 border-t border-outline-variant/20">
-                 <span>الأفراد: 5</span>
-                 <span>الدخل: ضعيف</span>
-               </div>
-             </div>
-             <Link href="/dashboard/families/F-2024-001" className="w-full py-2 bg-white border border-primary/30 text-primary hover:bg-primary/5 rounded-xl font-bold flex items-center justify-center gap-2 text-sm transition-colors">
-               عرض ملف الأسرة <span className="material-symbols-outlined text-[16px] rtl:rotate-180">arrow_forward</span>
-             </Link>
-          </div>
-
-          <div className="bg-[#fcb900]/10 rounded-3xl border border-[#fcb900]/30 p-6 shadow-sm">
-             <h3 className="font-bold font-headline text-[#8a6500] mb-2 flex items-center gap-2">
-               <span className="material-symbols-outlined">warning</span>
-               مؤشرات هامة
-             </h3>
-             <ul className="space-y-2 text-sm text-[#8a6500] font-medium list-disc list-inside px-2">
-               <span>عائل الأسرة غير قادر على العمل بدنياً.</span><br/>
-               <span>يوجد طفلان في مراحل تعليمية حرجة.</span>
-             </ul>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }

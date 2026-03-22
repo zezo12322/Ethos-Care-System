@@ -39,13 +39,14 @@ export default function NewCasePage() {
     setSearchLoading(true);
     try {
       const res = await api.get(`/search?q=${formData.nationalId}`);
-      if (res.data.found && res.data.family) {
+      if (res.data.families && res.data.families.length > 0) {
+        const foundFamily = res.data.families[0];
         setFamilyFound(true);
         // Pre-fill fields
         setFormData(prev => ({
           ...prev,
-          applicantName: res.data.family.name,
-          familyId: res.data.family.id
+          applicantName: foundFamily.headName || "بدون اسم",
+          familyId: foundFamily.id
         }));
         alert("تم العثور على الأسرة بنجاح");
       } else {

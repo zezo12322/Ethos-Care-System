@@ -15,7 +15,11 @@ export class StatsService {
       totalOperations
     ] = await Promise.all([
       this.prisma.case.count(),
-      this.prisma.case.count({ where: { status: 'قيد المراجعة' } }),
+      this.prisma.case.count({ 
+        where: { 
+          lifecycleStatus: { in: ['DRAFT', 'INTAKE_REVIEW', 'FIELD_VERIFICATION', 'COMMITTEE_REVIEW'] } 
+        } 
+      }),
       this.prisma.family.count(),
       this.prisma.family.count({ where: { status: 'مستحق' } }),
       this.prisma.operation.count()

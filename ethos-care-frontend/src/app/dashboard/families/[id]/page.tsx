@@ -1,10 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import React from "react";
+import React, { useState, useEffect, use } from "react";
+import api from "@/lib/api";
 
-export default function FamilyDetailsPage({ params }: { params: { id: string } }) {
-  const familyId = params.id || "F-2024-101";
+export default function FamilyDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  
+  const [family, setFamily] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const { id: familyId } = use(params);
+
+  useEffect(() => {
+    api.get(`/families/${familyId}`).then(res => {
+      setFamily(res.data);
+      setLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setLoading(false);
+    });
+  }, [familyId]);
+
+  if (loading) return <div className="p-8 text-center">جاري تحميل بيانات الأسرة...</div>;
+  if (!family) return <div className="p-8 text-center text-red-500">حدث خطأ أو لم يتم العثور على الأسرة</div>;
+
 
   return (
     <div className="space-y-6">
@@ -15,10 +33,10 @@ export default function FamilyDetailsPage({ params }: { params: { id: string } }
           </Link>
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold font-headline text-on-surface">أسرة / محمود عبدالرحمن السيد</h1>
+              <h1 className="text-2xl font-bold font-headline text-on-surface">أسرة / {family.headName || "بدون اسم"}</h1>
               <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold font-body">مستحق</span>
             </div>
-            <p className="text-sm text-on-surface-variant font-bold tracking-widest" dir="ltr">{familyId}</p>
+            <p className="text-sm text-on-surface-variant font-bold tracking-widest" dir="ltr">{family.id || familyId}</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -41,7 +59,7 @@ export default function FamilyDetailsPage({ params }: { params: { id: string } }
           </div>
           <div>
             <p className="text-xs text-on-surface-variant">حجم الأسرة</p>
-            <p className="text-xl font-bold">5 أفراد</p>
+            <p className="text-xl font-bold">{family.membersCount || 2} أفراد</p>
           </div>
         </div>
         <div className="bg-white rounded-2xl border border-outline-variant/30 p-4 flex items-center gap-4">

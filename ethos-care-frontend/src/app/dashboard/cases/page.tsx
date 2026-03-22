@@ -53,7 +53,6 @@ export default function CasesPage() {
       await api.patch(`/cases/${editingCase.id}`, {
         applicantName: editingCase.name,
         caseType: editingCase.type,
-        status: editingCase.status,
         priority: editingCase.priority,
         location: editingCase.location,
       });
@@ -77,9 +76,23 @@ export default function CasesPage() {
     }
   };
 
+
+  const lifecycleMap: any = {
+    DRAFT: { label: "مسودة", color: "bg-surface-container text-on-surface" },
+    INTAKE_REVIEW: { label: "مراجعة مبدئية", color: "bg-warning/20 text-warning-dark" },
+    FIELD_VERIFICATION: { label: "تحقق ميداني", color: "bg-warning/30 text-warning-dark" },
+    COMMITTEE_REVIEW: { label: "مراجعة اللجنة", color: "bg-tertiary/20 text-tertiary" },
+    APPROVED: { label: "تمت الموافقة", color: "bg-success/20 text-success" },
+    IN_PROGRESS: { label: "قيد التنفيذ", color: "bg-primary/20 text-primary" },
+    COMPLETED: { label: "مكتملة", color: "bg-success text-on-success" },
+    REJECTED: { label: "مرفوضة", color: "bg-error/20 text-error" },
+    ON_HOLD: { label: "معلقة", color: "bg-surface-variant text-on-surface-variant" },
+    ARCHIVED: { label: "مؤرشفة", color: "bg-outline text-surface" },
+  };
+
   const filteredCases = cases.filter(c => {
     if (filterType !== "الكل" && c.type !== filterType) return false;
-    if (filterStatus !== "الكل" && c.status !== filterStatus) return false;
+    if (filterStatus !== "الكل" && c.lifecycleStatus !== filterStatus) return false;
     if (search && !c.name.includes(search) && !c.id.includes(search)) return false;
     return true;
   });
@@ -119,9 +132,16 @@ export default function CasesPage() {
             </select>
             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="bg-surface-container-lowest border border-outline-variant/50 text-sm rounded-lg px-3 py-2 outline-none focus:border-primary">
               <option value="الكل">جميع الحالات</option>
-              <option value="قيد المراجعة">قيد المراجعة</option>
-              <option value="نشط">نشط</option>
-              <option value="مكتمل">مكتمل</option>
+              <option value="DRAFT">مسودة</option>
+              <option value="INTAKE_REVIEW">مراجعة مبدئية</option>
+              <option value="FIELD_VERIFICATION">تحقق ميداني</option>
+              <option value="COMMITTEE_REVIEW">مراجعة اللجنة</option>
+              <option value="APPROVED">تمت الموافقة</option>
+              <option value="IN_PROGRESS">قيد التنفيذ</option>
+              <option value="COMPLETED">مكتملة</option>
+              <option value="REJECTED">مرفوضة</option>
+              <option value="ON_HOLD">معلقة</option>
+              <option value="ARCHIVED">مؤرشفة</option>
             </select>
           </div>
         </div>
@@ -166,20 +186,20 @@ export default function CasesPage() {
                   <td className="px-6 py-4 text-on-surface-variant max-w-[150px] truncate">{c.location}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-bold ${
-                      c.status === "نشط" ? "bg-blue-100 text-blue-800" :
-                      c.status === "مكتمل" ? "bg-green-100 text-green-800" :
-                      c.status === "مرفوض" ? "bg-red-100 text-red-800" :
-                      "bg-amber-100 text-amber-800"
+                      lifecycleMap[c.lifecycleStatus]?.color || "bg-surface-container text-on-surface"
                     }`}>
-                      {c.status}
+                      {lifecycleMap[c.lifecycleStatus]?.label || c.lifecycleStatus}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-center">
                      <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                       <button onClick={() => handleEditClick(c)} className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors">
+                       <a href={`/dashboard/cases/${c.id}`} className="w-8 h-8 flex items-center justify-center rounded-full bg-tertiary/10 text-tertiary hover:bg-tertiary hover:text-white transition-colors" title="عرض التفاصيل">
+                          <span className="material-symbols-outlined text-[18px]">visibility</span>
+                       </a>
+                       <button onClick={() => handleEditClick(c)} className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors" title="تعديل">
                           <span className="material-symbols-outlined text-[18px]">edit</span>
                        </button>
-                       <button onClick={() => handleDeleteClick(c.id)} className="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-colors">
+                       <button onClick={() => handleDeleteClick(c.id)} className="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-colors" title="حذف">
                           <span className="material-symbols-outlined text-[18px]">delete</span>
                        </button>
                     </div>
@@ -196,7 +216,7 @@ export default function CasesPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl leading-relaxed">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold">تعديل الحالة</h3>
+              <h3 className="text-xl font-bold">تعديل البيانات</h3>
               <button onClick={() => setIsEditModalOpen(false)} className="text-outline hover:text-on-surface"><span className="material-symbols-outlined">close</span></button>
             </div>
             <form onSubmit={handleUpdateCase} className="space-y-4 text-right">
@@ -217,24 +237,16 @@ export default function CasesPage() {
               <div>
                 <label className="block text-sm font-bold mb-2">الأولوية</label>
                 <select value={editingCase.priority} onChange={e => setEditingCase({...editingCase, priority: e.target.value})} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary">
-                  <option value="عاجل">عاجل</option>
-                  <option value="عالي">عالي</option>
-                  <option value="عادي">عادي</option>
+                  <option value="URGENT">عاجل</option>
+                  <option value="HIGH">عالي</option>
+                  <option value="NORMAL">عادي</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-bold mb-2">المدينة / المكان</label>
                 <input required type="text" value={editingCase.location} onChange={e => setEditingCase({...editingCase, location: e.target.value})} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary" />
               </div>
-              <div>
-                <label className="block text-sm font-bold mb-2">حالة الملف</label>
-                <select value={editingCase.status} onChange={e => setEditingCase({...editingCase, status: e.target.value})} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary">
-                  <option value="قيد المراجعة">قيد المراجعة</option>
-                  <option value="نشط">نشط</option>
-                  <option value="مكتمل">مكتمل</option>
-                  <option value="مرفوض">مرفوض</option>
-                </select>
-              </div>
+              
               <div className="pt-4 flex gap-3">
                 <button type="submit" className="flex-1 bg-primary text-white py-3 rounded-xl font-bold hover:bg-primary-container transition-colors">حفظ التعديلات</button>
                 <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 bg-surface-container-highest text-on-surface py-3 rounded-xl font-bold hover:bg-surface-container-high transition-colors">إلغاء</button>

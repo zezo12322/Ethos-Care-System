@@ -15,7 +15,12 @@ export default function ImmediateSearch() {
     setSearched(true);
     try {
       const res = await api.get(`/search?q=${query}`);
-      setResult(res.data);
+      const foundClasses = res.data.families?.length > 0 || res.data.cases?.length > 0;
+      setResult({
+        found: foundClasses,
+        family: res.data.families?.[0] || null,
+        cases: res.data.cases || []
+      });
     } catch (err) {
       console.error(err);
       setResult({ found: false });
@@ -80,7 +85,7 @@ export default function ImmediateSearch() {
                 {result.family ? (
                   <div className="mb-6 border-b border-outline-variant/20 pb-6">
                     <h3 className="text-sm font-bold text-primary mb-2">بيانات الأسرة</h3>
-                    <h2 className="text-2xl font-extrabold font-headline mb-1">{result.family.name}</h2>
+                    <h2 className="text-2xl font-extrabold font-headline mb-1">{result.family.headName}</h2>
                     <p className="text-on-surface-variant text-sm mb-4">{result.family.address}</p>
                     <div className="flex gap-4">
                       <span className="px-3 py-1 bg-green-100 text-green-800 rounded-lg text-sm font-bold">{result.family.status}</span>
@@ -98,11 +103,11 @@ export default function ImmediateSearch() {
                       {result.cases.map((c: any) => (
                         <div key={c.id} className="flex justify-between items-center bg-surface-container-high p-4 rounded-xl">
                           <div>
-                            <p className="font-bold">{c.name}</p>
-                            <p className="text-xs text-on-surface-variant mt-1">{c.type}</p>
+                            <p className="font-bold">{c.applicantName}</p>
+                            <p className="text-xs text-on-surface-variant mt-1">{c.caseType}</p>
                           </div>
                           <div>
-                            <span className="px-3 py-1 bg-surface-container-highest rounded-full text-xs font-bold">{c.status}</span>
+                            <span className="px-3 py-1 bg-surface-container-highest rounded-full text-xs font-bold">{c.lifecycleStatus}</span>
                           </div>
                         </div>
                       ))}
