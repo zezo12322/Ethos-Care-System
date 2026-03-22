@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("CASE_WORKER")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Case {
+  id            String   @id @default(uuid())
+  applicantName String
+  nationalId    String? 
+  caseType      String   @default("غير محدد")
+  status        String   @default("قيد المراجعة")
+  priority      String   @default("عادي")
+  location      String   @default("بني سويف")
+  description   String?
+  familyId      String?
+  family        Family?  @relation(fields: [familyId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Family {
+  id             String   @id @default(uuid())
+  headName       String
+  nationalId     String?
+  phone          String?
+  socialStatus   String   @default("متزوج/ة")
+  job            String?
+  income         String?
+  city           String   @default("بني سويف - المركز")
+  village        String?
+  addressDetails String?
+  address        String?
+  membersCount   Int      @default(1)
+  status         String   @default("تحت التقييم")
+  cases          Case[]
+  lastVisit      DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Operation {
+  id         String   @id @default(uuid())
+  name       String
+  type       String
+  date       DateTime @default(now())
+  target     Int      @default(0)
+  achieved   Int      @default(0)
+  status     String   @default("تجهيز")
+  progress   Int      @default(0)
+  volunteers Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

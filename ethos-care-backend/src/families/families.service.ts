@@ -1,0 +1,47 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Injectable()
+export class FamiliesService {
+  constructor(private prisma: PrismaService) {}
+
+  async findAll() {
+    return this.prisma.family.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async findOne(id: string) {
+    return this.prisma.family.findUnique({ where: { id } });
+  }
+
+  async create(data: any) {
+    return this.prisma.family.create({
+      data: {
+        headName: data.headName || "بدون اسم",
+        membersCount: parseInt(data.membersCount) || 1,
+        income: data.income ? String(data.income) : "0",
+        address: data.address || "غير محدد",
+        phone: data.phone || "غير محدد",
+        lastVisit: new Date(),
+        status: "تحت التقييم",
+        socialStatus: data.socialStatus || "متزوج/ة",
+        job: data.job || null,
+        city: data.city || "بني سويف - المركز",
+        village: data.village || null,
+        addressDetails: data.addressDetails || null,
+        nationalId: data.nationalId || null,
+        cases: {
+          create: {
+            applicantName: data.headName || "بدون اسم",
+            nationalId: data.nationalId || null,
+            caseType: data.caseType || "تمكين اقتصادي",
+            priority: data.priority || "عادي",
+            location: data.village ? `${data.village} - ${data.city}` : "بني سويف",
+            description: data.description || null
+          }
+        }
+      }
+    });
+  }
+}
