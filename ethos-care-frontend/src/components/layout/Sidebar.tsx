@@ -14,18 +14,18 @@ export default function Sidebar() {
     <aside className="fixed right-0 top-0 h-screen w-64 bg-primary z-50 flex flex-col p-4 overflow-y-auto font-headline antialiased text-right shadow-[0px_12px_32px_-4px_rgba(0,40,38,0.06)]">
       <div className="mb-10 flex flex-col items-center gap-2">
         <div className="mb-2 flex items-center justify-center">
-          <img src="/logo.png" alt="شعار صناع الحياة" className="w-20 h-20 object-contain" />
+          <img src="/logo.png" alt="شعار صناع الحياة" className="w-20 h-20 object-contain brightness-0 invert" />
         </div>
         <h2 className="text-2xl font-bold text-white tracking-tight">
           صناع الحياة
         </h2>
-        <p className="text-primary-200/60 text-xs">لوحة التحكم الإدارية</p>
+        <p className="text-white/60 text-xs">لوحة التحكم الإدارية</p>
       </div>
       <nav className="space-y-2">
         {isAuthorized(["ADMIN", "CEO", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
         <Link
           href="/dashboard"
-          className="flex items-center gap-3 px-4 py-3 text-primary-200/70 hover:text-white transition-colors hover:bg-primary-800/30 rounded-lg"
+          className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
         >
           <span className="material-symbols-outlined">dashboard</span>
           <span>الرئيسية</span>
@@ -34,7 +34,7 @@ export default function Sidebar() {
         {isAuthorized(["ADMIN", "MANAGER", "EXECUTION_OFFICER"]) && (
         <Link
           href="/dashboard/operations"
-          className="flex items-center gap-3 px-4 py-3 text-primary-200/70 hover:text-white transition-colors hover:bg-primary-800/30 rounded-lg"
+          className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
         >
           <span className="material-symbols-outlined">settings_accessibility</span>
           <span>العمليات</span>
@@ -43,7 +43,7 @@ export default function Sidebar() {
         {isAuthorized(["ADMIN", "CASE_WORKER", "DATA_ENTRY", "CEO", "EXECUTION_OFFICER"]) && (
         <Link
           href="/dashboard/cases"
-          className="flex items-center gap-3 px-4 py-3 text-primary-200/70 hover:text-white transition-colors hover:bg-primary-800/30 rounded-lg"
+          className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
         >
           <span className="material-symbols-outlined">folder_shared</span>
           <span>الحالات</span>
@@ -52,7 +52,7 @@ export default function Sidebar() {
         {isAuthorized(["ADMIN", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
         <Link
           href="/dashboard/families"
-          className="flex items-center gap-3 px-4 py-3 text-primary-200/70 hover:text-white transition-colors hover:bg-primary-800/30 rounded-lg"
+          className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
         >
           <span className="material-symbols-outlined">family_restroom</span>
           <span>الأسر</span>
@@ -61,7 +61,7 @@ export default function Sidebar() {
         {isAuthorized(["ADMIN", "CEO", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
         <Link
           href="/dashboard/search"
-          className="flex items-center gap-3 px-4 py-3 text-primary-200/70 hover:text-white transition-colors hover:bg-primary-800/30 rounded-lg"
+          className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
         >
           <span className="material-symbols-outlined">search</span>
           <span>البحث</span>
@@ -70,7 +70,7 @@ export default function Sidebar() {
         {isAuthorized(["ADMIN", "CEO", "MANAGER", "EXECUTION_OFFICER"]) && (
         <Link
           href="/dashboard/reports"
-          className="flex items-center gap-3 px-4 py-3 text-primary-200/70 hover:text-white transition-colors hover:bg-primary-800/30 rounded-lg"
+          className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
         >
           <span className="material-symbols-outlined">analytics</span>
           <span>التقارير</span>
@@ -79,7 +79,7 @@ export default function Sidebar() {
         {isAuthorized(["ADMIN", "CEO"]) && (
         <Link
           href="/dashboard/partners"
-          className="flex items-center gap-3 px-4 py-3 text-primary-200/70 hover:text-white transition-colors hover:bg-primary-800/30 rounded-lg"
+          className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
         >
           <span className="material-symbols-outlined">handshake</span>
           <span>الشركاء</span>
@@ -88,7 +88,7 @@ export default function Sidebar() {
         {isAuthorized(["ADMIN", "CEO"]) && (
         <Link
           href="/dashboard/news"
-          className="flex items-center gap-3 px-4 py-3 text-primary-200/70 hover:text-white transition-colors hover:bg-primary-800/30 rounded-lg"
+          className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
         >
           <span className="material-symbols-outlined">newspaper</span>
           <span>الأخبار</span>
@@ -97,17 +97,17 @@ export default function Sidebar() {
         {isAuthorized(["ADMIN", "CEO", "CASE_WORKER", "EXECUTION_OFFICER"]) && (
         <Link
           href="/dashboard/locations"
-          className="flex items-center gap-3 px-4 py-3 text-primary-200/70 hover:text-white transition-colors hover:bg-primary-800/30 rounded-lg"
+          className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
         >
           <span className="material-symbols-outlined">location_on</span>
           <span>النطاق الجغرافي</span>
         </Link>
         )}
-        <div className="pt-6 mt-6 border-t border-primary-800/50 space-y-2">
+        <div className="pt-6 mt-6 border-t border-white/10 space-y-2">
         {isAuthorized(["ADMIN"]) && (
           <Link
             href="/dashboard/admin"
-            className="flex items-center gap-3 px-4 py-3 text-primary-200/70 hover:text-white transition-colors hover:bg-primary-800/30 rounded-lg"
+            className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
           >
             <span className="material-symbols-outlined">admin_panel_settings</span>
             <span>الإدارة</span>
@@ -116,7 +116,7 @@ export default function Sidebar() {
         </div>
       </nav>
             {/* Logout button */}
-      <div className="mt-4 pt-4 border-t border-primary-800/50">
+      <div className="mt-4 pt-4 border-t border-white/10">
         <button
           onClick={() => {
             import("js-cookie").then((Cookies) => {
@@ -132,7 +132,7 @@ export default function Sidebar() {
       </div>
       {/* Bottom version badge inside sidebar */}
       <div className="mt-auto pt-8 pb-4 text-center">
-        <p className="text-primary-200/40 text-[10px] uppercase tracking-widest">
+        <p className="text-white/40 text-[10px] uppercase tracking-widest">
           Version 1.0.0
         </p>
       </div>
