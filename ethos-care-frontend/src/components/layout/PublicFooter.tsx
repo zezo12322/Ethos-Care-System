@@ -6,10 +6,8 @@ export default function PublicFooter() {
     <footer className="bg-[#0b2841] text-white pt-20 pb-8 mt-auto">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
         <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <div className="bg-white/10 p-1.5 rounded-lg backdrop-blur-sm">
-              <img src="/logo.png" alt="شعار صناع الحياة" className="w-10 h-10 object-contain" />
-            </div>
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="شعار صناع الحياة" className="w-14 h-14 object-contain" />
             <div className="flex flex-col">
               <span className="font-headline font-bold text-xl leading-none text-white">صناع الحياة</span>
               <span className="text-[10px] text-white/70 font-bold">بني سويف</span>

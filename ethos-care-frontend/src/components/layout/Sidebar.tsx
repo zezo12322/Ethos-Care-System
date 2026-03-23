@@ -13,8 +13,8 @@ export default function Sidebar() {
   return (
     <aside className="fixed right-0 top-0 h-screen w-64 bg-primary z-50 flex flex-col p-4 overflow-y-auto font-headline antialiased text-right shadow-[0px_12px_32px_-4px_rgba(0,40,38,0.06)]">
       <div className="mb-10 flex flex-col items-center gap-2">
-        <div className="w-16 h-16 bg-white/10 rounded-xl flex items-center justify-center mb-2 p-2">
-          <img src="/logo.png" alt="شعار صناع الحياة" className="w-full h-full object-contain" />
+        <div className="mb-2 flex items-center justify-center">
+          <img src="/logo.png" alt="شعار صناع الحياة" className="w-20 h-20 object-contain" />
         </div>
         <h2 className="text-2xl font-bold text-white tracking-tight">
           صناع الحياة
