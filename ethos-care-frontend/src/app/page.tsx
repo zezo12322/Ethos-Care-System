@@ -2,6 +2,9 @@ import Link from "next/link";
 import PublicHeader from "@/components/layout/PublicHeader";
 import PublicFooter from "@/components/layout/PublicFooter";
 
+import VerificationWidget from "@/components/VerificationWidget";
+import DynamicStats from "@/components/DynamicStats";
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-surface flex flex-col font-body">
@@ -35,7 +38,7 @@ export default function LandingPage() {
                   <span className="material-symbols-outlined rtl:rotate-180">arrow_right_alt</span>
                 </Link>
                 <Link 
-                  href="#projects" 
+                  href="/projects" 
                   className="px-8 py-4 bg-white text-primary border border-outline-variant/30 hover:bg-surface-container-low rounded-2xl font-bold text-lg transition-all"
                 >
                   تعرف على مشاريعنا
@@ -64,49 +67,13 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* National ID Verification Card Widget (overlapping slightly) */}
+        {/* Verification Card Widget */}
         <section className="relative z-20 max-w-4xl mx-auto px-6 -mt-10 mb-16">
-          <div className="bg-white rounded-3xl p-8 shadow-[0px_20px_48px_-12px_rgba(0,40,38,0.12)] border border-outline-variant/20 flex flex-col md:flex-row items-end gap-6">
-            <div className="flex-1 w-full">
-              <label className="block text-sm font-bold text-primary mb-3">تحقق بالرقم القومي</label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline">search</span>
-                <input 
-                  type="text" 
-                  maxLength={14}
-                  placeholder="أدخل الـ 14 رقم..." 
-                  className="w-full bg-surface-container-low border-none rounded-xl py-4 pr-12 pl-4 focus:ring-2 focus:ring-primary/20 text-lg font-bold tracking-widest text-left"
-                  dir="ltr"
-                />
-              </div>
-              <p className="text-xs text-on-surface-variant mt-3 font-medium">يمكنك التحقق من حالة طلبك أو عضويتك باستخدام الرقم القومي الخاص بك.</p>
-            </div>
-            <button className="w-full md:w-auto px-10 py-4 bg-[#fcb900] text-on-surface hover:bg-[#e5a800] rounded-xl font-bold text-lg transition-transform active:scale-95 shadow-md whitespace-nowrap">
-              تحقق الآن
-            </button>
-          </div>
+          <VerificationWidget />
         </section>
 
         {/* Stats Section */}
-        <section className="py-12 border-b border-outline-variant/10">
-          <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-outline-variant/20">
-            <div className="p-4">
-              <h3 className="text-5xl font-extrabold font-headline text-primary mb-2">+1500</h3>
-              <p className="text-lg font-bold text-on-surface">أسرة مستفيدة</p>
-              <p className="text-sm text-on-surface-variant mt-1">تتلقى دعماً مستمراً طوال العام الحالي</p>
-            </div>
-            <div className="p-4">
-              <h3 className="text-5xl font-extrabold font-headline text-[#fcb900] mb-2">7</h3>
-              <p className="text-lg font-bold text-on-surface">مراكز مغطاة</p>
-              <p className="text-sm text-on-surface-variant mt-1">نغطي كافة مراكز محافظة بني سويف</p>
-            </div>
-            <div className="p-4">
-              <h3 className="text-5xl font-extrabold font-headline text-primary mb-2">+200</h3>
-              <p className="text-lg font-bold text-on-surface">متطوع</p>
-              <p className="text-sm text-on-surface-variant mt-1">يعملون يومياً لخدمة أهالينا</p>
-            </div>
-          </div>
-        </section>
+        <DynamicStats />
 
         {/* Services Section */}
         <section id="services" className="py-20 bg-surface">
@@ -285,7 +252,7 @@ export default function LandingPage() {
                 اطلب مساعدة
               </Link>
               <Link
-                href="#"
+                href="/volunteer"
                 className="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-lg backdrop-blur-sm transition-colors border border-white/20 flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined">diversity_1</span>

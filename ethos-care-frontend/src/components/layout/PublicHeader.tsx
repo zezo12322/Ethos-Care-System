@@ -19,6 +19,7 @@ export default function PublicHeader() {
           <Link href="/" className="hover:text-primary transition-colors">الرئيسية</Link>
           <Link href="/about" className="hover:text-primary transition-colors">من نحن</Link>
           <Link href="/projects" className="hover:text-primary transition-colors">المشاريع والخدمات</Link>
+          <Link href="/volunteer" className="hover:text-primary transition-colors">تطوع معنا</Link>
           <Link href="/contact" className="hover:text-primary transition-colors">تواصل معنا</Link>
         </nav>
 

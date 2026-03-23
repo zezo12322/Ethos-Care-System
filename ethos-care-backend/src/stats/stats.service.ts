@@ -12,7 +12,9 @@ export class StatsService {
       pendingCases,
       totalFamilies,
       eligibleFamilies,
-      totalOperations
+      totalOperations,
+      totalLocations,
+      totalUsers
     ] = await Promise.all([
       this.prisma.case.count(),
       this.prisma.case.count({ 
@@ -22,7 +24,9 @@ export class StatsService {
       }),
       this.prisma.family.count(),
       this.prisma.family.count({ where: { status: 'مستحق' } }),
-      this.prisma.operation.count()
+      this.prisma.operation.count(),
+      this.prisma.location.count(),
+      this.prisma.user.count()
     ]);
 
     return {
@@ -37,6 +41,11 @@ export class StatsService {
       operations: {
         total: totalOperations,
         totalBudget: 0,
+      },
+      public: {
+        families: eligibleFamilies > 0 ? eligibleFamilies : totalFamilies,
+        locations: totalLocations,
+        volunteers: totalUsers
       }
     };
   }
