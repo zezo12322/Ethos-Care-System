@@ -1,29 +1,35 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UnauthorizedException, Get } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, UnauthorizedException, Get, Headers } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
+  constructor(private prisma: PrismaService) {}
+
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  login(@Body() signInDto: Record<string, any>) {
-    // Mock login logic
-    if (signInDto.nationalId === 'test' || signInDto.password === '123456') {
+  async login(@Body() signInDto: LoginDto) {
+    const username = signInDto.nationalId || signInDto.email;
+    const user = await this.prisma.user.findUnique({ where: { email: username } });
+    
+    if (user && user.password === signInDto.password) {
       return {
-        access_token: 'mock_jwt_token_12345',
-        user: { id: 1, name: 'أحمد محمد', role: 'admin' },
+        access_token: `mock_jwt_token_${user.id}`,
+        user: { id: user.id, name: user.name, role: user.role, email: user.email },
       };
     }
-    // Auto-approve anything for the prototype unless it's explicitly wrong
-    if (signInDto.nationalId) {
-      return {
-        access_token: 'mock_jwt_token_auto_approved',
-        user: { id: 1, name: 'مدير النظام', role: 'admin' },
-      };
-    }
-    throw new UnauthorizedException();
+
+    throw new UnauthorizedException('بيانات الدخول غير صحيحة');
   }
 
   @Get('me')
-  getMe() {
-    return { id: 1, name: 'أحمد محمد', role: 'admin', branch: 'بني سويف' };
+  async getMe(@Headers('authorization') auth: string) {
+    if (!auth) throw new UnauthorizedException();
+    const token = auth.replace('Bearer ', '');
+    const id = token.replace('mock_jwt_token_', '');
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new UnauthorizedException();
+    
+    return { id: user.id, name: user.name, role: user.role, email: user.email, branch: 'بني سويف' };
   }
 }

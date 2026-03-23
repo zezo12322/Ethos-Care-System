@@ -89,4 +89,10 @@ export class CasesController {
   transitionComplete(@Param('id') id: string, @Body() body: any) {
     return this.casesService.transition(id, 'COMPLETED', 'APPROVED', 'complete', body.reason);
   }
+
+  @Post(':id/transitions/technical_reject')
+  transitionTechnicalReject(@Param('id') id: string, @Body() body: any) {
+    return this.casesService.transition(id, 'TECH_REJECTED', 'APPROVED', 'technical_reject', body.reason);
+  }
+
 }

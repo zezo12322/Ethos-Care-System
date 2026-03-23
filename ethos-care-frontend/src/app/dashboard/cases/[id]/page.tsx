@@ -141,7 +141,7 @@ export default function CaseDetailsPage() {
               {/* Transition actions based on statuses */}
               
               {/* Case Worker Actions */}
-              {(caseData.lifecycleStatus === 'DRAFT' || caseData.lifecycleStatus === 'INTAKE_REVIEW') && (
+              {caseData.lifecycleStatus === 'DRAFT' && (
                 <button disabled={actionLoading} onClick={() => handleTransition('review')} className="px-5 py-2 bg-warning text-on-warning hover:bg-warning/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
                   <span className="material-symbols-outlined">how_to_reg</span>
                   إرسال للمراجعة المبدئية

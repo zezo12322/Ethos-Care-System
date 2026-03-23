@@ -3,60 +3,50 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = "postgresql://postgres.wlyrzlahujmkcznqgnhj:1357z2468A%40%40@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
+  provider  = "postgresql"
+  url       = "postgresql://postgres.wlyrzlahujmkcznqgnhj:1357z2468A%40%40@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
   directUrl = "postgresql://postgres.wlyrzlahujmkcznqgnhj:1357z2468A%40%40@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      String   @default("CASE_WORKER")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String        @id @default(uuid())
+  email         String        @unique
+  password      String
+  name          String
+  role          String        @default("CASE_WORKER")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   assignedCases Case[]
-  actions CaseHistory[]
-  news    News[]
+  actions       CaseHistory[]
+  news          News[]
 }
 
 model Case {
-  id                      String   @id @default(uuid())
+  id                      String        @id @default(uuid())
   applicantName           String
-  nationalId              String? 
-  caseType                String   @default("غير محدد")
-  
-  // Legacy status
-  status                  String   @default("قيد المراجعة")
-  
-  // New workflow fields
-  lifecycleStatus         String   @default("DRAFT")
-  completenessStatus      String   @default("MISSING_DOCUMENTS")
-  decisionStatus          String   @default("PENDING_DECISION")
-  
-  priority                String   @default("NORMAL")
-  location                String   @default("بني سويف")
+  nationalId              String?
+  caseType                String        @default("غير محدد")
+  status                  String        @default("قيد المراجعة")
+  lifecycleStatus         String        @default("DRAFT")
+  completenessStatus      String        @default("MISSING_DOCUMENTS")
+  decisionStatus          String        @default("PENDING_DECISION")
+  priority                String        @default("NORMAL")
+  location                String        @default("بني سويف")
   description             String?
   familyId                String?
-  family                  Family?  @relation(fields: [familyId], references: [id])
-  
   assignedToId            String?
-  assignedTo              User?    @relation(fields: [assignedToId], references: [id])
-  
-  requiresCommitteeReview Boolean  @default(false)
-  lastActionAt            DateTime @default(now())
-  
+  requiresCommitteeReview Boolean       @default(false)
+  lastActionAt            DateTime      @default(now())
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+  assignedTo              User?         @relation(fields: [assignedToId], references: [id])
+  family                  Family?       @relation(fields: [familyId], references: [id])
   history                 CaseHistory[]
-  
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
 }
 
 model CaseHistory {
   id                  String   @id @default(uuid())
   caseId              String
-  case                Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
   fromLifecycleStatus String?
   toLifecycleStatus   String
   fromDecisionStatus  String?
@@ -64,31 +54,32 @@ model CaseHistory {
   action              String
   reason              String?
   performedById       String?
-  performedBy         User?    @relation(fields: [performedById], references: [id])
   metadataJson        String?
   performedAt         DateTime @default(now())
+  case                Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  performedBy         User?    @relation(fields: [performedById], references: [id])
 }
 
 model Family {
-  id             String   @id @default(uuid())
+  id             String         @id @default(uuid())
   headName       String
   nationalId     String?
   phone          String?
-  socialStatus   String   @default("متزوج/ة")
+  socialStatus   String         @default("متزوج/ة")
   job            String?
-  education      String?
   income         String?
-  city           String   @default("بني سويف - المركز")
+  city           String         @default("بني سويف - المركز")
   village        String?
   addressDetails String?
   address        String?
-  membersCount   Int      @default(1)
-  status         String   @default("تحت التقييم")
+  membersCount   Int            @default(1)
+  status         String         @default("تحت التقييم")
+  lastVisit      DateTime       @default(now())
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  education      String?
   cases          Case[]
   familyMembers  FamilyMember[]
-  lastVisit      DateTime @default(now())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
 }
 
 model Operation {
@@ -111,24 +102,24 @@ model Partner {
   type      String   @default("مؤسسة مانحة")
   contact   String?
   email     String?
-  image     String?
   status    String   @default("نشط")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  image     String?
 }
 
 model News {
-  id          String   @id @default(uuid())
-  title       String
-  content     String
-  category    String   @default("فعاليات")
-  image       String?
-  date        DateTime @default(now())
-  published   Boolean  @default(true)
-  authorId    String?
-  author      User?    @relation(fields: [authorId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  category  String   @default("فعاليات")
+  image     String?
+  date      DateTime @default(now())
+  published Boolean  @default(true)
+  authorId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  author    User?    @relation(fields: [authorId], references: [id])
 }
 
 model Location {
@@ -141,15 +132,14 @@ model Location {
   updatedAt DateTime @updatedAt
 }
 
-
 model FamilyMember {
-  id             String   @id @default(uuid())
-  name           String
-  relation       String   @default("ابن/ة")
-  age            String?
-  education      String?  @default("لا يدرس")
-  familyId       String
-  family         Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id        String   @id @default(uuid())
+  name      String
+  relation  String   @default("ابن/ة")
+  age       String?
+  education String?  @default("لا يدرس")
+  familyId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
 }
