@@ -4,8 +4,8 @@ import React, { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { PublicHeader } from "@/components/layout/PublicHeader";
-import { PublicFooter } from "@/components/layout/PublicFooter";
+import PublicHeader from "@/components/layout/PublicHeader";
+import PublicFooter from "@/components/layout/PublicFooter";
 
 export default function NewsArticle() {
   const { id } = useParams();

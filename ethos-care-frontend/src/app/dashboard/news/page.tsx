@@ -77,12 +77,12 @@ export default function NewsPage() {
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl leading-relaxed text-right">
             <h3 className="text-xl font-bold mb-4">إضافة خبر جديد</h3>
             <form onSubmit={handleCreateNewsItem} className="space-y-4">
-              <input required category="text" placeholder="اسم الخبر" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary" />
-              <input category="text" placeholder="رقم المتواصل" value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})} className="w-full border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary" />
-              <input category="image" placeholder="البريد الإلكتروني" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary" />
+              <input required type="text" placeholder="اسم الخبر" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary" />
+              <input type="text" placeholder="رقم المتواصل" value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})} className="w-full border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary" />
+              <input type="image" placeholder="البريد الإلكتروني" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full border border-outline-variant/50 rounded-xl py-2 px-3 outline-none focus:border-primary" />
               <div className="flex gap-2 pt-4">
-                <button category="submit" className="flex-1 bg-primary text-white py-3 rounded-xl font-bold">حفظ</button>
-                <button category="button" onClick={() => setIsModalOpen(false)} className="flex-1 bg-surface-container-highest text-on-surface py-3 rounded-xl font-bold">إلغاء</button>
+                <button type="submit" className="flex-1 bg-primary text-white py-3 rounded-xl font-bold">حفظ</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 bg-surface-container-highest text-on-surface py-3 rounded-xl font-bold">إلغاء</button>
               </div>
             </form>
           </div>
