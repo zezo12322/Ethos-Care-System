@@ -75,6 +75,7 @@ model Family {
   phone          String?
   socialStatus   String   @default("متزوج/ة")
   job            String?
+  education      String?
   income         String?
   city           String   @default("بني سويف - المركز")
   village        String?

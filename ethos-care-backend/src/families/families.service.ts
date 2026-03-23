@@ -51,6 +51,7 @@ export class FamiliesService {
         status: "تحت التقييم",
         socialStatus: data.socialStatus || "متزوج/ة",
         job: data.job || null,
+        education: data.education || null,
         city: data.city || "بني سويف - المركز",
         village: data.village || null,
         addressDetails: data.addressDetails || null,
@@ -89,6 +90,9 @@ export class FamiliesService {
         address: data.address,
         phone: data.phone,
         status: data.status,
+        socialStatus: data.socialStatus,
+        job: data.job,
+        education: data.education,
       }
     });
   }

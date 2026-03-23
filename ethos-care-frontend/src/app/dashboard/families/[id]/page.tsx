@@ -210,7 +210,7 @@ export default function FamilyDetailsPage({ params }: { params: Promise<{ id: st
                بحث الحالة (التقييم الشامل)
              </h3>
              <p className="text-sm leading-relaxed text-on-surface-variant mb-4 border-r-2 border-primary pr-3">
-               {family.job ? `الوظيفة: ${family.job}` : "بدون عمل مسجل"} — الحالة الاجتماعية: {family.socialStatus} — {family.income ? `الدخل التقريبي: ${family.income} ج.م` : "لا يوجد دخل مسجل"}
+               الحالة الاجتماعية: {family.socialStatus} — {family.education ? `المؤهل: ${family.education}` : "بدون مؤهل مسجل"} — {family.job ? `الوظيفة: ${family.job}` : "بدون عمل مسجل"} — {family.income ? `الدخل التقريبي: ${family.income} ج.م` : "لا يوجد دخل مسجل"}
              </p>
              <button className="w-full py-2 bg-white border border-outline-variant/50 hover:bg-surface-container-low rounded-xl font-bold flex items-center justify-center gap-2 text-sm transition-colors text-primary">
                تنزيل استمارة البحث كاملة <span className="material-symbols-outlined text-[18px]">download</span>

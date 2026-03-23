@@ -14,6 +14,7 @@ export default function NewFamilyPage() {
     nationalId: "",
     phone: "",
     socialStatus: "متزوج/ة",
+    education: "",
     job: "",
     income: "",
     city: "بني سويف - المركز",
@@ -118,6 +119,10 @@ export default function NewFamilyPage() {
                   <option value="مطلق/ة">مطلق/ة</option>
                   <option value="أعزب">أعزب</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">المؤهل الدراسي</label>
+                <input name="education" value={formData.education} onChange={handleChange} type="text" className="w-full bg-surface-container-low border border-outline-variant/50 rounded-xl py-2.5 px-4 outline-none focus:border-primary" placeholder="أمي، يقرأ ويكتب، دبلوم، بكالوريوس..." />
               </div>
               <div>
                 <label className="block text-sm font-bold mb-2">المهنة / العمل الحالي</label>
