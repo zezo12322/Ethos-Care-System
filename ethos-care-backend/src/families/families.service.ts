@@ -12,7 +12,14 @@ export class FamiliesService {
   }
 
   async findOne(id: string) {
-    return this.prisma.family.findUnique({ where: { id } });
+    return this.prisma.family.findUnique({ 
+      where: { id },
+      include: {
+        cases: {
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    });
   }
 
   async create(data: any) {
