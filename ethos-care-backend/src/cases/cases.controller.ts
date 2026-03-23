@@ -95,4 +95,8 @@ export class CasesController {
     return this.casesService.transition(id, 'TECH_REJECTED', 'APPROVED', 'technical_reject', body.reason);
   }
 
+  @Post(':id/transitions/return_to_review')
+  transitionReturnToReview(@Param('id') id: string, @Body() body: any) {
+    return this.casesService.transition(id, 'DRAFT', 'PENDING_DECISION', 'return_to_review', body.reason);
+  }
 }

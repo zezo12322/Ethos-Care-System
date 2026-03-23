@@ -155,6 +155,10 @@ export default function CaseDetailsPage() {
                     <span className="material-symbols-outlined">fact_check</span>
                     اعتماد إداري (موافقة نهائية)
                   </button>
+                  <button disabled={actionLoading} onClick={() => handleTransition('return_to_review')} className="px-5 py-2 bg-warning text-on-warning hover:bg-warning/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                    <span className="material-symbols-outlined">assignment_return</span>
+                    إعادة للباحث الميداني
+                  </button>
                   <button disabled={actionLoading} onClick={() => handleTransition('reject')} className="px-5 py-2 bg-error text-on-error hover:bg-error/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
                     <span className="material-symbols-outlined">cancel</span>
                     رفض إداري
