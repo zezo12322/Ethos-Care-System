@@ -6,14 +6,8 @@ export default function PublicFooter() {
     <footer className="bg-[#0b2841] text-white pt-20 pb-8 mt-auto">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
         <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <div className="bg-white/10 p-2 rounded-lg backdrop-blur-sm">
-              <span className="material-symbols-outlined text-white text-3xl">diversity_3</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-headline font-bold text-xl leading-none text-white">صناع الحياة</span>
-              <span className="text-[10px] text-white/70 font-bold">بني سويف</span>
-            </div>
+          <div className="bg-white p-3 rounded-xl inline-block shadow-sm">
+            <img src="/logo.png" alt="صناع الحياة بني سويف" className="h-10 w-auto object-contain" />
           </div>
           <p className="text-sm text-white/70 leading-relaxed">
             نسعى لبناء مجتمع متكافل ومستدام من خلال تقديم الدعم والمساعدة للفئات الأكثر احتياجاً في مختلف قرى ومراكز بني سويف.

@@ -12,10 +12,7 @@ export default function RequestAidPage() {
       <header className="bg-white border-b border-outline-variant/20 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <span className="material-symbols-outlined text-primary text-2xl">diversity_3</span>
-            </div>
-            <span className="font-headline font-bold text-xl text-primary">صناع الحياة</span>
+            <img src="/logo.png" alt="صناع الحياة بني سويف" className="h-10 w-auto object-contain" />
           </Link>
           <Link href="/" className="text-sm font-bold text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1">
             العودة للرئيسية <span className="material-symbols-outlined text-[16px] rtl:rotate-180">arrow_back</span>

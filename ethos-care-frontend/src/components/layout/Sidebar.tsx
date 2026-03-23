@@ -13,15 +13,10 @@ export default function Sidebar() {
   return (
     <aside className="fixed right-0 top-0 h-screen w-64 bg-primary z-50 flex flex-col p-4 overflow-y-auto font-headline antialiased text-right shadow-[0px_12px_32px_-4px_rgba(0,40,38,0.06)]">
       <div className="mb-10 flex flex-col items-center gap-2">
-        <div className="w-16 h-16 bg-white/10 rounded-xl flex items-center justify-center mb-2">
-          <span className="material-symbols-outlined text-white text-4xl">
-            settings_accessibility
-          </span>
+        <div className="w-full bg-white rounded-xl flex items-center justify-center py-3 px-2 mb-2 shadow-sm">
+          <img src="/logo.png" alt="صناع الحياة بني سويف" className="h-10 w-auto object-contain" />
         </div>
-        <h2 className="text-2xl font-bold text-white tracking-tight">
-          صناع الحياة
-        </h2>
-        <p className="text-primary-200/60 text-xs">لوحة التحكم الإدارية</p>
+        <p className="text-primary-200/60 text-xs mt-2">لوحة التحكم الإدارية</p>
       </div>
       <nav className="space-y-2">
         {isAuthorized(["ADMIN", "CEO", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
