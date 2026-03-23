@@ -115,13 +115,22 @@ export default function FamilyDetailsPage({ params }: { params: Promise<{ id: st
                       <td className="px-5 py-3 text-center">-</td>
                       <td className="px-5 py-3">-</td>
                     </tr>
-                    {family.membersCount > 1 && (
+                    {family.familyMembers && family.familyMembers.length > 0 ? (
+                      family.familyMembers.map((member: any) => (
+                        <tr key={member.id} className="hover:bg-surface-container-lowest/50">
+                          <td className="px-5 py-3 font-bold">{member.name}</td>
+                          <td className="px-5 py-3">{member.relation}</td>
+                          <td className="px-5 py-3 text-center">{member.age || "-"}</td>
+                          <td className="px-5 py-3">{member.education || "-"}</td>
+                        </tr>
+                      ))
+                    ) : family.membersCount > 1 ? (
                       <tr className="hover:bg-surface-container-lowest/50">
                          <td className="px-5 py-3 text-center text-on-surface-variant italic" colSpan={4}>
                            يوجد عدد {family.membersCount - 1} أفراد تابعين (البيانات التفصيلية غير مسجلة حالياً)
                          </td>
                       </tr>
-                    )}
+                    ) : null}
                   </tbody>
                 </table>
              </div>

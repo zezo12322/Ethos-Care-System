@@ -15,6 +15,7 @@ export class FamiliesService {
     return this.prisma.family.findUnique({ 
       where: { id },
       include: {
+        familyMembers: true,
         cases: {
           orderBy: { createdAt: 'desc' }
         }
@@ -27,9 +28,21 @@ export class FamiliesService {
     const decisionStatus = 'PENDING_DECISION';
     const completenessStatus = data.nationalId ? 'COMPLETE' : 'MISSING_NATIONAL_ID';
 
+    const familyMembersData = data.membersDetails && data.membersDetails.length > 0 
+      ? {
+          create: data.membersDetails.map(member => ({
+            name: member.name,
+            age: member.age,
+            relation: member.relation,
+            education: member.education
+          }))
+        }
+      : undefined;
+
     return this.prisma.family.create({
       data: {
         headName: data.headName || "بدون اسم",
+        familyMembers: familyMembersData,
         membersCount: parseInt(data.membersCount) || 1,
         income: data.income ? String(data.income) : "0",
         address: data.address || "غير محدد",
