@@ -66,6 +66,13 @@ export default function Sidebar() {
           <span>الشركاء</span>
         </Link>
         <Link
+          href="/dashboard/news"
+          className="flex items-center gap-3 px-4 py-3 text-emerald-200/70 hover:text-white transition-colors hover:bg-emerald-800/30 rounded-lg"
+        >
+          <span className="material-symbols-outlined">newspaper</span>
+          <span>الأخبار</span>
+        </Link>
+        <Link
           href="/dashboard/locations"
           className="flex items-center gap-3 px-4 py-3 text-emerald-200/70 hover:text-white transition-colors hover:bg-emerald-800/30 rounded-lg"
         >

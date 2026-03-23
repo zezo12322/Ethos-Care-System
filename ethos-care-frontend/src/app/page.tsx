@@ -4,6 +4,8 @@ import PublicFooter from "@/components/layout/PublicFooter";
 
 import VerificationWidget from "@/components/VerificationWidget";
 import DynamicStats from "@/components/DynamicStats";
+import DynamicNews from "@/components/DynamicNews";
+import DynamicPartners from "@/components/DynamicPartners";
 
 export default function LandingPage() {
   return (
