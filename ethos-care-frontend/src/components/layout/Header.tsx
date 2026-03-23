@@ -1,6 +1,12 @@
+"use client";
+
 import React from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Header() {
+  const { user } = useAuth();
+  const roleNames: Record<string, string> = { "ADMIN": "مدير النظام", "CEO": "المدير التنفيذي", "CASE_WORKER": "باحث حالة", "DATA_ENTRY": "مدخل بيانات", "EXECUTION_OFFICER": "مسؤول التنفيذ" };
+
   return (
     <header className="sticky top-0 z-40 bg-surface/80 backdrop-blur-md border-b border-outline-variant/10">
       <div className="flex items-center justify-between px-8 py-4">
@@ -19,10 +25,10 @@ export default function Header() {
           <button className="flex items-center gap-3 pr-4 border-r border-outline-variant/20 hover:opacity-80 transition-opacity">
             <div className="flex flex-col items-end">
               <span className="text-sm font-bold text-on-surface font-headline">
-                أحمد محمد
+                {user ? user.name : "..."}
               </span>
               <span className="text-[10px] text-primary tracking-wide">
-                مسؤول النظام
+                {user ? (roleNames[user.role] || user.role) : "..."}
               </span>
             </div>
             <img
