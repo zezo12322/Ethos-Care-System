@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Cairo } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
   subsets: ["latin"],
+});
+
+const dinNext = localFont({
+  src: "./fonts/DINNextLTArabic-Regular.ttf",
+  variable: "--font-din-next-lt-arabic",
 });
 
 const cairo = Cairo({
@@ -24,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl" className={`${jakarta.variable} ${cairo.variable}`}>
+    <html lang="ar" dir="rtl" className={`${jakarta.variable} ${cairo.variable} ${dinNext.variable}`}>
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
       </head>
