@@ -61,7 +61,7 @@ export default function Sidebar() {
         {isAuthorized(["ADMIN", "CEO", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
         <Link
           href="/dashboard/search"
-          className="flex items-center gap-3 px-4 py-3 bg-primary-800/50 text-primary-100 rounded-lg font-bold scale-[0.98] transition-all duration-200"
+          className="flex items-center gap-3 px-4 py-3 text-primary-200/70 hover:text-white transition-colors hover:bg-primary-800/30 rounded-lg"
         >
           <span className="material-symbols-outlined">search</span>
           <span>البحث</span>
