@@ -35,12 +35,14 @@ model Case {
   description             String?
   familyId                String?
   assignedToId            String?
+  operationId             String?
   requiresCommitteeReview Boolean       @default(false)
   lastActionAt            DateTime      @default(now())
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
   assignedTo              User?         @relation(fields: [assignedToId], references: [id])
   family                  Family?       @relation(fields: [familyId], references: [id])
+  operation               Operation?    @relation(fields: [operationId], references: [id])
   history                 CaseHistory[]
 }
 
@@ -94,6 +96,7 @@ model Operation {
   volunteers Int      @default(0)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  cases      Case[]
 }
 
 model Partner {

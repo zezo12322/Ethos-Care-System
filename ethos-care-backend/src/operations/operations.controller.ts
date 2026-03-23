@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put } from '@nestjs/common';
 import { OperationsService } from './operations.service';
 import { CreateOperationDto } from './dto/create-operation.dto';
 
@@ -14,10 +14,13 @@ export class OperationsController {
       title: o.name,
       type: o.type,
       targetFamilies: o.target,
-      budget: `غير متوفر ج.م`, // Since budget was removed from schema
-      location: `غير محدد`,  // Replaced with other fields in schema maybe
+      budget: `غير متوفر ج.م`,
+      location: `غير محدد`,
       date: o.date.toISOString().split('T')[0],
-      status: o.status
+      status: o.status,
+      achieved: o.achieved,
+      progress: o.progress,
+      volunteers: o.volunteers,
     }));
   }
 
@@ -37,7 +40,20 @@ export class OperationsController {
       budget: `غير متوفر ج.م`,
       location: `غير محدد`,
       date: o.date.toISOString().split('T')[0],
-      status: o.status
+      status: o.status,
+      achieved: o.achieved,
+      progress: o.progress,
+      volunteers: o.volunteers,
     };
+  }
+
+  @Post(':id/assign-cases')
+  async assignCases(@Param('id') id: string, @Body('caseIds') caseIds: string[]) {
+    return this.operationsService.assignCases(id, caseIds);
+  }
+
+  @Post(':id/complete')
+  async completeOperation(@Param('id') id: string) {
+    return this.operationsService.completeOperation(id);
   }
 }

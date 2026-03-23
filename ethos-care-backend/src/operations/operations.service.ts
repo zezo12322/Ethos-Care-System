@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -12,7 +12,10 @@ export class OperationsService {
   }
 
   async findOne(id: string) {
-    return this.prisma.operation.findUnique({ where: { id } });
+    return this.prisma.operation.findUnique({ 
+        where: { id },
+        include: { cases: true }
+    });
   }
 
   async create(data: any) {
@@ -27,6 +30,63 @@ export class OperationsService {
         date: data.executionDate ? new Date(data.executionDate) : new Date(),
         status: "تجهيز",
       }
+    });
+  }
+
+  async assignCases(operationId: string, caseIds: string[]) {
+    const operation = await this.prisma.operation.findUnique({ where: { id: operationId } });
+    if (!operation) throw new NotFoundException('Operation not found');
+
+    // Update the cases to link them to the operation
+    await this.prisma.case.updateMany({
+        where: { id: { in: caseIds } },
+        data: { operationId }
+    });
+
+    // Update operation progress
+    const updatedCount = await this.prisma.case.count({ where: { operationId } });
+    const progress = Math.min(100, Math.round((updatedCount / (operation.target || 1)) * 100));
+    
+    return this.prisma.operation.update({
+        where: { id: operationId },
+        data: { achieved: updatedCount, progress, status: "جاري" },
+        include: { cases: true }
+    });
+  }
+
+  async completeOperation(operationId: string) {
+    const operation = await this.prisma.operation.findUnique({ 
+        where: { id: operationId },
+        include: { cases: true }
+    });
+    
+    if (!operation) throw new NotFoundException('Operation not found');
+
+    // Update all cases to COMPLETED
+    if (operation.cases && operation.cases.length > 0) {
+        const caseIds = operation.cases.map(c => c.id);
+        await this.prisma.case.updateMany({
+            where: { id: { in: caseIds } },
+            data: { lifecycleStatus: 'COMPLETED' }
+        });
+
+        // Add history records for each case
+        const historyData = caseIds.map(id => ({
+            caseId: id,
+            fromLifecycleStatus: 'APPROVED',
+            toLifecycleStatus: 'COMPLETED',
+            fromDecisionStatus: 'APPROVED',
+            toDecisionStatus: 'APPROVED',
+            action: 'complete',
+            reason: `تم التنفيذ عن طريق حملة: ${operation.name}`,
+        }));
+        await this.prisma.caseHistory.createMany({ data: historyData });
+    }
+
+    // Mark operation as complete
+    return this.prisma.operation.update({
+        where: { id: operationId },
+        data: { status: "مكتمل", progress: 100 }
     });
   }
 }
