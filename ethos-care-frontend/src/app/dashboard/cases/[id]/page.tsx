@@ -3,16 +3,18 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import api from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function CaseDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { user } = useAuth();
+  const currentRole = user?.role || "CASE_WORKER";
 
   const [caseData, setCaseData] = useState<any>(null);
   const [historyData, setHistoryData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [currentRole, setCurrentRole] = useState<"CASE_MANAGER" | "EXECUTIVE_DIRECTOR" | "EXECUTION_OFFICER" | "ADMIN">("ADMIN");
 
   useEffect(() => {
     fetchData();
@@ -76,10 +78,11 @@ export default function CaseDetailsPage() {
     INTAKE_REVIEW: { label: "مراجعة مبدئية", color: "bg-warning/20 text-warning" },
     FIELD_VERIFICATION: { label: "تحقق ميداني", color: "bg-warning/30 text-warning-dark" },
     COMMITTEE_REVIEW: { label: "مراجعة اللجنة", color: "bg-tertiary/20 text-tertiary" },
-    APPROVED: { label: "تمت الموافقة", color: "bg-success/20 text-success" },
+    APPROVED: { label: "في انتظار التنفيذ (مقبول إدارياً)", color: "bg-success/20 text-success" },
     IN_PROGRESS: { label: "قيد التنفيذ", color: "bg-primary/20 text-primary" },
-    COMPLETED: { label: "مكتملة", color: "bg-success text-on-success" },
-    REJECTED: { label: "مرفوضة", color: "bg-error/20 text-error" },
+    COMPLETED: { label: "تم النفيذ (مكتملة)", color: "bg-success text-on-success" },
+    REJECTED: { label: "مرفوضة إدارياً", color: "bg-error/20 text-error" },
+    TECH_REJECTED: { label: "مرفوضة فنياً (لتعذر التنفيذ)", color: "bg-error text-on-error" },
     ON_HOLD: { label: "معلقة", color: "bg-surface-variant text-on-surface-variant" },
     ARCHIVED: { label: "مؤرشفة", color: "bg-outline text-surface" },
   };
@@ -98,8 +101,8 @@ export default function CaseDetailsPage() {
   };
 
 
-  const isCaseManager = currentRole === "CASE_MANAGER" || currentRole === "ADMIN";
-  const isExecDirector = currentRole === "EXECUTIVE_DIRECTOR" || currentRole === "ADMIN";
+  const isCaseWorker = currentRole === "CASE_WORKER" || currentRole === "ADMIN";
+  const isExecDirector = currentRole === "CEO" || currentRole === "ADMIN";
   const isExecOfficer = currentRole === "EXECUTION_OFFICER" || currentRole === "ADMIN";
 
   const lc = lifecycleMap[caseData.lifecycleStatus] || { label: caseData.lifecycleStatus, color: "bg-surface-container" };
@@ -110,26 +113,7 @@ export default function CaseDetailsPage() {
   return (
     <div className="min-h-screen bg-surface">
       {/* Header */}
-
-      {/* Role Switcher for Simulation */}
-      <div className="bg-surface-container-lowest border-b border-outline-variant/30 px-6 py-2 flex items-center justify-between z-30 relative">
-        <div className="flex items-center gap-3">
-          <span className="material-symbols-outlined text-outline">shield_person</span>
-          <span className="text-sm font-bold opacity-70">محاكي الصلاحيات (RBAC)</span>
-        </div>
-        <select 
-          value={currentRole}
-          onChange={(e) => setCurrentRole(e.target.value as any)}
-          className="bg-surface-container-low border border-outline-variant/50 text-sm rounded-lg px-3 py-1 outline-none font-bold"
-        >
-          <option value="ADMIN">مسؤول النظام (Admin)</option>
-          <option value="CASE_MANAGER">مدير الحالات (Case Manager)</option>
-          <option value="EXECUTIVE_DIRECTOR">المدير التنفيذي (Executive Director)</option>
-          <option value="EXECUTION_OFFICER">مسؤول التنفيذ (Execution Officer)</option>
-        </select>
-      </div>
-      <header
- className="bg-surface border-b border-outline-variant/30 sticky top-0 z-20">
+      <header className="bg-surface border-b border-outline-variant/30 sticky top-0 z-20">
         <div className="max-w-[1600px] mx-auto px-6 py-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex gap-4 items-center">
@@ -155,31 +139,41 @@ export default function CaseDetailsPage() {
 
             <div className="flex gap-3">
               {/* Transition actions based on statuses */}
+              
+              {/* Case Worker Actions */}
               {(caseData.lifecycleStatus === 'DRAFT' || caseData.lifecycleStatus === 'INTAKE_REVIEW') && (
-                <button disabled={actionLoading} onClick={() => handleTransition('review')} className="px-5 py-2 bg-surface-variant text-on-surface hover:bg-surface-container-highest rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
-                  <span className="material-symbols-outlined">rate_review</span>
-                  طلب مراجعة
+                <button disabled={actionLoading} onClick={() => handleTransition('review')} className="px-5 py-2 bg-warning text-on-warning hover:bg-warning/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                  <span className="material-symbols-outlined">how_to_reg</span>
+                  إرسال للمراجعة المبدئية
                 </button>
               )}
               
-              {(caseData.decisionStatus === 'PENDING_DECISION' || caseData.lifecycleStatus === 'COMMITTEE_REVIEW') && (
+              {/* CEO Actions (Administrative Approval) */}
+              {isExecDirector && (caseData.decisionStatus === 'PENDING_DECISION' || caseData.lifecycleStatus === 'INTAKE_REVIEW' || caseData.lifecycleStatus === 'COMMITTEE_REVIEW') && (
                 <>
                   <button disabled={actionLoading} onClick={() => handleTransition('approve')} className="px-5 py-2 bg-success text-on-success hover:bg-success/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
-                    <span className="material-symbols-outlined">check_circle</span>
-                    الموافقة
+                    <span className="material-symbols-outlined">fact_check</span>
+                    اعتماد إداري (موافقة نهائية)
                   </button>
                   <button disabled={actionLoading} onClick={() => handleTransition('reject')} className="px-5 py-2 bg-error text-on-error hover:bg-error/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
                     <span className="material-symbols-outlined">cancel</span>
-                    الرفض
+                    رفض إداري
                   </button>
                 </>
               )}
 
+              {/* Execution Officer Actions (Technical Execution) */}
               {isExecOfficer && caseData.lifecycleStatus === 'APPROVED' && (
-                <button disabled={actionLoading} onClick={() => handleTransition('complete')} className="px-5 py-2 bg-primary text-on-primary hover:bg-primary/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
-                  <span className="material-symbols-outlined">done_all</span>
-                  تنفيذ واكتمال
-                </button>
+                <>
+                  <button disabled={actionLoading} onClick={() => handleTransition('complete')} className="px-5 py-2 bg-primary text-on-primary hover:bg-primary/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                    <span className="material-symbols-outlined">done_all</span>
+                    تم التنفيذ بنجاح
+                  </button>
+                  <button disabled={actionLoading} onClick={() => handleTransition('technical_reject')} className="px-5 py-2 bg-error text-on-error hover:bg-error/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                    <span className="material-symbols-outlined">block</span>
+                    مرفوض فنياً
+                  </button>
+                </>
               )}
               
               <Link href={`/dashboard/cases/${id}/edit`} className="px-5 py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
