@@ -30,7 +30,7 @@ export class FamiliesService {
 
     const familyMembersData = data.membersDetails && data.membersDetails.length > 0 
       ? {
-          create: data.membersDetails.map(member => ({
+          create: data.membersDetails.map((member: any) => ({
             name: member.name,
             age: member.age,
             relation: member.relation,
