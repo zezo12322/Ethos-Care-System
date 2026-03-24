@@ -155,7 +155,7 @@ export default function AdminPage() {
             <div className="space-y-4">
                <div>
                   <label className="block text-sm font-bold mb-2">اسم المنظمة / الفرع</label>
-                  <input type="text" defaultValue="جمعية صناع الحياة مصر - فرع بني سويف" className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2.5 px-3 outline-none" />
+                  <input type="text" defaultValue="جمعية أجيال صناع الحياة ببني سويف" className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl py-2.5 px-3 outline-none" />
                </div>
                <div>
                   <label className="block text-sm font-bold mb-2">الشعار</label>

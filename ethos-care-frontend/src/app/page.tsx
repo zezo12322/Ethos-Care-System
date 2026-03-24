@@ -6,6 +6,7 @@ import VerificationWidget from "@/components/VerificationWidget";
 import DynamicStats from "@/components/DynamicStats";
 import DynamicNews from "@/components/DynamicNews";
 import DynamicPartners from "@/components/DynamicPartners";
+import DonateSection from "@/components/DonateSection";
 
 export default function LandingPage() {
   return (
@@ -19,7 +20,7 @@ export default function LandingPage() {
             <div className="space-y-8 z-10">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-surface-container-low text-primary text-xs font-bold rounded-full border border-outline-variant/30">
                 <span className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
-                جمعية صناع الحياة مصر - فرع بني سويف
+                جمعية أجيال صناع الحياة ببني سويف
               </div>
               
               <h1 className="text-5xl lg:text-7xl font-extrabold font-headline leading-[1.1] text-primary">
@@ -154,6 +155,7 @@ export default function LandingPage() {
 
         {/* Support and Partners Section */}
         <DynamicPartners />
+        <DonateSection />
       </main>
 
       <PublicFooter />

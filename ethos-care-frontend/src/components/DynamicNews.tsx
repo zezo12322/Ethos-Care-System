@@ -19,7 +19,7 @@ export default function DynamicNews() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div className="border-r-4 border-primary pr-6">
             <h2 className="text-3xl font-extrabold font-headline text-primary mb-4">أخبار الفرع</h2>
-            <p className="text-on-surface-variant text-lg">تابع أحدث فعاليات وأنشطة صناع الحياة في محافظة بني سويف</p>
+            <p className="text-on-surface-variant text-lg">تابع أحدث فعاليات وأنشطة أجيال أجيال صناع الحياة في محافظة بني سويف</p>
           </div>
         </div>
 

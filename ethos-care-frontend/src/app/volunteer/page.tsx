@@ -10,7 +10,7 @@ export default function VolunteerPage() {
         <h1 className="text-4xl font-bold text-primary mb-6">تطوع معنا</h1>
         <div className="bg-white p-8 rounded-3xl border border-outline-variant/30 shadow-sm">
           <p className="text-lg text-on-surface-variant mb-8">
-            نحن سعداء برغبتك في الانضمام إلى فريق المتطوعين في صناع الحياة. يرجى ملء النموذج أدناه وسنتواصل معك قريباً.
+            نحن سعداء برغبتك في الانضمام إلى فريق المتطوعين في أجيال صناع الحياة. يرجى ملء النموذج أدناه وسنتواصل معك قريباً.
           </p>
           <form className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

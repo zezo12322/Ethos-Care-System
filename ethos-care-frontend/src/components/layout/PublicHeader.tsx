@@ -8,8 +8,8 @@ export default function PublicHeader() {
         <Link href="/" className="flex items-center gap-2">
           <img src="/logo.png" alt="شعار صناع الحياة" className="w-16 h-16 object-contain mt-2" />
           <div className="flex flex-col">
-            <span className="font-headline font-bold text-xl leading-none text-primary">صناع الحياة</span>
-            <span className="text-[10px] text-on-surface-variant font-bold">بني سويف</span>
+            <span className="font-headline font-bold text-xl leading-none text-primary">أجيال صناع الحياة</span>
+            <span className="text-[10px] text-on-surface-variant font-bold">ببني سويف</span>
           </div>
         </Link>
 

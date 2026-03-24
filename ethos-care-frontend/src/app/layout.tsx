@@ -20,8 +20,8 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "صناع الحياة - نظام إدارة الحالات",
-  description: "نظام إدارة الحالات والطلبات لجمعية صناع الحياة",
+  title: "أجيال أجيال صناع الحياة - نظام إدارة الحالات",
+  description: "نظام إدارة الحالات والطلبات لجمعية أجيال صناع الحياة",
 };
 
 export default function RootLayout({

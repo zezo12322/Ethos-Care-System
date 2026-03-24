@@ -15,7 +15,7 @@ export default function AboutPage() {
           <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
             <h1 className="text-4xl font-bold font-headline mb-4">من نحن</h1>
             <p className="text-primary-container text-lg max-w-2xl mx-auto">
-              جمعية صناع الحياة مصر، مؤسسة أهلية وطنية غير هادفة للربح، تعمل في مجال التنمية المجتمعية وتعبئة طاقات الشباب نحو العمل التطوعي.
+              جمعية أجيال صناع الحياة، مؤسسة أهلية وطنية غير هادفة للربح، تعمل في مجال التنمية المجتمعية وتعبئة طاقات الشباب نحو العمل التطوعي.
             </p>
           </div>
         </section>

@@ -33,7 +33,7 @@ export default function ContactPage() {
           <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
             <h1 className="text-3xl md:text-4xl font-bold font-headline mb-4">تواصل معنا</h1>
             <p className="text-primary-container text-lg max-w-2xl mx-auto">
-              نحن هنا للإجابة على استفساراتكم وشكواكم. لا تترددوا في التواصل مع فريق صناع الحياة بفرع بني سويف.
+              نحن هنا للإجابة على استفساراتكم وشكواكم. لا تترددوا في التواصل مع فريق أجيال صناع الحياة ببني سويف.
             </p>
           </div>
         </section>
@@ -57,7 +57,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-on-surface text-lg mb-1">العنوان</h3>
-                    <p className="text-on-surface-variant text-sm">بني سويف، شارع بورسعيد، عمارة الأوقاف، بجوار مبنى المحافظة القديم، الدور الأول.</p>
+                    <p className="text-on-surface-variant text-sm">حي الزهور الشارع المقابل لمسجد ثروت الدعوري  مركز بني سويف محافظة بني سويف</p>
                   </div>
                 </div>
 
@@ -67,7 +67,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-on-surface text-lg mb-1">الهاتف المحمول وأرضي</h3>
-                    <p className="text-on-surface-variant text-sm" dir="ltr">010 1234 5678</p>
+                    <p className="text-on-surface-variant text-sm" dir="ltr">01020040935</p>
                     <p className="text-on-surface-variant text-sm" dir="ltr">19222 (رقم مختصر)</p>
                   </div>
                 </div>
