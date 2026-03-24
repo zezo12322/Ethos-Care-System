@@ -31,7 +31,7 @@ export default function Sidebar() {
           <span>الرئيسية</span>
         </Link>
         )}
-        {isAuthorized(["ADMIN", "MANAGER", "EXECUTION_OFFICER"]) && (
+        {isAuthorized(["ADMIN", "MANAGER", "EXECUTION_OFFICER", "CEO", "CASE_WORKER", "DATA_ENTRY"]) && (
         <Link
           href="/dashboard/operations"
           className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
