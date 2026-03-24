@@ -49,7 +49,7 @@ export default function PublicFooter() {
             </li>
             <li className="flex items-center gap-3">
               <span className="material-symbols-outlined text-primary-fixed">mail</span>
-              <span dir="ltr">info.benisuef@lifemakers.org</span>
+              <span dir="ltr">info@lifemakers-bns.org</span>
             </li>
           </ul>
         </div>

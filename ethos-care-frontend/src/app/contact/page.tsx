@@ -78,7 +78,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-on-surface text-lg mb-1">البريد الإلكتروني</h3>
-                    <p className="text-on-surface-variant text-sm" dir="ltr">info.benisuef@lifemakers.org</p>
+                    <p className="text-on-surface-variant text-sm" dir="ltr">info@lifemakers-bns.org</p>
                   </div>
                 </div>
               </div>
