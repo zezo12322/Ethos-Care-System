@@ -1,11 +1,12 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Sidebar() {
   const { user } = useAuth();
-  const userRole = user?.role || "CASE_WORKER"; // default 
+  const userRole = user?.role || "CASE_WORKER";
 
   // Check if role is authorized
   const isAuthorized = (allowedRoles: string[]) => allowedRoles.includes(userRole);
@@ -14,7 +15,7 @@ export default function Sidebar() {
     <aside className="fixed right-0 top-0 h-screen w-64 bg-primary z-50 flex flex-col p-4 overflow-y-auto font-headline antialiased text-right shadow-[0px_12px_32px_-4px_rgba(0,40,38,0.06)]">
       <div className="mb-10 flex flex-col items-center gap-2">
         <div className="mb-2 flex items-center justify-center">
-          <img src="/logo.png" alt="شعار صناع الحياة" className="w-20 h-20 object-contain brightness-0 invert" />
+          <Image src="/logo.png" alt="شعار صناع الحياة" width={80} height={80} className="w-20 h-20 object-contain brightness-0 invert" />
         </div>
         <h2 className="text-2xl font-bold text-white tracking-tight">
           صناع الحياة
@@ -22,7 +23,7 @@ export default function Sidebar() {
         <p className="text-white/60 text-xs">لوحة التحكم الإدارية</p>
       </div>
       <nav className="space-y-2">
-        {isAuthorized(["ADMIN", "CEO", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
+        {isAuthorized(["ADMIN", "CEO", "MANAGER", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
         <Link
           href="/dashboard"
           className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
@@ -40,7 +41,7 @@ export default function Sidebar() {
           <span>العمليات</span>
         </Link>
         )}
-        {isAuthorized(["ADMIN", "CASE_WORKER", "DATA_ENTRY", "CEO", "EXECUTION_OFFICER"]) && (
+        {isAuthorized(["ADMIN", "CEO", "MANAGER", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
         <Link
           href="/dashboard/cases"
           className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
@@ -49,7 +50,7 @@ export default function Sidebar() {
           <span>الحالات</span>
         </Link>
         )}
-        {isAuthorized(["ADMIN", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
+        {isAuthorized(["ADMIN", "CEO", "MANAGER", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
         <Link
           href="/dashboard/families"
           className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
@@ -58,7 +59,7 @@ export default function Sidebar() {
           <span>الأسر</span>
         </Link>
         )}
-        {isAuthorized(["ADMIN", "CEO", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
+        {isAuthorized(["ADMIN", "CEO", "MANAGER", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
         <Link
           href="/dashboard/search"
           className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
@@ -94,7 +95,7 @@ export default function Sidebar() {
           <span>الأخبار</span>
         </Link>
         )}
-        {isAuthorized(["ADMIN", "CEO", "CASE_WORKER", "EXECUTION_OFFICER"]) && (
+        {isAuthorized(["ADMIN", "CEO", "MANAGER", "CASE_WORKER", "EXECUTION_OFFICER"]) && (
         <Link
           href="/dashboard/locations"
           className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
@@ -139,4 +140,3 @@ export default function Sidebar() {
     </aside>
   );
 }
-

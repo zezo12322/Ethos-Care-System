@@ -6,12 +6,28 @@ import {
   Patch,
   Param,
   Delete,
-  Query
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CasesService } from './cases.service';
 import { CreateCaseDto } from './dto/create-case.dto';
 import { UpdateCaseDto } from './dto/update-case.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { TransitionCaseDto } from './dto/transition-case.dto';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(
+  'ADMIN',
+  'CEO',
+  'MANAGER',
+  'CASE_WORKER',
+  'DATA_ENTRY',
+  'EXECUTION_OFFICER',
+)
 @Controller('cases')
 export class CasesController {
   constructor(private readonly casesService: CasesService) {}
@@ -71,32 +87,98 @@ export class CasesController {
   }
 
   @Post(':id/transitions/review')
-  transitionReview(@Param('id') id: string, @Body() body: any) {
-    return this.casesService.transition(id, 'INTAKE_REVIEW', 'PENDING_DECISION', 'review', body.reason);
+  transitionReview(
+    @Param('id') id: string,
+    @Body() body: TransitionCaseDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.casesService.transition(
+      id,
+      'INTAKE_REVIEW',
+      'PENDING_DECISION',
+      'review',
+      body.reason,
+      user.id,
+    );
   }
 
   @Post(':id/transitions/approve')
-  transitionApprove(@Param('id') id: string, @Body() body: any) {
-    return this.casesService.transition(id, 'APPROVED', 'APPROVED', 'approve', body.reason);
+  transitionApprove(
+    @Param('id') id: string,
+    @Body() body: TransitionCaseDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.casesService.transition(
+      id,
+      'APPROVED',
+      'APPROVED',
+      'approve',
+      body.reason,
+      user.id,
+    );
   }
 
   @Post(':id/transitions/reject')
-  transitionReject(@Param('id') id: string, @Body() body: any) {
-    return this.casesService.transition(id, 'REJECTED', 'REJECTED', 'reject', body.reason);
+  transitionReject(
+    @Param('id') id: string,
+    @Body() body: TransitionCaseDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.casesService.transition(
+      id,
+      'REJECTED',
+      'REJECTED',
+      'reject',
+      body.reason,
+      user.id,
+    );
   }
 
   @Post(':id/transitions/complete')
-  transitionComplete(@Param('id') id: string, @Body() body: any) {
-    return this.casesService.transition(id, 'COMPLETED', 'APPROVED', 'complete', body.reason);
+  transitionComplete(
+    @Param('id') id: string,
+    @Body() body: TransitionCaseDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.casesService.transition(
+      id,
+      'COMPLETED',
+      'APPROVED',
+      'complete',
+      body.reason,
+      user.id,
+    );
   }
 
   @Post(':id/transitions/technical_reject')
-  transitionTechnicalReject(@Param('id') id: string, @Body() body: any) {
-    return this.casesService.transition(id, 'TECH_REJECTED', 'APPROVED', 'technical_reject', body.reason);
+  transitionTechnicalReject(
+    @Param('id') id: string,
+    @Body() body: TransitionCaseDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.casesService.transition(
+      id,
+      'TECH_REJECTED',
+      'APPROVED',
+      'technical_reject',
+      body.reason,
+      user.id,
+    );
   }
 
   @Post(':id/transitions/return_to_review')
-  transitionReturnToReview(@Param('id') id: string, @Body() body: any) {
-    return this.casesService.transition(id, 'DRAFT', 'PENDING_DECISION', 'return_to_review', body.reason);
+  transitionReturnToReview(
+    @Param('id') id: string,
+    @Body() body: TransitionCaseDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.casesService.transition(
+      id,
+      'DRAFT',
+      'PENDING_DECISION',
+      'return_to_review',
+      body.reason,
+      user.id,
+    );
   }
 }

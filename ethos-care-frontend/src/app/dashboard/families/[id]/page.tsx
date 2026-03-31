@@ -1,23 +1,39 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState, useEffect, use } from "react";
-import api from "@/lib/api";
+import React, { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { familiesService } from "@/services/families.service";
+import { CaseRecord, FamilyMemberRecord, FamilyRecord } from "@/types/api";
 
-export default function FamilyDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  
-  const [family, setFamily] = useState<any>(null);
+export default function FamilyDetailsPage() {
+  const [family, setFamily] = useState<FamilyRecord | null>(null);
   const [loading, setLoading] = useState(true);
-  const { id: familyId } = use(params);
+  const { id: familyId } = useParams<{ id: string }>();
 
   useEffect(() => {
-    api.get(`/families/${familyId}`).then(res => {
-      setFamily(res.data);
-      setLoading(false);
-    }).catch(err => {
-      console.error(err);
-      setLoading(false);
-    });
+    let cancelled = false;
+
+    const loadFamily = async () => {
+      try {
+        const data = await familiesService.getById(familyId);
+        if (!cancelled) {
+          setFamily(data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadFamily();
+
+    return () => {
+      cancelled = true;
+    };
   }, [familyId]);
 
   if (loading) return <div className="p-8 text-center">جاري تحميل بيانات الأسرة...</div>;
@@ -116,7 +132,7 @@ export default function FamilyDetailsPage({ params }: { params: Promise<{ id: st
                       <td className="px-5 py-3">-</td>
                     </tr>
                     {family.familyMembers && family.familyMembers.length > 0 ? (
-                      family.familyMembers.map((member: any) => (
+                      family.familyMembers.map((member: FamilyMemberRecord) => (
                         <tr key={member.id} className="hover:bg-surface-container-lowest/50">
                           <td className="px-5 py-3 font-bold">{member.name}</td>
                           <td className="px-5 py-3">{member.relation}</td>
@@ -143,7 +159,7 @@ export default function FamilyDetailsPage({ params }: { params: Promise<{ id: st
              </div>
              <div className="p-5 space-y-4">
                {family.cases && family.cases.length > 0 ? (
-                 family.cases.map((c: any) => (
+                 family.cases.map((c: CaseRecord) => (
                     <div key={c.id} className="flex items-start gap-4 p-4 border border-outline-variant/30 hover:border-primary/50 transition-colors rounded-2xl bg-white">
                       <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                         <span className="material-symbols-outlined">folder_open</span>

@@ -1,16 +1,17 @@
 "use client";
 
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import api from "@/lib/api";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import PublicHeader from "@/components/layout/PublicHeader";
 import PublicFooter from "@/components/layout/PublicFooter";
+import { NewsRecord } from "@/types/api";
 
 export default function NewsArticle() {
   const { id } = useParams();
-  const router = useRouter();
-  const [article, setArticle] = useState<any>(null);
+  const [article, setArticle] = useState<NewsRecord | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -75,8 +76,8 @@ export default function NewsArticle() {
             </h1>
 
             {article.image && (
-                <div className="w-full h-[400px] md:h-[500px] rounded-2xl overflow-hidden mb-10 bg-surface-container">
-                    <img src={article.image} alt={article.title} className="w-full h-full object-cover" />
+                <div className="relative w-full h-[400px] md:h-[500px] rounded-2xl overflow-hidden mb-10 bg-surface-container">
+                    <Image fill src={article.image} alt={article.title} className="w-full h-full object-cover" sizes="(min-width: 1024px) 896px, 100vw" />
                 </div>
             )}
             

@@ -20,7 +20,7 @@ export default function LoginPage() {
     
     try {
       const response = await authService.login({
-        nationalId: username, // Initially testing with username field -> mapped to DB national ID or similar
+        email: username.trim(),
         password: password
       });
 
@@ -31,7 +31,7 @@ export default function LoginPage() {
       } else {
         throw new Error("Invalid response from server");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Login failed:", error);
       setErrorMsg("بيانات الدخول غير صحيحة، يرجى المحاولة مرة أخرى.");
     } finally {
@@ -62,7 +62,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="block text-sm font-bold text-on-surface mb-2">اسم المستخدم / البريد الإلكتروني</label>
+            <label className="block text-sm font-bold text-on-surface mb-2">البريد الإلكتروني</label>
             <div className="relative">
               <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline">person</span>
               <input
@@ -70,7 +70,7 @@ export default function LoginPage() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="أدخل اسم المستخدم..."
+                placeholder="admin@test.com"
                 className="w-full bg-surface-container-low border border-outline-variant/50 focus:border-primary rounded-xl py-3 pr-12 pl-4 focus:ring-2 focus:ring-primary/20 text-on-surface transition-all outline-none"
               />
             </div>

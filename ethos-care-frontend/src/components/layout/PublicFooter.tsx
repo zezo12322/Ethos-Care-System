@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React from "react";
 import Link from "next/link";
 
@@ -7,7 +8,7 @@ export default function PublicFooter() {
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
         <div className="space-y-6">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="شعار صناع الحياة" className="w-14 h-14 object-contain" />
+            <Image src="/logo.png" alt="شعار صناع الحياة" width={56} height={56} className="w-14 h-14 object-contain" />
             <div className="flex flex-col">
               <span className="font-headline font-bold text-xl leading-none text-white">أجيال صناع الحياة</span>
               <span className="text-[10px] text-white/70 font-bold">بني سويف</span>

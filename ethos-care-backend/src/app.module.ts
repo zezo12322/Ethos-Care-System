@@ -16,6 +16,7 @@ import { StatsModule } from './stats/stats.module';
 import { SearchModule } from './search/search.module';
 import { UsersModule } from './users/users.module';
 import { NewsModule } from './news/news.module';
+import { PublicModule } from './public/public.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { NewsModule } from './news/news.module';
     SearchModule,
     UsersModule,
     NewsModule,
+    PublicModule,
   ],
   controllers: [AppController, FamiliesController, OperationsController],
   providers: [AppService, FamiliesService, OperationsService],

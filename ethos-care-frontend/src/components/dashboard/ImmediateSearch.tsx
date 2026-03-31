@@ -1,12 +1,19 @@
 "use client";
 
 import React, { useState } from 'react';
-import api from '@/lib/api';
+import { searchService } from '@/services/search.service';
+import { CaseRecord, FamilyRecord } from '@/types/api';
+
+interface ImmediateSearchResult {
+  found: boolean;
+  family: FamilyRecord | null;
+  cases: CaseRecord[];
+}
 
 export default function ImmediateSearch() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<ImmediateSearchResult | null>(null);
   const [searched, setSearched] = useState(false);
 
   const handleSearch = async () => {
@@ -14,16 +21,16 @@ export default function ImmediateSearch() {
     setLoading(true);
     setSearched(true);
     try {
-      const res = await api.get(`/search?q=${query}`);
-      const foundClasses = res.data.families?.length > 0 || res.data.cases?.length > 0;
+      const data = await searchService.search(query);
+      const foundClasses = data.families?.length > 0 || data.cases?.length > 0;
       setResult({
         found: foundClasses,
-        family: res.data.families?.[0] || null,
-        cases: res.data.cases || []
+        family: data.families?.[0] || null,
+        cases: data.cases || []
       });
     } catch (err) {
       console.error(err);
-      setResult({ found: false });
+      setResult({ found: false, family: null, cases: [] });
     } finally {
       setLoading(false);
     }
@@ -100,7 +107,7 @@ export default function ImmediateSearch() {
                   <div>
                     <h3 className="text-sm font-bold text-primary mb-4">الحالات / الطلبات ({result.cases.length})</h3>
                     <div className="space-y-4">
-                      {result.cases.map((c: any) => (
+                      {result.cases.map((c) => (
                         <div key={c.id} className="flex justify-between items-center bg-surface-container-high p-4 rounded-xl">
                           <div>
                             <p className="font-bold">{c.applicantName}</p>

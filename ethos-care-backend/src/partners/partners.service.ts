@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreatePartnerDto } from './dto/create-partner.dto';
+import { UpdatePartnerDto } from './dto/update-partner.dto';
 
 @Injectable()
 export class PartnersService {
@@ -7,7 +9,7 @@ export class PartnersService {
 
   async findAll() {
     return this.prisma.partner.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -15,20 +17,20 @@ export class PartnersService {
     return this.prisma.partner.findUnique({ where: { id } });
   }
 
-  async create(data: any) {
+  async create(data: CreatePartnerDto) {
     return this.prisma.partner.create({ data });
   }
 
-  async update(id: string, data: any) {
+  async update(id: string, data: UpdatePartnerDto) {
     return this.prisma.partner.update({
       where: { id },
-      data
+      data,
     });
   }
 
   async remove(id: string) {
     return this.prisma.partner.delete({
-      where: { id }
+      where: { id },
     });
   }
 }

@@ -4,8 +4,7 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = "postgresql://postgres.wlyrzlahujmkcznqgnhj:1357z2468A%40%40@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
-  directUrl = "postgresql://postgres.wlyrzlahujmkcznqgnhj:1357z2468A%40%40@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
+  url       = env("DATABASE_URL")
 }
 
 model User {
@@ -33,6 +32,7 @@ model Case {
   priority                String        @default("NORMAL")
   location                String        @default("بني سويف")
   description             String?
+  formData                Json?
   familyId                String?
   assignedToId            String?
   operationId             String?

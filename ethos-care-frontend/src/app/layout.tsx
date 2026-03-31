@@ -31,9 +31,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" className={`${jakarta.variable} ${cairo.variable} ${dinNext.variable}`}>
-      <head>
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
-      </head>
       <body className="min-h-screen bg-background font-body text-on-surface antialiased flex flex-col">
         <AuthProvider>{children}</AuthProvider>
       </body>

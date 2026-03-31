@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { familiesService } from "@/services/families.service";
+import { familiesService, FamilyMemberInput } from "@/services/families.service";
 
 export default function NewFamilyPage() {
   const router = useRouter();
-  const [membersData, setMembersData] = useState([ { name: "", age: "", relation: "ابن/ة", education: "لا يدرس" } ]);
+  const [membersData, setMembersData] = useState<FamilyMemberInput[]>([{ name: "", age: "", relation: "ابن/ة", education: "لا يدرس" }]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     headName: "",
@@ -21,7 +21,7 @@ export default function NewFamilyPage() {
     village: "",
     addressDetails: "",
     caseType: "تمكين اقتصادي",
-    priority: "عادي",
+    priority: "NORMAL" as "NORMAL" | "HIGH" | "URGENT",
     description: ""
   });
 
@@ -239,9 +239,9 @@ export default function NewFamilyPage() {
                 <div>
                   <label className="block text-sm font-bold text-on-surface mb-2">أولوية التدخل</label>
                   <select name="priority" value={formData.priority} onChange={handleChange} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 py-3 outline-none focus:border-primary transition-colors text-on-surface">
-                    <option>عادي</option>
-                    <option>عالي</option>
-                    <option>عاجل</option>
+                    <option value="NORMAL">عادي</option>
+                    <option value="HIGH">عالي</option>
+                    <option value="URGENT">عاجل</option>
                   </select>
                 </div>
                 <div className="md:col-span-2">

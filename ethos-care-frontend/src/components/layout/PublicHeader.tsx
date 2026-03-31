@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React from "react";
 import Link from "next/link";
 
@@ -6,7 +7,7 @@ export default function PublicHeader() {
     <header className="bg-white border-b border-outline-variant/20 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="شعار صناع الحياة" className="w-16 h-16 object-contain mt-2" />
+          <Image src="/logo.png" alt="شعار صناع الحياة" width={64} height={64} className="w-16 h-16 object-contain mt-2" />
           <div className="flex flex-col">
             <span className="font-headline font-bold text-xl leading-none text-primary">أجيال صناع الحياة</span>
             <span className="text-[10px] text-on-surface-variant font-bold">ببني سويف</span>

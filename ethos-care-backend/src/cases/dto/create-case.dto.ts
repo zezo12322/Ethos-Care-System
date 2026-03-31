@@ -1,9 +1,17 @@
-import { IsString, IsNotEmpty, IsOptional, MaxLength } from 'class-validator';
+import {
+  IsIn,
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+
+export const CASE_PRIORITIES = ['NORMAL', 'HIGH', 'URGENT'] as const;
 
 export class CreateCaseDto {
   @IsString()
   @IsNotEmpty()
-  applicantName: string;
+  applicantName!: string;
 
   @IsString()
   @IsOptional()
@@ -11,10 +19,11 @@ export class CreateCaseDto {
 
   @IsString()
   @IsNotEmpty()
-  caseType: string;
+  caseType!: string;
 
   @IsString()
   @IsOptional()
+  @IsIn(CASE_PRIORITIES)
   priority?: string;
 
   @IsString()
@@ -24,6 +33,10 @@ export class CreateCaseDto {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @IsObject()
+  @IsOptional()
+  formData?: Record<string, unknown>;
 
   @IsString()
   @IsOptional()

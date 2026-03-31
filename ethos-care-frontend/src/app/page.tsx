@@ -1,7 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import PublicHeader from "@/components/layout/PublicHeader";
 import PublicFooter from "@/components/layout/PublicFooter";
-
 import VerificationWidget from "@/components/VerificationWidget";
 import DynamicStats from "@/components/DynamicStats";
 import DynamicNews from "@/components/DynamicNews";
@@ -50,20 +50,21 @@ export default function LandingPage() {
 
               <div className="pt-6 flex items-center gap-4 text-sm text-on-surface-variant font-medium">
                 <div className="flex -space-x-2 rtl:space-x-reverse">
-                  <img src="https://ui-avatars.com/api/?name=Mo&background=0D8ABC&color=fff" alt="M" className="w-8 h-8 rounded-full border-2 border-white" />
-                  <img src="https://ui-avatars.com/api/?name=Sa&background=fcb900&color=000" alt="S" className="w-8 h-8 rounded-full border-2 border-white" />
-                  <img src="https://ui-avatars.com/api/?name=Ah&background=005c55&color=fff" alt="A" className="w-8 h-8 rounded-full border-2 border-white" />
+                  <Image src="https://ui-avatars.com/api/?name=Mo&background=0D8ABC&color=fff" alt="M" width={32} height={32} className="w-8 h-8 rounded-full border-2 border-white" />
+                  <Image src="https://ui-avatars.com/api/?name=Sa&background=fcb900&color=000" alt="S" width={32} height={32} className="w-8 h-8 rounded-full border-2 border-white" />
+                  <Image src="https://ui-avatars.com/api/?name=Ah&background=005c55&color=fff" alt="A" width={32} height={32} className="w-8 h-8 rounded-full border-2 border-white" />
                 </div>
                 <span>بإشراف وزارة التضامن الاجتماعي</span>
               </div>
             </div>
 
             <div className="relative h-[400px] lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl">
-              {/* Fallback image representing community/kids in case specific asset is missing */}
-              <img 
-                src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
-                alt="أطفال مجتمعنا" 
+              <Image
+                fill
+                src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                alt="أطفال مجتمعنا"
                 className="w-full h-full object-cover"
+                sizes="(min-width: 1024px) 50vw, 100vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent mix-blend-multiply"></div>
             </div>
@@ -97,10 +98,12 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Highlighted Service Card (Economic Empowerment) */}
               <div className="lg:col-span-2 relative rounded-3xl overflow-hidden group min-h-[300px]">
-                <img 
-                  src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                  alt="تمكين اقتصادي" 
+                <Image
+                  fill
+                  src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                  alt="تمكين اقتصادي"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  sizes="(min-width: 1024px) 50vw, 100vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#003430] via-[#005c55]/80 to-transparent"></div>
                 <div className="absolute bottom-0 left-0 right-0 p-8 text-white">

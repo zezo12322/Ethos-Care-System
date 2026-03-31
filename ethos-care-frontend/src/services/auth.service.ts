@@ -1,19 +1,19 @@
 import api from "../lib/api";
+import { AppUser } from "@/types/api";
 
 export interface LoginDto {
-  nationalId: string;
-  password?: string;
+  email: string;
+  password: string;
 }
 
 export const authService = {
   login: async (data: LoginDto) => {
-    // Expected to return { access_token: string, user: { id, name, role } }
-    const response = await api.post("/auth/login", data);
+    const response = await api.post<{ access_token: string; user: AppUser }>("/auth/login", data);
     return response.data;
   },
   
   getMe: async () => {
-    const response = await api.get("/auth/me");
+    const response = await api.get<AppUser>("/auth/me");
     return response.data;
   },
 

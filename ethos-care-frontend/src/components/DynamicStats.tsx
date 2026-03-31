@@ -5,7 +5,6 @@ import api from "@/lib/api";
 
 export default function DynamicStats() {
   const [stats, setStats] = useState({ families: 1500, locations: 50, volunteers: 2500 });
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchStats() {
@@ -20,8 +19,6 @@ export default function DynamicStats() {
         }
       } catch (err) {
         console.error("Error fetching stats:", err);
-      } finally {
-        setLoading(false);
       }
     }
     fetchStats();

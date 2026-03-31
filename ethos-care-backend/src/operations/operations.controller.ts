@@ -1,7 +1,19 @@
-import { Controller, Get, Post, Body, Param, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { OperationsService } from './operations.service';
 import { CreateOperationDto } from './dto/create-operation.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(
+  'ADMIN',
+  'CEO',
+  'MANAGER',
+  'CASE_WORKER',
+  'DATA_ENTRY',
+  'EXECUTION_OFFICER',
+)
 @Controller('operations')
 export class OperationsController {
   constructor(private operationsService: OperationsService) {}
@@ -9,7 +21,7 @@ export class OperationsController {
   @Get()
   async findAll() {
     const ops = await this.operationsService.findAll();
-    return ops.map(o => ({
+    return ops.map((o) => ({
       id: o.id,
       title: o.name,
       type: o.type,
@@ -48,7 +60,10 @@ export class OperationsController {
   }
 
   @Post(':id/assign-cases')
-  async assignCases(@Param('id') id: string, @Body('caseIds') caseIds: string[]) {
+  async assignCases(
+    @Param('id') id: string,
+    @Body('caseIds') caseIds: string[],
+  ) {
     return this.operationsService.assignCases(id, caseIds);
   }
 

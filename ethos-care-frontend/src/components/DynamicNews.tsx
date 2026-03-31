@@ -1,16 +1,21 @@
 "use client";
 
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import api from "@/lib/api";
 import Link from "next/link";
+import { newsService } from "@/services/news.service";
+import { NewsRecord } from "@/types/api";
 
 export default function DynamicNews() {
-  const [news, setNews] = useState<any[]>([]);
+  const [news, setNews] = useState<NewsRecord[]>([]);
 
   useEffect(() => {
-    api.get("/news").then(res => {
-      setNews(res.data.slice(0, 3)); // Get top 3 news
-    }).catch(err => console.error(err));
+    newsService
+      .getPublished()
+      .then((data) => {
+        setNews(data.slice(0, 3));
+      })
+      .catch((err) => console.error(err));
   }, []);
 
   return (
@@ -28,7 +33,7 @@ export default function DynamicNews() {
             <div key={item.id} className="bg-white rounded-2xl overflow-hidden border border-outline-variant/20 group hover:shadow-lg transition-all flex flex-col">
               <div className="h-48 relative overflow-hidden bg-surface-container-low flex items-center justify-center shrink-0">
                 {item.image ? (
-                  <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <Image fill src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" sizes="(min-width: 768px) 33vw, 100vw" />
                 ) : (
                   <span className="material-symbols-outlined text-4xl text-outline">newspaper</span>
                 )}

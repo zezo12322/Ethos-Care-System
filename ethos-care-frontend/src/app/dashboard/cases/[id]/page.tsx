@@ -2,48 +2,65 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import api from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { casesService } from "@/services/cases.service";
+import { CaseHistoryRecord, CaseRecord } from "@/types/api";
 
 export default function CaseDetailsPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuth();
   const currentRole = user?.role || "CASE_WORKER";
 
-  const [caseData, setCaseData] = useState<any>(null);
-  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [caseData, setCaseData] = useState<CaseRecord | null>(null);
+  const [historyData, setHistoryData] = useState<CaseHistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    fetchData();
-  }, [id]);
+    let cancelled = false;
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [caseRes, historyRes] = await Promise.all([
-        api.get(`/cases/${id}`),
-        api.get(`/cases/${id}/history`)
-      ]);
-      setCaseData(caseRes.data);
-      setHistoryData(historyRes.data);
-    } catch (err) {
-      console.error(err);
-      alert("حدث خطأ في تحميل تفاصيل الحالة");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [caseResponse, historyResponse] = await Promise.all([
+          casesService.getById(id),
+          casesService.getHistory(id),
+        ]);
+
+        if (!cancelled) {
+          setCaseData(caseResponse);
+          setHistoryData(historyResponse);
+        }
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) {
+          alert("حدث خطأ في تحميل تفاصيل الحالة");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   const handleTransition = async (action: string) => {
     try {
       setActionLoading(true);
-      const url = `/cases/${id}/transitions/${action}`;
-      await api.post(url, { reason: "تحديث من النظام" });
-      alert("تم تحديث حالة الطلب بنجاح");
-      fetchData(); // reload
+      await casesService.transition(id, action, "تحديث من النظام");
+      const [updatedCase, updatedHistory] = await Promise.all([
+        casesService.getById(id),
+        casesService.getHistory(id),
+      ]);
+      setCaseData(updatedCase);
+      setHistoryData(updatedHistory);
     } catch (err) {
       console.error(err);
       alert("حدث خطأ أثناء محاولة تحديث الحالة");
@@ -73,7 +90,7 @@ export default function CaseDetailsPage() {
   }
 
   // Maps
-  const lifecycleMap: any = {
+  const lifecycleMap: Record<string, { label: string; color: string }> = {
     DRAFT: { label: "مسودة", color: "bg-surface-container text-on-surface" },
     INTAKE_REVIEW: { label: "مراجعة مبدئية", color: "bg-warning/20 text-warning" },
     FIELD_VERIFICATION: { label: "تحقق ميداني", color: "bg-warning/30 text-warning-dark" },
@@ -87,14 +104,14 @@ export default function CaseDetailsPage() {
     ARCHIVED: { label: "مؤرشفة", color: "bg-outline text-surface" },
   };
 
-  const decisionMap: any = {
+  const decisionMap: Record<string, { label: string; bg: string }> = {
     PENDING_DECISION: { label: "قيد القرار", bg: "bg-warning/20 text-warning" },
     APPROVED: { label: "مقبول", bg: "bg-success/20 text-success" },
     REJECTED: { label: "مرفوض", bg: "bg-error/20 text-error" },
     RETURNED_FOR_COMPLETION: { label: "مردود للاستكمال", bg: "bg-tertiary/20 text-tertiary" },
   };
 
-  const completenessMap: any = {
+  const completenessMap: Record<string, { label: string; bg: string }> = {
     COMPLETE: { label: "مكتمل الملفات", bg: "bg-primary/20 text-primary" },
     MISSING_NATIONAL_ID: { label: "ينقص رقم قومي", bg: "bg-error/20 text-error" },
     MISSING_DOCUMENTS: { label: "مستندات ناقصة", bg: "bg-warning/20 text-warning" },
@@ -179,10 +196,15 @@ export default function CaseDetailsPage() {
                   </button>
                 </>
               )}
+
+              <Link href={`/dashboard/cases/${caseData.id}/edit`} className="px-5 py-2 bg-tertiary/10 text-tertiary hover:bg-tertiary/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                <span className="material-symbols-outlined text-lg">edit_square</span>
+                تعديل الكارت
+              </Link>
               
-              <Link href={`/dashboard/cases/${id}/edit`} className="px-5 py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
-                <span className="material-symbols-outlined text-lg">edit</span>
-                تعديل البيانات
+              <Link href="/dashboard/cases" className="px-5 py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                <span className="material-symbols-outlined text-lg">list</span>
+                العودة لقائمة الحالات
               </Link>
             </div>
           </div>
@@ -277,8 +299,8 @@ export default function CaseDetailsPage() {
                 سجل التعاملات (History)
               </h2>
               <div className="relative border-r-2 border-outline-variant/50 pr-6 gap-6 flex flex-col rtl:border-l-2 rtl:border-r-0 rtl:pl-6 rtl:pr-0">
-                {historyData.map((item, idx) => (
-                  <div key={item.id || idx} className="relative">
+                {historyData.map((item) => (
+                  <div key={item.id} className="relative">
                     <div className="absolute top-1 -right-8 rtl:-left-8 w-4 h-4 rounded-full bg-primary border-4 border-surface shadow-sm"></div>
                     <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/20 -mt-2">
                       <div className="flex justify-between items-start mb-2">
@@ -288,6 +310,11 @@ export default function CaseDetailsPage() {
                         </span>
                       </div>
                       <p className="text-sm text-on-surface-variant mt-1">تم نقل دورة الحياة إلى: <span className="font-bold">{lifecycleMap[item.toLifecycleStatus]?.label || item.toLifecycleStatus}</span> / القرار: <span className="font-bold">{decisionMap[item.toDecisionStatus]?.label || item.toDecisionStatus}</span></p>
+                      {item.performedBy?.name ? (
+                        <p className="text-xs text-on-surface-variant mt-2">
+                          بواسطة: <span className="font-bold">{item.performedBy.name}</span>
+                        </p>
+                      ) : null}
                       {item.reason && (
                         <p className="text-sm mt-2 text-primary font-medium bg-primary/5 p-2 rounded-lg border border-primary/10">ملاحظة: {item.reason}</p>
                       )}

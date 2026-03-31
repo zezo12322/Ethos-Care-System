@@ -14,19 +14,26 @@ export class StatsService {
       eligibleFamilies,
       totalOperations,
       totalLocations,
-      totalUsers
+      totalUsers,
     ] = await Promise.all([
       this.prisma.case.count(),
-      this.prisma.case.count({ 
-        where: { 
-          lifecycleStatus: { in: ['DRAFT', 'INTAKE_REVIEW', 'FIELD_VERIFICATION', 'COMMITTEE_REVIEW'] } 
-        } 
+      this.prisma.case.count({
+        where: {
+          lifecycleStatus: {
+            in: [
+              'DRAFT',
+              'INTAKE_REVIEW',
+              'FIELD_VERIFICATION',
+              'COMMITTEE_REVIEW',
+            ],
+          },
+        },
       }),
       this.prisma.family.count(),
       this.prisma.family.count({ where: { status: 'مستحق' } }),
       this.prisma.operation.count(),
       this.prisma.location.count(),
-      this.prisma.user.count()
+      this.prisma.user.count(),
     ]);
 
     return {
@@ -45,8 +52,8 @@ export class StatsService {
       public: {
         families: eligibleFamilies > 0 ? eligibleFamilies : totalFamilies,
         locations: totalLocations,
-        volunteers: totalUsers
-      }
+        volunteers: totalUsers,
+      },
     };
   }
 }

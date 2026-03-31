@@ -1,10 +1,36 @@
-import { IsString, IsNotEmpty, IsOptional, IsInt, Min } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
+
+export class FamilyMemberInputDto {
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+
+  @IsString()
+  @IsOptional()
+  age?: string;
+
+  @IsString()
+  @IsOptional()
+  relation?: string;
+
+  @IsString()
+  @IsOptional()
+  education?: string;
+}
 
 export class CreateFamilyDto {
   @IsString()
   @IsNotEmpty()
-  headName: string;
+  headName!: string;
 
   @IsString()
   @IsOptional()
@@ -38,6 +64,10 @@ export class CreateFamilyDto {
 
   @IsString()
   @IsOptional()
+  education?: string;
+
+  @IsString()
+  @IsOptional()
   city?: string;
 
   @IsString()
@@ -49,7 +79,10 @@ export class CreateFamilyDto {
   addressDetails?: string;
 
   @IsOptional()
-  membersDetails?: any;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => FamilyMemberInputDto)
+  membersDetails?: FamilyMemberInputDto[];
 
   @IsString()
   @IsOptional()
@@ -65,5 +98,4 @@ export class CreateFamilyDto {
   @IsString()
   @IsOptional()
   description?: string;
-
 }

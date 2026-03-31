@@ -16,9 +16,9 @@ export class SearchService {
           { applicantName: { contains: query } },
           { nationalId: { contains: query } },
           { id: { contains: query } },
-        ]
+        ],
       },
-      take: 20
+      take: 20,
     });
 
     const families = await this.prisma.family.findMany({
@@ -28,9 +28,9 @@ export class SearchService {
           { nationalId: { contains: query } },
           { phone: { contains: query } },
           { id: { contains: query } },
-        ]
+        ],
       },
-      take: 20
+      take: 20,
     });
 
     return { cases, families };
