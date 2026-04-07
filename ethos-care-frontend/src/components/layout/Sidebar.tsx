@@ -73,8 +73,8 @@ export default function Sidebar() {
           href="/dashboard/reports"
           className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
         >
-          <span className="material-symbols-outlined">analytics</span>
-          <span>التقارير</span>
+          <span className="material-symbols-outlined">table_view</span>
+          <span>الاستخراجات</span>
         </Link>
         )}
         {isAuthorized(["ADMIN", "CEO"]) && (

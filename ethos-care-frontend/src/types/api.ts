@@ -183,6 +183,8 @@ export interface OperationRecord {
   status: string;
   progress: number;
   volunteers: number;
+  budget?: string | null;
+  location?: string | null;
   cases?: CaseRecord[];
 }
 
