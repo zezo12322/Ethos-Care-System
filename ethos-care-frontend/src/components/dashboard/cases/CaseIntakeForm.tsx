@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { familiesService } from "@/services/families.service";
 import { locationsService } from "@/services/locations.service";
 import { partnersService } from "@/services/partners.service";
@@ -19,6 +19,7 @@ import {
 } from "@/types/api";
 
 type CasePriority = "NORMAL" | "HIGH" | "URGENT";
+type ManagerDecision = "PENDING" | "APPROVE" | "RETURN" | "REJECT";
 
 interface CaseFormDraft {
   caseType: string;
@@ -31,6 +32,7 @@ interface CaseIntakeFormProps {
   mode: "create" | "edit";
   caseRecord?: CaseRecord | null;
   currentUserName: string;
+  currentUserRole: string;
   onSubmit: (payload: CreateCaseDto) => Promise<void>;
   onDelete?: () => Promise<void>;
 }
@@ -47,13 +49,13 @@ interface SectionCardProps {
 
 const CASE_TYPES = [
   "مساعدة مالية",
+  "دعم منزلي",
   "سكن كريم",
-  "تدخل طبي",
-  "تعليم",
+  "دعم طبي",
+  "منح دراسية",
   "تمكين اقتصادي",
   "مواد غذائية",
   "مرافق وخدمات",
-  "أجهزة تعويضية",
 ] as const;
 
 const RELIGIONS = ["مسلم", "مسيحي"] as const;
@@ -63,8 +65,31 @@ const PRIORITY_OPTIONS: Array<{ label: string; value: CasePriority }> = [
   { label: "عاجل", value: "URGENT" },
 ];
 
+const RESEARCHER_OPINIONS = [
+  "يوصى بالدعم",
+  "يحتاج استكمال",
+  "لا يوصى بالدعم حاليًا",
+] as const;
+
+const MANAGER_DECISIONS: Array<{ label: string; value: ManagerDecision }> = [
+  { label: "بانتظار الاعتماد", value: "PENDING" },
+  { label: "اعتماد", value: "APPROVE" },
+  { label: "إعادة للباحث", value: "RETURN" },
+  { label: "رفض", value: "REJECT" },
+];
+
+const RELATION_OPTIONS = [
+  "زوج",
+  "زوجة",
+  "ابن",
+  "ابنة",
+  "أب",
+  "أم",
+  "الجد",
+  "الجدة",
+] as const;
+
 const EDUCATION_STATES = [
-  "غير محدد",
   "غير متعلم",
   "محو أمية",
   "حاصل على الابتدائية",
@@ -75,18 +100,17 @@ const EDUCATION_STATES = [
   "حاصل على الماجستير",
   "حاصل على الدكتوراة",
   "طالب",
-];
+] as const;
 
-const EDUCATION_TYPES = ["حكومي", "أزهري", "خاص", "فصل واحد", "فني"];
+const EDUCATION_TYPES = ["حكومي", "أزهري", "خاص", "فني"] as const;
 const EDUCATION_STAGES = [
-  "المرحلة التمهيدية",
-  "المرحلة الابتدائية",
-  "المرحلة الاعدادية",
-  "المرحلة الثانوية",
-  "المرحلة الجامعية",
-  "ثانوي فني 3 سنوات",
-  "ثانوي فني 5 سنوات",
-];
+  "تمهيدي",
+  "ابتدائي",
+  "إعدادي",
+  "ثانوي",
+  "جامعي",
+  "فني",
+] as const;
 const SCHOOL_YEARS = [
   "الأول",
   "الثاني",
@@ -94,7 +118,7 @@ const SCHOOL_YEARS = [
   "الرابع",
   "الخامس",
   "السادس",
-];
+] as const;
 
 const ATTACHMENT_OPTIONS = [
   "بطاقة الرقم القومي",
@@ -102,14 +126,14 @@ const ATTACHMENT_OPTIONS = [
   "تقرير طبي",
   "برنت تأميني",
   "إثبات قيد مدرسي",
-];
+] as const;
 
-const RESIDENCY_TYPES = ["خاص", "إيجار", "منزل عائلة"];
-const ROOF_OPTIONS = ["بدون", "مسلح", "خشب", "سعف", "جريد"];
-const FLOOR_OPTIONS = ["تراب", "أسمنت", "بلاط", "سيراميك"];
-const ENTRANCE_OPTIONS = ["تراب", "أسمنت", "بلاط", "سيراميك", "رخام"];
-const WALL_OPTIONS = ["طوب أحمر", "بلوك", "محارة", "دهان", "طوب لبن"];
-const TRANSPORT_OPTIONS = ["سيارة", "موتوسيكل", "توك توك", "أخرى"];
+const RESIDENCY_TYPES = ["خاص", "إيجار", "منزل عائلة"] as const;
+const ROOF_OPTIONS = ["مسلح", "خشب", "سعف", "جريد"] as const;
+const FLOOR_OPTIONS = ["تراب", "أسمنت", "بلاط", "سيراميك"] as const;
+const ENTRANCE_OPTIONS = ["تراب", "أسمنت", "بلاط", "سيراميك", "رخام"] as const;
+const WALL_OPTIONS = ["طوب أحمر", "بلوك", "محارة", "دهان", "طوب لبن"] as const;
+const TRANSPORT_OPTIONS = ["سيارة", "موتوسيكل", "توك توك", "أخرى"] as const;
 
 const HOUSE_RADIO_OPTIONS: Record<string, string[]> = {
   bathroomType: ["خاص", "مشترك"],
@@ -131,7 +155,7 @@ const DEFAULT_INCOMES: Record<string, string> = {
   "دخل أفراد الأسرة": "0",
   معاش: "0",
   "تكافل وكرامة": "0",
-  أخرى: "0",
+  "دخل إضافي": "0",
 };
 
 const DEFAULT_EXPENSES: Record<string, string> = {
@@ -144,71 +168,74 @@ const DEFAULT_EXPENSES: Record<string, string> = {
   "علاج شهري": "0",
   أقساط: "0",
   قروض: "0",
-  "إيجار الأرض الزراعية": "0",
   أخرى: "0",
 };
 
 const CLASSIFICATION_OPTIONS = [
-  "بدون/لا يوجد",
   "مطلق/مطلقة/هجر",
   "أيتام",
-  "أرامل",
   "مسنين",
   "منعدم الدخل",
   "الدخل لا يكفي",
   "تكافل وكرامة",
   "مسجون/غارمين",
-  "أمراض",
-];
+  "أمراض مزمنة",
+  "ذوي همم",
+] as const;
 
 const CLASSIFICATION_DEGREES = [
   "حالة متوسطة",
   "حالة فوق متوسطة",
   "حالة قصوى",
-];
+] as const;
 
 const SUPPORT_CATALOG: Array<{ category: string; items: string[] }> = [
   {
-    category: "سلع غذائية",
-    items: ["سلة غذائية", "لحوم", "وجبات إطعام", "مساعدة مالية"],
+    category: "المساعدات المالية",
+    items: ["مساعدة مالية شهرية", "مساعدة مالية طارئة", "سداد إيجار"],
   },
   {
-    category: "دعم صحي",
-    items: ["علاج", "عملية جراحية", "أدوية", "أجهزة تعويضية", "نظارات"],
+    category: "دعم طبي",
+    items: ["علاج", "عملية جراحية", "أدوية", "تحاليل", "نظارات"],
   },
   {
-    category: "مرافق",
-    items: ["توصيل مياه", "توصيل كهرباء", "سداد مديونية"],
+    category: "المرافق",
+    items: ["توصيل مياه", "توصيل كهرباء"],
   },
   {
-    category: "تعليم ومدارس",
-    items: ["مصروفات دراسية", "شنط وأدوات", "زي مدرسي", "دروس تقوية"],
+    category: "المنح الدراسية",
+    items: [
+      "منح دراسية",
+      "مصروفات دراسية",
+      "شنط وأدوات",
+      "زي مدرسي",
+      "دروس تقوية",
+    ],
   },
   {
-    category: "دعم منزلي",
+    category: "الدعم المنزلي",
     items: ["أثاث", "أجهزة منزلية", "ترميم منزل"],
   },
   {
-    category: "منحة تعليمية",
-    items: ["منحة دراسية", "دعم جامعي"],
-  },
-  {
-    category: "سماعات أذن",
-    items: ["سماعة أذن يمنى", "سماعة أذن يسرى", "سماعات للأذنين"],
-  },
-  {
     category: "دعم موسمي",
-    items: ["كسوة موسمية", "كسوة استثنائية", "معارض كساء"],
+    items: ["سلة غذائية", "لحوم", "كسوة موسمية", "معارض كساء"],
   },
 ];
 
-const SPECIALIST_OPINIONS = [
-  "لم يتم البت",
-  "يتم النظر لاحقًا",
-  "مقبول",
-  "مرفوض",
-  "مرفوض نهائيًا",
-];
+const DISABILITY_SUPPORT_OPTIONS = [
+  "كرسي متحرك",
+  "طرف صناعي",
+  "سماعات أذن",
+  "مشاية",
+  "عكاز",
+  "أخرى",
+] as const;
+
+const POSSESSION_CATALOG = [
+  { id: "livestock", name: "ماشية" },
+  { id: "agricultural-land", name: "أراضي زراعية" },
+  { id: "owned-land", name: "أراضي ملك" },
+] as const;
 
 const SECTION_IDS = [
   "case",
@@ -225,6 +252,124 @@ function createLocalId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function buildRegionString(center: string, village: string) {
+  return [center, village].filter(Boolean).join(" > ");
+}
+
+function parseRegionValue(value?: string | null) {
+  if (!value) {
+    return { center: "", village: "" };
+  }
+
+  const normalized = value.replace(/\s*>\s*/g, ">").replace(/\s*-\s*/g, ">");
+  const [center = "", village = ""] = normalized.split(">").map((item) => item.trim());
+  return { center, village };
+}
+
+function normalizeCaseType(value?: string | null) {
+  if (value === "تدخل طبي") return "دعم طبي";
+  if (value === "تعليم") return "منح دراسية";
+  if (value === "أجهزة تعويضية") return "دعم طبي";
+  return value || "مساعدة مالية";
+}
+
+function normalizeEducationState(value?: string | null) {
+  if (!value || value === "غير محدد") {
+    return "";
+  }
+  return value;
+}
+
+function normalizeRelation(value?: string | null) {
+  if (!value) {
+    return "ابن";
+  }
+  if (value === "ابن/ة") {
+    return "ابن";
+  }
+  return value;
+}
+
+function toNumber(value: string | undefined) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function isStudent(value?: string) {
+  return value === "طالب";
+}
+
+function deriveBirthInfo(nationalId: string) {
+  const trimmed = nationalId.trim();
+  if (!/^\d{14}$/.test(trimmed)) {
+    return null;
+  }
+
+  const centuryCode = trimmed[0];
+  const year = Number(trimmed.slice(1, 3));
+  const month = Number(trimmed.slice(3, 5));
+  const day = Number(trimmed.slice(5, 7));
+  const century =
+    centuryCode === "2" ? 1900 : centuryCode === "3" ? 2000 : null;
+
+  if (!century || month < 1 || month > 12 || day < 1 || day > 31) {
+    return null;
+  }
+
+  const birthDate = new Date(century + year, month - 1, day);
+  if (Number.isNaN(birthDate.getTime())) {
+    return null;
+  }
+
+  const now = new Date();
+  let age = now.getFullYear() - birthDate.getFullYear();
+  const monthDiff = now.getMonth() - birthDate.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthDate.getDate())) {
+    age -= 1;
+  }
+
+  return {
+    birthDate: birthDate.toISOString().split("T")[0],
+    age: String(Math.max(age, 0)),
+    gender: Number(trimmed[12]) % 2 === 0 ? "أنثى" : "ذكر",
+  };
+}
+
+function createEmptyFamilyMember(): CaseIntakeFamilyMember {
+  return {
+    id: createLocalId("member"),
+    name: "",
+    relation: "ابن",
+    classification: "",
+    nationalId: "",
+    age: "",
+    gender: "",
+    mobile: "",
+    education: "",
+    educationType: "",
+    educationStage: "",
+    schoolYear: "",
+    job: "",
+    monthlyIncome: "0",
+  };
+}
+
+function buildFamilyMembersFromRecord(family?: FamilyRecord | null): CaseIntakeFamilyMember[] {
+  if (!family?.familyMembers?.length) {
+    return [];
+  }
+
+  return family.familyMembers.map((member) => ({
+    ...createEmptyFamilyMember(),
+    id: member.id,
+    name: member.name,
+    relation: normalizeRelation(member.relation),
+    age: member.age ?? "",
+    education: normalizeEducationState(member.education ?? ""),
+  }));
+}
+
 function flattenSupportItems(): CaseIntakeSupportItem[] {
   return SUPPORT_CATALOG.flatMap(({ category, items }) =>
     items.map((name) => ({
@@ -238,45 +383,8 @@ function flattenSupportItems(): CaseIntakeSupportItem[] {
   );
 }
 
-function buildFamilyMembersFromRecord(family?: FamilyRecord | null): CaseIntakeFamilyMember[] {
-  if (!family) {
-    return [];
-  }
-
-  if (family.familyMembers?.length) {
-    return family.familyMembers.map((member) => ({
-      id: member.id,
-      name: member.name,
-      relation: member.relation,
-      age: member.age ?? "",
-      education: member.education ?? "",
-      mobile: "",
-      job: "",
-      classification: "",
-    }));
-  }
-
-  return family.headName
-    ? [
-        {
-          id: createLocalId("member"),
-          name: family.headName,
-          relation: "رب الأسرة",
-          age: "",
-          education: family.education ?? "",
-          mobile: family.phone ?? "",
-          job: family.job ?? "",
-          classification: "",
-        },
-      ]
-    : [];
-}
-
-function mergeSupportItems(
-  existingItems?: CaseIntakeSupportItem[],
-): CaseIntakeSupportItem[] {
+function mergeSupportItems(existingItems?: CaseIntakeSupportItem[]) {
   const baseItems = flattenSupportItems();
-
   if (!existingItems?.length) {
     return baseItems;
   }
@@ -287,17 +395,31 @@ function mergeSupportItems(
   });
 }
 
+function mergePossessionItems(existingItems?: CaseIntakePossessionItem[]) {
+  return POSSESSION_CATALOG.map((entry) => {
+    const found = existingItems?.find((item) => item.name === entry.name);
+    return {
+      id: found?.id || entry.id,
+      name: entry.name,
+      selected: found?.selected ?? !!found,
+      notes: found?.notes ?? "",
+    };
+  });
+}
+
 function buildInitialFormData(
   caseRecord: CaseRecord | null | undefined,
   currentUserName: string,
 ): CaseFormDraft {
   const existing = caseRecord?.formData;
+  const parsedRegion = parseRegionValue(existing?.person.region ?? caseRecord?.location);
+  const center = existing?.person.center ?? caseRecord?.family?.city ?? parsedRegion.center;
+  const village =
+    existing?.person.village ?? caseRecord?.family?.village ?? parsedRegion.village;
 
   return {
-    caseType: caseRecord?.caseType ?? "مساعدة مالية",
-    priority:
-      (caseRecord?.priority as CasePriority | undefined) ??
-      "NORMAL",
+    caseType: normalizeCaseType(caseRecord?.caseType),
+    priority: (caseRecord?.priority as CasePriority | undefined) ?? "NORMAL",
     description: caseRecord?.description ?? "",
     formData: {
       person: {
@@ -315,36 +437,21 @@ function buildInitialFormData(
         birthDate: existing?.person.birthDate ?? "",
         age: existing?.person.age ?? "",
         gender: existing?.person.gender ?? "",
-        mobile:
-          existing?.person.mobile ??
-          caseRecord?.family?.phone ??
-          "",
-        job:
-          existing?.person.job ??
-          caseRecord?.family?.job ??
-          "",
+        mobile: existing?.person.mobile ?? caseRecord?.family?.phone ?? "",
+        job: existing?.person.job ?? caseRecord?.family?.job ?? "",
         monthlyIncome:
-          existing?.person.monthlyIncome ??
-          caseRecord?.family?.income ??
-          "",
-        educationState:
-          existing?.person.educationState ??
-          caseRecord?.family?.education ??
-          "غير محدد",
-        educationType: existing?.person.educationType ?? "حكومي",
-        educationStage: existing?.person.educationStage ?? "المرحلة الابتدائية",
-        schoolYear: existing?.person.schoolYear ?? "الأول",
+          existing?.person.monthlyIncome ?? caseRecord?.family?.income ?? "0",
+        educationState: normalizeEducationState(
+          existing?.person.educationState ?? caseRecord?.family?.education,
+        ),
+        educationType: existing?.person.educationType ?? "",
+        educationStage: existing?.person.educationStage ?? "",
+        schoolYear: existing?.person.schoolYear ?? "",
         educationNotes: existing?.person.educationNotes ?? "",
         expensesExempted: existing?.person.expensesExempted ?? false,
-        region:
-          existing?.person.region ??
-          caseRecord?.location ??
-          [
-            caseRecord?.family?.city ?? "",
-            caseRecord?.family?.village ?? "",
-          ]
-            .filter(Boolean)
-            .join(" > "),
+        center,
+        village,
+        region: buildRegionString(center, village),
         association: existing?.person.association ?? "",
         detailedAddress:
           existing?.person.detailedAddress ??
@@ -353,17 +460,21 @@ function buildInitialFormData(
           "",
         attachments: existing?.person.attachments ?? [],
         tamweenSupport: existing?.person.tamweenSupport ?? false,
-        tamweenBeneficiaries:
-          existing?.person.tamweenBeneficiaries ?? "1",
+        tamweenBeneficiaries: existing?.person.tamweenBeneficiaries ?? "1",
       },
       family: {
-        linkedFamilyId:
-          existing?.family.linkedFamilyId ??
-          caseRecord?.familyId ??
-          "",
+        linkedFamilyId: existing?.family.linkedFamilyId ?? caseRecord?.familyId ?? "",
         members:
           existing?.family.members?.length
-            ? existing.family.members
+            ? existing.family.members.map((member) => ({
+                ...createEmptyFamilyMember(),
+                ...member,
+                relation: normalizeRelation(member.relation),
+                education: normalizeEducationState(
+                  member.education ?? member.education,
+                ),
+                monthlyIncome: member.monthlyIncome ?? "0",
+              }))
             : buildFamilyMembersFromRecord(caseRecord?.family),
         dataComplete: existing?.family.dataComplete ?? false,
       },
@@ -386,13 +497,17 @@ function buildInitialFormData(
         oven: existing?.housing.oven ?? "لا يوجد",
         computer: existing?.housing.computer ?? "لا يوجد",
         internet: existing?.housing.internet ?? "لا يوجد",
+        rentAmount:
+          existing?.housing.rentAmount ??
+          existing?.finance.expenses?.إيجار ??
+          "0",
         transport: existing?.housing.transport ?? [],
         rooms: existing?.housing.rooms ?? [],
         dataComplete: existing?.housing.dataComplete ?? false,
       },
       possessions: {
         hasPossessions: existing?.possessions.hasPossessions ?? "لا",
-        items: existing?.possessions.items ?? [],
+        items: mergePossessionItems(existing?.possessions.items),
         dataComplete: existing?.possessions.dataComplete ?? false,
       },
       finance: {
@@ -408,65 +523,27 @@ function buildInitialFormData(
         dataComplete: existing?.finance.dataComplete ?? false,
       },
       classification: {
-        tags: existing?.classification.tags ?? [],
+        tags: (existing?.classification.tags ?? []).filter(
+          (tag) => tag !== "بدون/لا يوجد" && tag !== "أرامل",
+        ),
         degree: existing?.classification.degree ?? "حالة متوسطة",
       },
       support: {
         items: mergeSupportItems(existing?.support.items),
-        specialistName:
-          existing?.support.specialistName ??
-          currentUserName,
+        specialistName: existing?.support.specialistName ?? currentUserName,
         specialistNotes: existing?.support.specialistNotes ?? "",
         specialistOpinion:
-          existing?.support.specialistOpinion ?? "لم يتم البت",
+          existing?.support.specialistOpinion ?? RESEARCHER_OPINIONS[0],
+        managerDecision:
+          (existing?.support.managerDecision as string | undefined) ?? "PENDING",
+        managerComments: existing?.support.managerComments ?? "",
+        disabilitySupportType: existing?.support.disabilitySupportType ?? "",
+        disabilitySupportDescription:
+          existing?.support.disabilitySupportDescription ?? "",
+        disabilitySupportCost: existing?.support.disabilitySupportCost ?? "",
       },
     },
   };
-}
-
-function deriveBirthInfo(nationalId: string) {
-  const trimmed = nationalId.trim();
-  if (!/^\d{14}$/.test(trimmed)) {
-    return null;
-  }
-
-  const centuryCode = trimmed[0];
-  const year = Number(trimmed.slice(1, 3));
-  const month = Number(trimmed.slice(3, 5));
-  const day = Number(trimmed.slice(5, 7));
-
-  const century =
-    centuryCode === "2" ? 1900 : centuryCode === "3" ? 2000 : null;
-
-  if (!century || month < 1 || month > 12 || day < 1 || day > 31) {
-    return null;
-  }
-
-  const birthDate = new Date(century + year, month - 1, day);
-  if (Number.isNaN(birthDate.getTime())) {
-    return null;
-  }
-
-  const now = new Date();
-  let age = now.getFullYear() - birthDate.getFullYear();
-  const monthDiff = now.getMonth() - birthDate.getMonth();
-  if (
-    monthDiff < 0 ||
-    (monthDiff === 0 && now.getDate() < birthDate.getDate())
-  ) {
-    age -= 1;
-  }
-
-  return {
-    birthDate: birthDate.toISOString().split("T")[0],
-    age: String(Math.max(age, 0)),
-    gender: Number(trimmed[12]) % 2 === 0 ? "أنثى" : "ذكر",
-  };
-}
-
-function toNumber(value: string) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 function SectionCard({
@@ -488,9 +565,7 @@ function SectionCard({
         <div>
           <h2 className="text-xl font-bold text-on-surface">{title}</h2>
           {subtitle ? (
-            <div className="mt-1 text-sm text-on-surface-variant">
-              {subtitle}
-            </div>
+            <div className="mt-1 text-sm text-on-surface-variant">{subtitle}</div>
           ) : null}
         </div>
         <span
@@ -527,6 +602,7 @@ export default function CaseIntakeForm({
   mode,
   caseRecord,
   currentUserName,
+  currentUserRole,
   onSubmit,
   onDelete,
 }: CaseIntakeFormProps) {
@@ -542,6 +618,11 @@ export default function CaseIntakeForm({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+
+  const hasManagerAccess =
+    currentUserRole === "MANAGER" ||
+    currentUserRole === "CEO" ||
+    currentUserRole === "ADMIN";
 
   useEffect(() => {
     setDraft(buildInitialFormData(caseRecord, currentUserName));
@@ -577,16 +658,17 @@ export default function CaseIntakeForm({
 
   useEffect(() => {
     const derived = deriveBirthInfo(draft.formData.person.nationalId);
-    if (!derived) {
-      return;
-    }
 
     setDraft((current) => {
       const person = current.formData.person;
+      const nextBirthDate = derived?.birthDate ?? "";
+      const nextAge = derived?.age ?? "";
+      const nextGender = derived?.gender ?? "";
+
       if (
-        person.birthDate === derived.birthDate &&
-        person.age === derived.age &&
-        person.gender === derived.gender
+        person.birthDate === nextBirthDate &&
+        person.age === nextAge &&
+        person.gender === nextGender
       ) {
         return current;
       }
@@ -597,14 +679,149 @@ export default function CaseIntakeForm({
           ...current.formData,
           person: {
             ...person,
-            birthDate: derived.birthDate,
-            age: derived.age,
-            gender: derived.gender,
+            birthDate: nextBirthDate,
+            age: nextAge,
+            gender: nextGender,
           },
         },
       };
     });
   }, [draft.formData.person.nationalId]);
+
+  useEffect(() => {
+    if (isStudent(draft.formData.person.educationState)) {
+      return;
+    }
+
+    setDraft((current) => {
+      const person = current.formData.person;
+      if (
+        !person.educationType &&
+        !person.educationStage &&
+        !person.schoolYear
+      ) {
+        return current;
+      }
+
+      return {
+        ...current,
+        formData: {
+          ...current.formData,
+          person: {
+            ...person,
+            educationType: "",
+            educationStage: "",
+            schoolYear: "",
+          },
+        },
+      };
+    });
+  }, [draft.formData.person.educationState]);
+
+  useEffect(() => {
+    setDraft((current) => {
+      let changed = false;
+      const nextMembers = current.formData.family.members.map((member) => {
+        const derived = deriveBirthInfo(member.nationalId ?? "");
+        const nextMember = {
+          ...member,
+          age: derived?.age ?? "",
+          gender: derived?.gender ?? "",
+          educationType: isStudent(member.education) ? member.educationType : "",
+          educationStage: isStudent(member.education) ? member.educationStage : "",
+          schoolYear: isStudent(member.education) ? member.schoolYear : "",
+        };
+
+        if (
+          nextMember.age !== member.age ||
+          nextMember.gender !== member.gender ||
+          nextMember.educationType !== member.educationType ||
+          nextMember.educationStage !== member.educationStage ||
+          nextMember.schoolYear !== member.schoolYear
+        ) {
+          changed = true;
+        }
+
+        return nextMember;
+      });
+
+      if (!changed) {
+        return current;
+      }
+
+      return {
+        ...current,
+        formData: {
+          ...current.formData,
+          family: {
+            ...current.formData.family,
+            members: nextMembers,
+          },
+        },
+      };
+    });
+  }, [draft.formData.family.members]);
+
+  useEffect(() => {
+    setDraft((current) => {
+      const center = current.formData.person.center;
+      const village = current.formData.person.village;
+      const nextRegion = buildRegionString(center, village);
+      const nextHeadIncome = current.formData.person.monthlyIncome || "0";
+      const nextFamilyIncome = String(
+        current.formData.family.members.reduce(
+          (sum, member) => sum + toNumber(member.monthlyIncome),
+          0,
+        ),
+      );
+      const nextRentExpense =
+        current.formData.housing.residencyType === "إيجار"
+          ? current.formData.housing.rentAmount || "0"
+          : "0";
+
+      const nextIncomes = {
+        ...current.formData.finance.incomes,
+        "دخل رب الأسرة": nextHeadIncome,
+        "دخل أفراد الأسرة": nextFamilyIncome,
+      };
+      const nextExpenses = {
+        ...current.formData.finance.expenses,
+        إيجار: nextRentExpense,
+      };
+
+      if (
+        current.formData.person.region === nextRegion &&
+        current.formData.finance.incomes["دخل رب الأسرة"] === nextHeadIncome &&
+        current.formData.finance.incomes["دخل أفراد الأسرة"] === nextFamilyIncome &&
+        current.formData.finance.expenses.إيجار === nextRentExpense
+      ) {
+        return current;
+      }
+
+      return {
+        ...current,
+        formData: {
+          ...current.formData,
+          person: {
+            ...current.formData.person,
+            region: nextRegion,
+          },
+          finance: {
+            ...current.formData.finance,
+            incomes: nextIncomes,
+            expenses: nextExpenses,
+          },
+        },
+      };
+    });
+  }, [
+    draft.formData.family.members,
+    draft.formData.housing.rentAmount,
+    draft.formData.housing.residencyType,
+    draft.formData.person.center,
+    draft.formData.person.monthlyIncome,
+    draft.formData.person.village,
+  ]);
 
   useEffect(() => {
     const incomesTotal = Object.values(draft.formData.finance.incomes).reduce(
@@ -615,10 +832,10 @@ export default function CaseIntakeForm({
       (sum, value) => sum + toNumber(value),
       0,
     );
-    const net = String(incomesTotal - expensesTotal);
+    const nextNet = String(incomesTotal - expensesTotal);
 
     setDraft((current) => {
-      if (current.formData.finance.netMonthlyIncome === net) {
+      if (current.formData.finance.netMonthlyIncome === nextNet) {
         return current;
       }
 
@@ -628,12 +845,58 @@ export default function CaseIntakeForm({
           ...current.formData,
           finance: {
             ...current.formData.finance,
-            netMonthlyIncome: net,
+            netMonthlyIncome: nextNet,
           },
         },
       };
     });
   }, [draft.formData.finance.expenses, draft.formData.finance.incomes]);
+
+  const centerOptions = useMemo(() => {
+    return Array.from(
+      new Set(
+        locations
+          .flatMap((location) =>
+            location.type === "مركز"
+              ? [location.name]
+              : location.region
+                ? [location.region]
+                : [],
+          )
+          .filter(Boolean),
+      ),
+    ).sort((left, right) => left.localeCompare(right, "ar"));
+  }, [locations]);
+
+  const villageOptions = useMemo(() => {
+    return locations
+      .filter(
+        (location) =>
+          location.type === "قرية" &&
+          (!draft.formData.person.center ||
+            location.region === draft.formData.person.center),
+      )
+      .map((location) => location.name)
+      .sort((left, right) => left.localeCompare(right, "ar"));
+  }, [draft.formData.person.center, locations]);
+
+  const selectedSupportByCategory = SUPPORT_CATALOG.map((category) => ({
+    ...category,
+    items: draft.formData.support.items.filter(
+      (item) => item.category === category.category,
+    ),
+  }));
+
+  const previousCases =
+    caseRecord?.family?.cases?.filter((item) => item.id !== caseRecord.id) ?? [];
+
+  const membersIncomeTotal = draft.formData.family.members.reduce(
+    (sum, member) => sum + toNumber(member.monthlyIncome),
+    0,
+  );
+  const studentsCount = draft.formData.family.members.filter((member) =>
+    isStudent(member.education),
+  ).length;
 
   const toggleSection = (sectionId: string) => {
     setSectionsOpen((current) => ({
@@ -658,22 +921,6 @@ export default function CaseIntakeForm({
     }));
   };
 
-  const updateHousing = <K extends keyof CaseIntakeFormData["housing"]>(
-    key: K,
-    value: CaseIntakeFormData["housing"][K],
-  ) => {
-    setDraft((current) => ({
-      ...current,
-      formData: {
-        ...current.formData,
-        housing: {
-          ...current.formData.housing,
-          [key]: value,
-        },
-      },
-    }));
-  };
-
   const updateFamily = <K extends keyof CaseIntakeFormData["family"]>(
     key: K,
     value: CaseIntakeFormData["family"][K],
@@ -690,9 +937,23 @@ export default function CaseIntakeForm({
     }));
   };
 
-  const updatePossessions = <
-    K extends keyof CaseIntakeFormData["possessions"],
-  >(
+  const updateHousing = <K extends keyof CaseIntakeFormData["housing"]>(
+    key: K,
+    value: CaseIntakeFormData["housing"][K],
+  ) => {
+    setDraft((current) => ({
+      ...current,
+      formData: {
+        ...current.formData,
+        housing: {
+          ...current.formData.housing,
+          [key]: value,
+        },
+      },
+    }));
+  };
+
+  const updatePossessions = <K extends keyof CaseIntakeFormData["possessions"]>(
     key: K,
     value: CaseIntakeFormData["possessions"][K],
   ) => {
@@ -759,9 +1020,7 @@ export default function CaseIntakeForm({
   };
 
   const importFamilyData = () => {
-    const family = families.find(
-      (item) => item.id === draft.formData.family.linkedFamilyId,
-    );
+    const family = families.find((item) => item.id === draft.formData.family.linkedFamilyId);
 
     if (!family) {
       return;
@@ -774,17 +1033,15 @@ export default function CaseIntakeForm({
         person: {
           ...current.formData.person,
           fullName: family.headName || current.formData.person.fullName,
-          nationalId:
-            family.nationalId || current.formData.person.nationalId,
+          nationalId: family.nationalId || current.formData.person.nationalId,
           mobile: family.phone || current.formData.person.mobile,
           job: family.job || current.formData.person.job,
-          monthlyIncome:
-            family.income || current.formData.person.monthlyIncome,
-          educationState:
+          monthlyIncome: family.income || current.formData.person.monthlyIncome,
+          educationState: normalizeEducationState(
             family.education || current.formData.person.educationState,
-          region: [family.city ?? "", family.village ?? ""]
-            .filter(Boolean)
-            .join(" > "),
+          ),
+          center: family.city || current.formData.person.center,
+          village: family.village || current.formData.person.village,
           detailedAddress:
             family.addressDetails ||
             family.address ||
@@ -805,26 +1062,26 @@ export default function CaseIntakeForm({
   ) => {
     updateFamily(
       "members",
-      draft.formData.family.members.map((member) =>
-        member.id === memberId ? { ...member, [key]: value } : member,
-      ),
+      draft.formData.family.members.map((member) => {
+        if (member.id !== memberId) {
+          return member;
+        }
+
+        const nextMember = { ...member, [key]: value };
+
+        if (key === "education" && value !== "طالب") {
+          nextMember.educationType = "";
+          nextMember.educationStage = "";
+          nextMember.schoolYear = "";
+        }
+
+        return nextMember;
+      }),
     );
   };
 
   const addFamilyMember = () => {
-    updateFamily("members", [
-      ...draft.formData.family.members,
-      {
-        id: createLocalId("member"),
-        name: "",
-        relation: "فرد أسرة",
-        classification: "",
-        age: "",
-        mobile: "",
-        education: "",
-        job: "",
-      },
-    ]);
+    updateFamily("members", [...draft.formData.family.members, createEmptyFamilyMember()]);
   };
 
   const removeFamilyMember = (memberId: string) => {
@@ -861,36 +1118,16 @@ export default function CaseIntakeForm({
     );
   };
 
-  const addPossession = () => {
-    updatePossessions("items", [
-      ...draft.formData.possessions.items,
-      {
-        id: createLocalId("possession"),
-        name: "",
-        type: "",
-        value: "",
-        notes: "",
-      },
-    ]);
-  };
-
   const updatePossession = (
     itemId: string,
     key: keyof CaseIntakePossessionItem,
-    value: string,
+    value: string | boolean,
   ) => {
     updatePossessions(
       "items",
       draft.formData.possessions.items.map((item) =>
         item.id === itemId ? { ...item, [key]: value } : item,
       ),
-    );
-  };
-
-  const removePossession = (itemId: string) => {
-    updatePossessions(
-      "items",
-      draft.formData.possessions.items.filter((item) => item.id !== itemId),
     );
   };
 
@@ -919,30 +1156,19 @@ export default function CaseIntakeForm({
     );
   };
 
-  const selectedSupportByCategory = SUPPORT_CATALOG.map((category) => ({
-    ...category,
-    items: draft.formData.support.items.filter(
-      (item) => item.category === category.category,
-    ),
-  }));
-
-  const primaryStudents = draft.formData.family.members.filter((member) =>
-    member.education?.includes("ابتدائي"),
-  ).length;
-  const preparatoryStudents = draft.formData.family.members.filter((member) =>
-    member.education?.includes("اعدادي") ||
-    member.education?.includes("إعدادي"),
-  ).length;
-
-  const previousCases =
-    caseRecord?.family?.cases?.filter((item) => item.id !== caseRecord.id) ?? [];
-
   const submitForm = async (event: React.FormEvent) => {
     event.preventDefault();
+
     if (!draft.formData.person.fullName.trim()) {
-      alert("يجب إدخال الاسم الكامل.");
+      alert("يجب إدخال اسم رب الأسرة.");
       return;
     }
+
+    if (!draft.formData.person.center.trim()) {
+      alert("يجب اختيار المركز.");
+      return;
+    }
+
     if (!draft.caseType.trim()) {
       alert("يجب اختيار نوع الدعم أو التدخل.");
       return;
@@ -954,14 +1180,22 @@ export default function CaseIntakeForm({
       caseType: draft.caseType.trim(),
       priority: draft.priority,
       description: draft.description.trim() || undefined,
-      location: draft.formData.person.region.trim() || "غير محدد",
+      location:
+        buildRegionString(draft.formData.person.center, draft.formData.person.village) ||
+        "غير محدد",
       familyId: draft.formData.family.linkedFamilyId || undefined,
       formData: {
         ...draft.formData,
+        person: {
+          ...draft.formData.person,
+          region: buildRegionString(
+            draft.formData.person.center,
+            draft.formData.person.village,
+          ),
+        },
         support: {
           ...draft.formData.support,
-          specialistName:
-            draft.formData.support.specialistName || currentUserName,
+          specialistName: draft.formData.support.specialistName || currentUserName,
         },
       },
     };
@@ -1019,8 +1253,8 @@ export default function CaseIntakeForm({
               {mode === "edit" ? "تعديل بيانات الحالة" : "تسجيل حالة جديدة"}
             </h1>
             <p className="mt-2 text-sm text-on-surface-variant">
-              نفس تقسيم الكارت المرجعي: بيانات الحالة، الأسرة، السكن، الحيازات،
-              الدخل، التصنيف، والدعم الحالي.
+              نموذج خفيف وعملي: رب الأسرة، أفراد الأسرة، السكن، الحيازة،
+              المالية، ثم الدعم والاعتماد.
             </p>
           </div>
           <div className="grid gap-3 text-sm text-on-surface-variant sm:grid-cols-2">
@@ -1031,7 +1265,7 @@ export default function CaseIntakeForm({
               </strong>
             </div>
             <div className="rounded-2xl bg-surface-container-lowest px-4 py-3">
-              <span className="block text-xs">الأخصائي</span>
+              <span className="block text-xs">الباحث</span>
               <strong className="mt-1 block text-on-surface">
                 {draft.formData.support.specialistName || currentUserName}
               </strong>
@@ -1058,8 +1292,8 @@ export default function CaseIntakeForm({
 
       <SectionCard
         id="case"
-        title="بيانات الحالة"
-        subtitle="البيانات الشخصية والأساسية كما تظهر في الكارت المرجعي."
+        title="بيانات رب الأسرة"
+        subtitle="يتم استنتاج السن والنوع تلقائيًا من الرقم القومي."
         open={sectionsOpen.case}
         onToggle={toggleSection}
       >
@@ -1082,7 +1316,7 @@ export default function CaseIntakeForm({
               required
               value={draft.formData.person.fullName}
               onChange={(event) => updatePerson("fullName", event.target.value)}
-              placeholder="الاسم كامل"
+              placeholder="اسم رب الأسرة"
               className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
             />
           </label>
@@ -1095,7 +1329,7 @@ export default function CaseIntakeForm({
               onChange={(event) =>
                 updatePerson("nationalId", event.target.value.replace(/\D/g, ""))
               }
-              placeholder="الرقم القومي"
+              placeholder="14 رقم"
               className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
             />
           </label>
@@ -1115,25 +1349,14 @@ export default function CaseIntakeForm({
               ))}
             </select>
           </label>
-          <label className="xl:col-span-2">
-            <span className="mb-2 block text-sm font-bold text-on-surface">
-              تاريخ الميلاد
-            </span>
-            <input
-              type="date"
-              value={draft.formData.person.birthDate}
-              onChange={(event) => updatePerson("birthDate", event.target.value)}
-              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-            />
-          </label>
           <label className="xl:col-span-1">
             <span className="mb-2 block text-sm font-bold text-on-surface">
-              العمر
+              السن
             </span>
             <input
+              disabled
               value={draft.formData.person.age}
-              onChange={(event) => updatePerson("age", event.target.value)}
-              className="w-full rounded-2xl border border-outline-variant/50 bg-surface-container-low py-3 px-4 text-sm outline-none focus:border-primary"
+              className="w-full rounded-2xl border border-outline-variant/50 bg-surface-container-low py-3 px-4 text-sm text-on-surface"
             />
           </label>
           <label className="xl:col-span-1">
@@ -1141,10 +1364,9 @@ export default function CaseIntakeForm({
               النوع
             </span>
             <input
+              disabled
               value={draft.formData.person.gender}
-              onChange={(event) => updatePerson("gender", event.target.value)}
-              placeholder="ذكر / أنثى"
-              className="w-full rounded-2xl border border-outline-variant/50 bg-surface-container-low py-3 px-4 text-sm outline-none focus:border-primary"
+              className="w-full rounded-2xl border border-outline-variant/50 bg-surface-container-low py-3 px-4 text-sm text-on-surface"
             />
           </label>
           <label className="xl:col-span-2">
@@ -1174,25 +1396,23 @@ export default function CaseIntakeForm({
               الدخل الشهري
             </span>
             <input
+              type="number"
               value={draft.formData.person.monthlyIncome}
-              onChange={(event) =>
-                updatePerson("monthlyIncome", event.target.value)
-              }
+              onChange={(event) => updatePerson("monthlyIncome", event.target.value)}
               placeholder="الدخل الشهري"
               className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
             />
           </label>
           <label className="xl:col-span-2">
             <span className="mb-2 block text-sm font-bold text-on-surface">
-              المؤهل التعليمي
+              المؤهل
             </span>
             <select
               value={draft.formData.person.educationState}
-              onChange={(event) =>
-                updatePerson("educationState", event.target.value)
-              }
+              onChange={(event) => updatePerson("educationState", event.target.value)}
               className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
             >
+              <option value="">اختر المؤهل</option>
               {EDUCATION_STATES.map((item) => (
                 <option key={item} value={item}>
                   {item}
@@ -1200,108 +1420,129 @@ export default function CaseIntakeForm({
               ))}
             </select>
           </label>
-          <label className="xl:col-span-1">
+
+          {isStudent(draft.formData.person.educationState) ? (
+            <>
+              <label className="xl:col-span-1">
+                <span className="mb-2 block text-sm font-bold text-on-surface">
+                  نوع التعليم
+                </span>
+                <select
+                  value={draft.formData.person.educationType}
+                  onChange={(event) => updatePerson("educationType", event.target.value)}
+                  className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                >
+                  <option value="">اختر النوع</option>
+                  {EDUCATION_TYPES.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="xl:col-span-1">
+                <span className="mb-2 block text-sm font-bold text-on-surface">
+                  المرحلة
+                </span>
+                <select
+                  value={draft.formData.person.educationStage}
+                  onChange={(event) => updatePerson("educationStage", event.target.value)}
+                  className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                >
+                  <option value="">اختر المرحلة</option>
+                  {EDUCATION_STAGES.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="xl:col-span-1">
+                <span className="mb-2 block text-sm font-bold text-on-surface">
+                  الصف
+                </span>
+                <select
+                  value={draft.formData.person.schoolYear}
+                  onChange={(event) => updatePerson("schoolYear", event.target.value)}
+                  className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                >
+                  <option value="">اختر الصف</option>
+                  {SCHOOL_YEARS.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
+          ) : null}
+
+          <label className="xl:col-span-3">
             <span className="mb-2 block text-sm font-bold text-on-surface">
-              نوع التعليم
+              ملاحظات الدراسة
             </span>
-            <select
-              value={draft.formData.person.educationType}
-              onChange={(event) =>
-                updatePerson("educationType", event.target.value)
-              }
+            <input
+              value={draft.formData.person.educationNotes}
+              onChange={(event) => updatePerson("educationNotes", event.target.value)}
+              placeholder="ملاحظات إضافية"
               className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-            >
-              {EDUCATION_TYPES.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
+            />
           </label>
-          <label className="xl:col-span-1">
+
+          <label className="xl:col-span-2">
             <span className="mb-2 block text-sm font-bold text-on-surface">
-              المرحلة الدراسية
+              المركز
             </span>
             <select
-              value={draft.formData.person.educationStage}
-              onChange={(event) =>
-                updatePerson("educationStage", event.target.value)
-              }
+              value={draft.formData.person.center}
+              onChange={(event) => {
+                updatePerson("center", event.target.value);
+                if (
+                  draft.formData.person.village &&
+                  !locations.some(
+                    (location) =>
+                      location.type === "قرية" &&
+                      location.region === event.target.value &&
+                      location.name === draft.formData.person.village,
+                  )
+                ) {
+                  updatePerson("village", "");
+                }
+              }}
               className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
             >
-              {EDUCATION_STAGES.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="xl:col-span-1">
-            <span className="mb-2 block text-sm font-bold text-on-surface">
-              الصف الدراسي
-            </span>
-            <select
-              value={draft.formData.person.schoolYear}
-              onChange={(event) => updatePerson("schoolYear", event.target.value)}
-              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-            >
-              {SCHOOL_YEARS.map((item) => (
-                <option key={item} value={item}>
-                  {item}
+              <option value="">اختر المركز</option>
+              {centerOptions.map((center) => (
+                <option key={center} value={center}>
+                  {center}
                 </option>
               ))}
             </select>
           </label>
           <label className="xl:col-span-2">
             <span className="mb-2 block text-sm font-bold text-on-surface">
-              ملاحظات الدراسة
-            </span>
-            <input
-              value={draft.formData.person.educationNotes}
-              onChange={(event) =>
-                updatePerson("educationNotes", event.target.value)
-              }
-              placeholder="ملاحظات الدراسة"
-              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-            />
-          </label>
-          <label className="xl:col-span-6 flex items-center gap-3 rounded-2xl border border-outline-variant/40 bg-surface-container-low px-4 py-3 text-sm font-medium text-on-surface">
-            <input
-              type="checkbox"
-              checked={draft.formData.person.expensesExempted}
-              onChange={(event) =>
-                updatePerson("expensesExempted", event.target.checked)
-              }
-              className="h-4 w-4 accent-primary"
-            />
-            الإعفاء من المصروفات
-          </label>
-          <label className="xl:col-span-3">
-            <span className="mb-2 block text-sm font-bold text-on-surface">
-              المدينة / القرية
+              القرية
             </span>
             <select
-              value={draft.formData.person.region}
-              onChange={(event) => updatePerson("region", event.target.value)}
+              value={draft.formData.person.village}
+              onChange={(event) => updatePerson("village", event.target.value)}
               className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
             >
-              <option value="">اختر المنطقة</option>
-              {locations.map((location) => (
-                <option key={location.id} value={`${location.region} > ${location.name}`}>
-                  {location.region} &gt; {location.name}
+              <option value="">اختر القرية</option>
+              {villageOptions.map((village) => (
+                <option key={village} value={village}>
+                  {village}
                 </option>
               ))}
             </select>
           </label>
-          <label className="xl:col-span-3">
+          <label className="xl:col-span-2">
             <span className="mb-2 block text-sm font-bold text-on-surface">
               الجمعية
             </span>
             <select
               value={draft.formData.person.association}
-              onChange={(event) =>
-                updatePerson("association", event.target.value)
-              }
+              onChange={(event) => updatePerson("association", event.target.value)}
               className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
             >
               <option value="">اختر الجمعية</option>
@@ -1312,6 +1553,7 @@ export default function CaseIntakeForm({
               ))}
             </select>
           </label>
+
           <label className="xl:col-span-6">
             <span className="mb-2 block text-sm font-bold text-on-surface">
               العنوان التفصيلي
@@ -1319,13 +1561,12 @@ export default function CaseIntakeForm({
             <textarea
               rows={3}
               value={draft.formData.person.detailedAddress}
-              onChange={(event) =>
-                updatePerson("detailedAddress", event.target.value)
-              }
+              onChange={(event) => updatePerson("detailedAddress", event.target.value)}
               placeholder="العنوان التفصيلي"
               className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
             />
           </label>
+
           <div className="xl:col-span-6">
             <span className="mb-3 block text-sm font-bold text-on-surface">
               الملفات / الوثائق المرفقة
@@ -1353,13 +1594,12 @@ export default function CaseIntakeForm({
               ))}
             </div>
           </div>
+
           <label className="xl:col-span-2 flex items-center gap-3 rounded-2xl border border-outline-variant/40 bg-surface-container-low px-4 py-3 text-sm font-medium text-on-surface">
             <input
               type="checkbox"
               checked={draft.formData.person.tamweenSupport}
-              onChange={(event) =>
-                updatePerson("tamweenSupport", event.target.checked)
-              }
+              onChange={(event) => updatePerson("tamweenSupport", event.target.checked)}
               className="h-4 w-4 accent-primary"
             />
             مستفيد من التموين
@@ -1370,56 +1610,20 @@ export default function CaseIntakeForm({
             </span>
             <input
               value={draft.formData.person.tamweenBeneficiaries}
-              onChange={(event) =>
-                updatePerson("tamweenBeneficiaries", event.target.value)
-              }
+              onChange={(event) => updatePerson("tamweenBeneficiaries", event.target.value)}
               className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
             />
           </label>
-          <label className="xl:col-span-2">
-            <span className="mb-2 block text-sm font-bold text-on-surface">
-              نوع الدعم / التدخل
-            </span>
-            <select
-              value={draft.caseType}
-              onChange={(event) =>
-                setDraft((current) => ({ ...current, caseType: event.target.value }))
-              }
-              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-            >
-              {CASE_TYPES.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
+          <label className="xl:col-span-3 flex items-center gap-3 rounded-2xl border border-outline-variant/40 bg-surface-container-low px-4 py-3 text-sm font-medium text-on-surface">
+            <input
+              type="checkbox"
+              checked={draft.formData.person.expensesExempted}
+              onChange={(event) => updatePerson("expensesExempted", event.target.checked)}
+              className="h-4 w-4 accent-primary"
+            />
+            الإعفاء من المصروفات
           </label>
-          <div className="xl:col-span-1">
-            <span className="mb-2 block text-sm font-bold text-on-surface">
-              الأولوية
-            </span>
-            <div className="flex gap-2">
-              {PRIORITY_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() =>
-                    setDraft((current) => ({
-                      ...current,
-                      priority: option.value,
-                    }))
-                  }
-                  className={`flex-1 rounded-2xl border px-3 py-3 text-sm font-bold transition-colors ${
-                    draft.priority === option.value
-                      ? "border-primary bg-primary text-white"
-                      : "border-outline-variant/50 bg-white text-on-surface"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
+
           <label className="xl:col-span-6">
             <span className="mb-2 block text-sm font-bold text-on-surface">
               ملخص الحالة / الاحتياج
@@ -1433,7 +1637,7 @@ export default function CaseIntakeForm({
                   description: event.target.value,
                 }))
               }
-              placeholder="اكتب ملخصًا واضحًا للاحتياج الحالي"
+              placeholder="اكتب وصفًا واضحًا للاحتياج الحالي"
               className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
             />
           </label>
@@ -1442,8 +1646,8 @@ export default function CaseIntakeForm({
 
       <SectionCard
         id="family"
-        title="بيانات الأسرة"
-        subtitle="يمكن ربط الحالة بأسرة موجودة أو إدخال أفراد الأسرة يدويًا."
+        title="بيانات أفراد الأسرة"
+        subtitle="كل فرد يظهر في كارت مستقل مشابه لبيانات رب الأسرة."
         open={sectionsOpen.family}
         onToggle={toggleSection}
         footer={
@@ -1451,9 +1655,7 @@ export default function CaseIntakeForm({
             <input
               type="checkbox"
               checked={draft.formData.family.dataComplete}
-              onChange={(event) =>
-                updateFamily("dataComplete", event.target.checked)
-              }
+              onChange={(event) => updateFamily("dataComplete", event.target.checked)}
               className="h-4 w-4 accent-primary"
             />
             تم استكمال بيانات أفراد الأسرة
@@ -1467,12 +1669,10 @@ export default function CaseIntakeForm({
             </span>
             <select
               value={draft.formData.family.linkedFamilyId}
-              onChange={(event) =>
-                updateFamily("linkedFamilyId", event.target.value)
-              }
+              onChange={(event) => updateFamily("linkedFamilyId", event.target.value)}
               className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
             >
-              <option value="">بدون ربط</option>
+              <option value="">اختر الأسرة</option>
               {families.map((family) => (
                 <option key={family.id} value={family.id}>
                   {family.headName} {family.nationalId ? `- ${family.nationalId}` : ""}
@@ -1492,119 +1692,240 @@ export default function CaseIntakeForm({
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-3xl border border-outline-variant/20">
-          <table className="min-w-full divide-y divide-outline-variant/20 text-right text-sm">
-            <thead className="bg-surface-container-lowest text-on-surface-variant">
-              <tr>
-                <th className="px-4 py-3 font-bold">اسم الفرد</th>
-                <th className="px-4 py-3 font-bold">درجة القرابة</th>
-                <th className="px-4 py-3 font-bold">التصنيف</th>
-                <th className="px-4 py-3 font-bold">السن</th>
-                <th className="px-4 py-3 font-bold">المحمول</th>
-                <th className="px-4 py-3 font-bold">التعليم</th>
-                <th className="px-4 py-3 font-bold">الوظيفة</th>
-                <th className="px-4 py-3 font-bold"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant/10">
-              {draft.formData.family.members.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="px-4 py-5 text-center text-on-surface-variant">
-                    لا يوجد أفراد مسجلون بعد.
-                  </td>
-                </tr>
-              ) : (
-                draft.formData.family.members.map((member) => (
-                  <tr key={member.id}>
-                    <td className="px-4 py-3">
-                      <input
-                        value={member.name}
-                        onChange={(event) =>
-                          updateFamilyMember(member.id, "name", event.target.value)
-                        }
-                        className="w-44 rounded-xl border border-outline-variant/40 bg-white py-2 px-3 outline-none focus:border-primary"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <input
-                        value={member.relation}
-                        onChange={(event) =>
-                          updateFamilyMember(
-                            member.id,
-                            "relation",
-                            event.target.value,
-                          )
-                        }
-                        className="w-32 rounded-xl border border-outline-variant/40 bg-white py-2 px-3 outline-none focus:border-primary"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <input
-                        value={member.classification ?? ""}
-                        onChange={(event) =>
-                          updateFamilyMember(
-                            member.id,
-                            "classification",
-                            event.target.value,
-                          )
-                        }
-                        className="w-36 rounded-xl border border-outline-variant/40 bg-white py-2 px-3 outline-none focus:border-primary"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <input
-                        value={member.age ?? ""}
-                        onChange={(event) =>
-                          updateFamilyMember(member.id, "age", event.target.value)
-                        }
-                        className="w-20 rounded-xl border border-outline-variant/40 bg-white py-2 px-3 outline-none focus:border-primary"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <input
-                        value={member.mobile ?? ""}
-                        onChange={(event) =>
-                          updateFamilyMember(member.id, "mobile", event.target.value)
-                        }
-                        className="w-36 rounded-xl border border-outline-variant/40 bg-white py-2 px-3 outline-none focus:border-primary"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <input
-                        value={member.education ?? ""}
-                        onChange={(event) =>
-                          updateFamilyMember(
-                            member.id,
-                            "education",
-                            event.target.value,
-                          )
-                        }
-                        className="w-36 rounded-xl border border-outline-variant/40 bg-white py-2 px-3 outline-none focus:border-primary"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <input
-                        value={member.job ?? ""}
-                        onChange={(event) =>
-                          updateFamilyMember(member.id, "job", event.target.value)
-                        }
-                        className="w-36 rounded-xl border border-outline-variant/40 bg-white py-2 px-3 outline-none focus:border-primary"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() => removeFamilyMember(member.id)}
-                        className="rounded-xl bg-error/10 px-3 py-2 text-xs font-bold text-error"
-                      >
-                        حذف
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="space-y-4">
+          {draft.formData.family.members.length === 0 ? (
+            <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-low px-4 py-6 text-center text-sm text-on-surface-variant">
+              لا يوجد أفراد مضافون حتى الآن.
+            </div>
+          ) : (
+            draft.formData.family.members.map((member, index) => (
+              <div
+                key={member.id}
+                className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest/60 p-5"
+              >
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-bold text-on-surface">
+                      فرد الأسرة رقم {index + 1}
+                    </h3>
+                    <p className="text-sm text-on-surface-variant">
+                      بيانات شخصية، تعليم، ودخل الفرد.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeFamilyMember(member.id)}
+                    className="rounded-2xl bg-error/10 px-4 py-2 text-sm font-bold text-error"
+                  >
+                    حذف
+                  </button>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+                  <label className="xl:col-span-2">
+                    <span className="mb-2 block text-sm font-bold text-on-surface">
+                      الاسم
+                    </span>
+                    <input
+                      value={member.name}
+                      onChange={(event) =>
+                        updateFamilyMember(member.id, "name", event.target.value)
+                      }
+                      className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                    />
+                  </label>
+                  <label className="xl:col-span-1">
+                    <span className="mb-2 block text-sm font-bold text-on-surface">
+                      درجة القرابة
+                    </span>
+                    <select
+                      value={member.relation}
+                      onChange={(event) =>
+                        updateFamilyMember(member.id, "relation", event.target.value)
+                      }
+                      className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                    >
+                      {RELATION_OPTIONS.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="xl:col-span-2">
+                    <span className="mb-2 block text-sm font-bold text-on-surface">
+                      الرقم القومي
+                    </span>
+                    <input
+                      value={member.nationalId ?? ""}
+                      onChange={(event) =>
+                        updateFamilyMember(
+                          member.id,
+                          "nationalId",
+                          event.target.value.replace(/\D/g, ""),
+                        )
+                      }
+                      placeholder="14 رقم"
+                      className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                    />
+                  </label>
+                  <label className="xl:col-span-1">
+                    <span className="mb-2 block text-sm font-bold text-on-surface">
+                      السن
+                    </span>
+                    <input
+                      disabled
+                      value={member.age ?? ""}
+                      className="w-full rounded-2xl border border-outline-variant/40 bg-surface-container-low py-3 px-4 text-sm text-on-surface"
+                    />
+                  </label>
+                  <label className="xl:col-span-1">
+                    <span className="mb-2 block text-sm font-bold text-on-surface">
+                      النوع
+                    </span>
+                    <input
+                      disabled
+                      value={member.gender ?? ""}
+                      className="w-full rounded-2xl border border-outline-variant/40 bg-surface-container-low py-3 px-4 text-sm text-on-surface"
+                    />
+                  </label>
+                  <label className="xl:col-span-2">
+                    <span className="mb-2 block text-sm font-bold text-on-surface">
+                      المحمول
+                    </span>
+                    <input
+                      value={member.mobile ?? ""}
+                      onChange={(event) =>
+                        updateFamilyMember(member.id, "mobile", event.target.value)
+                      }
+                      className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                    />
+                  </label>
+                  <label className="xl:col-span-2">
+                    <span className="mb-2 block text-sm font-bold text-on-surface">
+                      الوظيفة
+                    </span>
+                    <input
+                      value={member.job ?? ""}
+                      onChange={(event) =>
+                        updateFamilyMember(member.id, "job", event.target.value)
+                      }
+                      className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                    />
+                  </label>
+                  <label className="xl:col-span-1">
+                    <span className="mb-2 block text-sm font-bold text-on-surface">
+                      الدخل الشهري
+                    </span>
+                    <input
+                      type="number"
+                      value={member.monthlyIncome ?? "0"}
+                      onChange={(event) =>
+                        updateFamilyMember(
+                          member.id,
+                          "monthlyIncome",
+                          event.target.value,
+                        )
+                      }
+                      className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                    />
+                  </label>
+                  <label className="xl:col-span-2">
+                    <span className="mb-2 block text-sm font-bold text-on-surface">
+                      المؤهل
+                    </span>
+                    <select
+                      value={member.education ?? ""}
+                      onChange={(event) =>
+                        updateFamilyMember(member.id, "education", event.target.value)
+                      }
+                      className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                    >
+                      <option value="">اختر المؤهل</option>
+                      {EDUCATION_STATES.map((item) => (
+                        <option key={item} value={item}>
+                          {item}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {isStudent(member.education) ? (
+                    <>
+                      <label className="xl:col-span-1">
+                        <span className="mb-2 block text-sm font-bold text-on-surface">
+                          نوع التعليم
+                        </span>
+                        <select
+                          value={member.educationType ?? ""}
+                          onChange={(event) =>
+                            updateFamilyMember(
+                              member.id,
+                              "educationType",
+                              event.target.value,
+                            )
+                          }
+                          className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                        >
+                          <option value="">اختر النوع</option>
+                          {EDUCATION_TYPES.map((item) => (
+                            <option key={item} value={item}>
+                              {item}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="xl:col-span-1">
+                        <span className="mb-2 block text-sm font-bold text-on-surface">
+                          المرحلة
+                        </span>
+                        <select
+                          value={member.educationStage ?? ""}
+                          onChange={(event) =>
+                            updateFamilyMember(
+                              member.id,
+                              "educationStage",
+                              event.target.value,
+                            )
+                          }
+                          className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                        >
+                          <option value="">اختر المرحلة</option>
+                          {EDUCATION_STAGES.map((item) => (
+                            <option key={item} value={item}>
+                              {item}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="xl:col-span-1">
+                        <span className="mb-2 block text-sm font-bold text-on-surface">
+                          الصف
+                        </span>
+                        <select
+                          value={member.schoolYear ?? ""}
+                          onChange={(event) =>
+                            updateFamilyMember(
+                              member.id,
+                              "schoolYear",
+                              event.target.value,
+                            )
+                          }
+                          className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                        >
+                          <option value="">اختر الصف</option>
+                          {SCHOOL_YEARS.map((item) => (
+                            <option key={item} value={item}>
+                              {item}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -1613,17 +1934,17 @@ export default function CaseIntakeForm({
             onClick={addFamilyMember}
             className="rounded-2xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-primary/15"
           >
-            أضف فرد آخر
+            أضف فردًا آخر
           </button>
           <div className="flex flex-wrap gap-3 text-sm text-on-surface-variant">
             <span className="rounded-2xl bg-surface-container-low px-4 py-2">
               عدد الأفراد: {draft.formData.family.members.length}
             </span>
             <span className="rounded-2xl bg-surface-container-low px-4 py-2">
-              ابتدائي: {primaryStudents}
+              عدد الطلاب: {studentsCount}
             </span>
             <span className="rounded-2xl bg-surface-container-low px-4 py-2">
-              إعدادي: {preparatoryStudents}
+              دخل الأفراد: {membersIncomeTotal}
             </span>
           </div>
         </div>
@@ -1631,8 +1952,8 @@ export default function CaseIntakeForm({
 
       <SectionCard
         id="housing"
-        title="بيانات السكن"
-        subtitle="نفس منطق الكارت المرجعي: الوصف، الطبيعة، المرافق، والأجهزة."
+        title="السكن والعنوان"
+        subtitle="العناصر مرتبة رأسيًا مع إظهار قيمة الإيجار فقط عند الحاجة."
         open={sectionsOpen.housing}
         onToggle={toggleSection}
         footer={
@@ -1640,9 +1961,7 @@ export default function CaseIntakeForm({
             <input
               type="checkbox"
               checked={draft.formData.housing.dataComplete}
-              onChange={(event) =>
-                updateHousing("dataComplete", event.target.checked)
-              }
+              onChange={(event) => updateHousing("dataComplete", event.target.checked)}
               className="h-4 w-4 accent-primary"
             />
             تم استكمال بيانات السكن
@@ -1662,7 +1981,7 @@ export default function CaseIntakeForm({
           />
         </label>
 
-        <div className="grid gap-5 xl:grid-cols-2">
+        <div className="space-y-6">
           <div>
             <span className="mb-3 block text-sm font-bold text-on-surface">
               طبيعة السكن
@@ -1684,21 +2003,58 @@ export default function CaseIntakeForm({
               ))}
             </div>
           </div>
-        </div>
 
-        <div className="grid gap-5 xl:grid-cols-2">
+          {draft.formData.housing.residencyType === "إيجار" ? (
+            <label className="block max-w-md">
+              <span className="mb-2 block text-sm font-bold text-on-surface">
+                قيمة الإيجار الشهرية
+              </span>
+              <input
+                type="number"
+                value={draft.formData.housing.rentAmount}
+                onChange={(event) => updateHousing("rentAmount", event.target.value)}
+                className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+              />
+            </label>
+          ) : null}
+
           {[
-            ["السقف", draft.formData.housing.roof, ROOF_OPTIONS, (values: string[]) => updateHousing("roof", values)],
-            ["الأرضية", draft.formData.housing.floor, FLOOR_OPTIONS, (values: string[]) => updateHousing("floor", values)],
-            ["المدخل", draft.formData.housing.entrance, ENTRANCE_OPTIONS, (values: string[]) => updateHousing("entrance", values)],
-            ["الحوائط", draft.formData.housing.walls, WALL_OPTIONS, (values: string[]) => updateHousing("walls", values)],
-            ["وسيلة مواصلات", draft.formData.housing.transport, TRANSPORT_OPTIONS, (values: string[]) => updateHousing("transport", values)],
+            [
+              "السقف",
+              draft.formData.housing.roof,
+              ROOF_OPTIONS,
+              (values: string[]) => updateHousing("roof", values),
+            ],
+            [
+              "الأرضية",
+              draft.formData.housing.floor,
+              FLOOR_OPTIONS,
+              (values: string[]) => updateHousing("floor", values),
+            ],
+            [
+              "المدخل",
+              draft.formData.housing.entrance,
+              ENTRANCE_OPTIONS,
+              (values: string[]) => updateHousing("entrance", values),
+            ],
+            [
+              "الحوائط",
+              draft.formData.housing.walls,
+              WALL_OPTIONS,
+              (values: string[]) => updateHousing("walls", values),
+            ],
+            [
+              "وسيلة المواصلات",
+              draft.formData.housing.transport,
+              TRANSPORT_OPTIONS,
+              (values: string[]) => updateHousing("transport", values),
+            ],
           ].map(([label, values, options, onChange]) => (
             <div key={label as string}>
               <span className="mb-3 block text-sm font-bold text-on-surface">
                 {label as string}
               </span>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 {(options as string[]).map((option) => (
                   <label
                     key={option}
@@ -1711,7 +2067,7 @@ export default function CaseIntakeForm({
                         toggleArrayItem(
                           values as string[],
                           option,
-                          onChange as (values: string[]) => void,
+                          onChange as (nextValues: string[]) => void,
                         )
                       }
                       className="h-4 w-4 accent-primary"
@@ -1722,117 +2078,114 @@ export default function CaseIntakeForm({
               </div>
             </div>
           ))}
-        </div>
 
-        <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
-          {(Object.entries(HOUSE_RADIO_OPTIONS) as Array<[keyof typeof HOUSE_RADIO_OPTIONS, string[]]>).map(
-            ([key, options]) => (
-              <div key={key}>
-                <span className="mb-3 block text-sm font-bold text-on-surface">
-                  {{
-                    bathroomType: "طبيعة دورات المياه",
-                    bathroomState: "حالة دورات المياه",
-                    electricity: "الكهرباء",
-                    water: "عداد المياه",
-                    waterPump: "طلمبة مياه",
-                    cookware: "أجهزة الطبخ",
-                    tv: "التلفاز",
-                    fridge: "الثلاجة",
-                    washingMachine: "الغسالة",
-                    oven: "فرن خبيز",
-                    computer: "حاسب آلي",
-                    internet: "إنترنت",
-                  }[key]}
-                </span>
-                <div className="grid gap-3">
-                  {options.map((option) => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() =>
-                        updateHousing(
-                          key as keyof CaseIntakeFormData["housing"],
-                          option as never,
-                        )
-                      }
-                      className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
-                        draft.formData.housing[
-                          key as keyof CaseIntakeFormData["housing"]
-                        ] === option
-                          ? "border-primary bg-primary text-white"
-                          : "border-outline-variant/40 bg-white text-on-surface"
-                      }`}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ),
-          )}
-        </div>
-
-        <div className="space-y-4 rounded-3xl border border-outline-variant/20 p-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h3 className="text-lg font-bold text-on-surface">الغرف</h3>
-              <p className="text-sm text-on-surface-variant">
-                تكرار مشابه لفكرة الـ repeater في المرجع.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={addRoom}
-              className="rounded-2xl bg-primary/10 px-4 py-2 text-sm font-bold text-primary"
-            >
-              أضف غرفة
-            </button>
-          </div>
-          <div className="space-y-3">
-            {draft.formData.housing.rooms.length === 0 ? (
-              <div className="rounded-2xl bg-surface-container-low px-4 py-4 text-sm text-on-surface-variant">
-                لا توجد غرف مضافة.
-              </div>
-            ) : (
-              draft.formData.housing.rooms.map((room) => (
-                <div
-                  key={room.id}
-                  className="grid gap-3 rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4 md:grid-cols-[1fr_1fr_auto]"
-                >
-                  <input
-                    value={room.name}
-                    onChange={(event) =>
-                      updateRoom(room.id, "name", event.target.value)
-                    }
-                    placeholder="اسم الغرفة"
-                    className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-                  />
-                  <input
-                    value={room.condition ?? ""}
-                    onChange={(event) =>
-                      updateRoom(room.id, "condition", event.target.value)
-                    }
-                    placeholder="الحالة / الملاحظات"
-                    className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-                  />
+          {(Object.entries(HOUSE_RADIO_OPTIONS) as Array<
+            [keyof typeof HOUSE_RADIO_OPTIONS, string[]]
+          >).map(([key, options]) => (
+            <div key={key}>
+              <span className="mb-3 block text-sm font-bold text-on-surface">
+                {{
+                  bathroomType: "طبيعة دورات المياه",
+                  bathroomState: "حالة دورات المياه",
+                  electricity: "الكهرباء",
+                  water: "المياه",
+                  waterPump: "طلمبة المياه",
+                  cookware: "أجهزة الطبخ",
+                  tv: "التلفاز",
+                  fridge: "الثلاجة",
+                  washingMachine: "الغسالة",
+                  oven: "فرن خبيز",
+                  computer: "حاسب آلي",
+                  internet: "إنترنت",
+                }[key]}
+              </span>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                {options.map((option) => (
                   <button
+                    key={option}
                     type="button"
-                    onClick={() => removeRoom(room.id)}
-                    className="rounded-2xl bg-error/10 px-4 py-3 text-sm font-bold text-error"
+                    onClick={() =>
+                      updateHousing(
+                        key as keyof CaseIntakeFormData["housing"],
+                        option as never,
+                      )
+                    }
+                    className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
+                      draft.formData.housing[
+                        key as keyof CaseIntakeFormData["housing"]
+                      ] === option
+                        ? "border-primary bg-primary text-white"
+                        : "border-outline-variant/40 bg-white text-on-surface"
+                    }`}
                   >
-                    حذف
+                    {option}
                   </button>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <div className="space-y-4 rounded-3xl border border-outline-variant/20 p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-on-surface">الغرف</h3>
+                <p className="text-sm text-on-surface-variant">
+                  أضف عدد الغرف وحالة كل غرفة.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={addRoom}
+                className="rounded-2xl bg-primary/10 px-4 py-2 text-sm font-bold text-primary"
+              >
+                أضف غرفة
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {draft.formData.housing.rooms.length === 0 ? (
+                <div className="rounded-2xl bg-surface-container-low px-4 py-4 text-sm text-on-surface-variant">
+                  لا توجد غرف مضافة.
                 </div>
-              ))
-            )}
+              ) : (
+                draft.formData.housing.rooms.map((room) => (
+                  <div
+                    key={room.id}
+                    className="grid gap-3 rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4 md:grid-cols-[1fr_1fr_auto]"
+                  >
+                    <input
+                      value={room.name}
+                      onChange={(event) => updateRoom(room.id, "name", event.target.value)}
+                      placeholder="اسم الغرفة"
+                      className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                    />
+                    <input
+                      value={room.condition ?? ""}
+                      onChange={(event) =>
+                        updateRoom(room.id, "condition", event.target.value)
+                      }
+                      placeholder="الحالة / الملاحظات"
+                      className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeRoom(room.id)}
+                      className="rounded-2xl bg-error/10 px-4 py-3 text-sm font-bold text-error"
+                    >
+                      حذف
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </SectionCard>
 
       <SectionCard
         id="possessions"
-        title="الحيازات"
-        subtitle="هل توجد حيازات؟ مع إمكانية إضافة تفاصيل متعددة."
+        title="الحيازة"
+        subtitle="الحيازة مقتصرة على ماشية وأراضي زراعية وأراضي ملك."
         open={sectionsOpen.possessions}
         onToggle={toggleSection}
         footer={
@@ -1845,12 +2198,12 @@ export default function CaseIntakeForm({
               }
               className="h-4 w-4 accent-primary"
             />
-            تم استكمال بيانات الحيازات
+            تم استكمال بيانات الحيازة
           </label>
         }
       >
-        <div className="grid gap-4 md:grid-cols-3">
-          {["غير محدد", "لا", "نعم"].map((option) => (
+        <div className="grid gap-4 md:grid-cols-2">
+          {(["لا", "نعم"] as const).map((option) => (
             <button
               key={option}
               type="button"
@@ -1867,79 +2220,49 @@ export default function CaseIntakeForm({
         </div>
 
         {draft.formData.possessions.hasPossessions === "نعم" ? (
-          <div className="space-y-4 rounded-3xl border border-outline-variant/20 p-4">
-            <div className="flex items-center justify-between gap-4">
-              <h3 className="text-lg font-bold text-on-surface">تفاصيل الحيازات</h3>
-              <button
-                type="button"
-                onClick={addPossession}
-                className="rounded-2xl bg-primary/10 px-4 py-2 text-sm font-bold text-primary"
+          <div className="grid gap-4 md:grid-cols-3">
+            {draft.formData.possessions.items.map((item) => (
+              <div
+                key={item.id}
+                className={`rounded-3xl border p-4 ${
+                  item.selected
+                    ? "border-primary/40 bg-primary/5"
+                    : "border-outline-variant/30 bg-white"
+                }`}
               >
-                أضف حيازة
-              </button>
-            </div>
-            {draft.formData.possessions.items.length === 0 ? (
-              <div className="rounded-2xl bg-surface-container-low px-4 py-4 text-sm text-on-surface-variant">
-                لا توجد حيازات مضافة.
+                <label className="flex items-center gap-3 text-sm font-bold text-on-surface">
+                  <input
+                    type="checkbox"
+                    checked={!!item.selected}
+                    onChange={(event) =>
+                      updatePossession(item.id, "selected", event.target.checked)
+                    }
+                    className="h-4 w-4 accent-primary"
+                  />
+                  {item.name}
+                </label>
+
+                {item.selected ? (
+                  <textarea
+                    rows={4}
+                    value={item.notes ?? ""}
+                    onChange={(event) =>
+                      updatePossession(item.id, "notes", event.target.value)
+                    }
+                    placeholder="الوصف / الملاحظات"
+                    className="mt-4 w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                  />
+                ) : null}
               </div>
-            ) : (
-              draft.formData.possessions.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="grid gap-3 rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4 lg:grid-cols-4"
-                >
-                  <input
-                    value={item.name}
-                    onChange={(event) =>
-                      updatePossession(item.id, "name", event.target.value)
-                    }
-                    placeholder="اسم الحيازة"
-                    className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-                  />
-                  <input
-                    value={item.type ?? ""}
-                    onChange={(event) =>
-                      updatePossession(item.id, "type", event.target.value)
-                    }
-                    placeholder="النوع"
-                    className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-                  />
-                  <input
-                    value={item.value ?? ""}
-                    onChange={(event) =>
-                      updatePossession(item.id, "value", event.target.value)
-                    }
-                    placeholder="القيمة التقديرية"
-                    className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-                  />
-                  <div className="flex gap-3">
-                    <input
-                      value={item.notes ?? ""}
-                      onChange={(event) =>
-                        updatePossession(item.id, "notes", event.target.value)
-                      }
-                      placeholder="ملاحظات"
-                      className="flex-1 rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removePossession(item.id)}
-                      className="rounded-2xl bg-error/10 px-4 py-3 text-sm font-bold text-error"
-                    >
-                      حذف
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
+            ))}
           </div>
         ) : null}
       </SectionCard>
 
       <SectionCard
         id="finance"
-        title="بيانات الدخل والمصروفات"
-        subtitle="جدولان متقابلان للدخل والمصروفات مع صافي الدخل الشهري."
+        title="الدخل والمصروفات"
+        subtitle="دخل رب الأسرة والأفراد يُحسب تلقائيًا من الكروت بالأعلى."
         open={sectionsOpen.finance}
         onToggle={toggleSection}
         footer={
@@ -1985,13 +2308,20 @@ export default function CaseIntakeForm({
                         <input
                           type="number"
                           value={value}
+                          disabled={
+                            label === "دخل رب الأسرة" || label === "دخل أفراد الأسرة"
+                          }
                           onChange={(event) =>
                             updateFinance("incomes", {
                               ...draft.formData.finance.incomes,
                               [label]: event.target.value,
                             })
                           }
-                          className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                          className={`w-full rounded-2xl border py-3 px-4 text-sm outline-none ${
+                            label === "دخل رب الأسرة" || label === "دخل أفراد الأسرة"
+                              ? "border-outline-variant/40 bg-surface-container-low text-on-surface"
+                              : "border-outline-variant/40 bg-white focus:border-primary"
+                          }`}
                         />
                       </label>
                     ))}
@@ -2016,13 +2346,18 @@ export default function CaseIntakeForm({
                         <input
                           type="number"
                           value={value}
+                          disabled={label === "إيجار" && draft.formData.housing.residencyType === "إيجار"}
                           onChange={(event) =>
                             updateFinance("expenses", {
                               ...draft.formData.finance.expenses,
                               [label]: event.target.value,
                             })
                           }
-                          className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                          className={`w-full rounded-2xl border py-3 px-4 text-sm outline-none ${
+                            label === "إيجار" && draft.formData.housing.residencyType === "إيجار"
+                              ? "border-outline-variant/40 bg-surface-container-low text-on-surface"
+                              : "border-outline-variant/40 bg-white focus:border-primary"
+                          }`}
                         />
                       </label>
                     ))}
@@ -2036,7 +2371,7 @@ export default function CaseIntakeForm({
 
       <SectionCard
         id="classification"
-        title="بيانات تصنيف الحالة"
+        title="تصنيف الحالة"
         subtitle="تصنيفات متعددة مع درجة التصنيف النهائية."
         open={sectionsOpen.classification}
         onToggle={toggleSection}
@@ -2070,9 +2405,7 @@ export default function CaseIntakeForm({
           </span>
           <select
             value={draft.formData.classification.degree}
-            onChange={(event) =>
-              updateClassification("degree", event.target.value)
-            }
+            onChange={(event) => updateClassification("degree", event.target.value)}
             className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
           >
             {CLASSIFICATION_DEGREES.map((item) => (
@@ -2086,11 +2419,59 @@ export default function CaseIntakeForm({
 
       <SectionCard
         id="support"
-        title="الدعم الحالي"
-        subtitle="خدمات مصنفة مع ملاحظات أخصائي التنمية ورأيه."
+        title="الدعم والاعتماد"
+        subtitle="أنواع الدعم في نهاية النموذج مع خانة اعتماد لمسؤول إدارة الحالة."
         open={sectionsOpen.support}
         onToggle={toggleSection}
       >
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <label className="block">
+            <span className="mb-2 block text-sm font-bold text-on-surface">
+              نوع الدعم / التدخل
+            </span>
+            <select
+              value={draft.caseType}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, caseType: event.target.value }))
+              }
+              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+            >
+              {CASE_TYPES.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="xl:col-span-2">
+            <span className="mb-2 block text-sm font-bold text-on-surface">
+              الأولوية
+            </span>
+            <div className="flex gap-2">
+              {PRIORITY_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() =>
+                    setDraft((current) => ({
+                      ...current,
+                      priority: option.value,
+                    }))
+                  }
+                  className={`flex-1 rounded-2xl border px-3 py-3 text-sm font-bold transition-colors ${
+                    draft.priority === option.value
+                      ? "border-primary bg-primary text-white"
+                      : "border-outline-variant/50 bg-white text-on-surface"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className="space-y-6">
           {selectedSupportByCategory.map((group) => (
             <div
@@ -2130,23 +2511,20 @@ export default function CaseIntakeForm({
                         <input
                           value={item.notes ?? ""}
                           onChange={(event) =>
-                            updateSupportItem(
-                              item.id,
-                              "notes",
-                              event.target.value,
-                            )
+                            updateSupportItem(item.id, "notes", event.target.value)
                           }
-                          placeholder="الوصف / الملاحظات"
+                          placeholder={
+                            group.category === "المساعدات المالية" ||
+                            group.category === "الدعم المنزلي"
+                              ? "الوصف"
+                              : "ملاحظات"
+                          }
                           className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
                         />
                         <input
                           value={item.cost ?? ""}
                           onChange={(event) =>
-                            updateSupportItem(
-                              item.id,
-                              "cost",
-                              event.target.value,
-                            )
+                            updateSupportItem(item.id, "cost", event.target.value)
                           }
                           placeholder="التكلفة"
                           className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
@@ -2159,50 +2537,160 @@ export default function CaseIntakeForm({
             </div>
           ))}
 
-          <div className="grid gap-5 lg:grid-cols-2">
-            <label className="block">
-              <span className="mb-2 block text-sm font-bold text-on-surface">
-                أخصائي التنمية
-              </span>
-              <input
-                disabled
-                value={draft.formData.support.specialistName || currentUserName}
-                className="w-full rounded-2xl border border-outline-variant/40 bg-surface-container-low py-3 px-4 text-sm text-on-surface"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-2 block text-sm font-bold text-on-surface">
-                رأي أخصائي التنمية
-              </span>
-              <select
-                value={draft.formData.support.specialistOpinion}
-                onChange={(event) =>
-                  updateSupport("specialistOpinion", event.target.value)
-                }
-                className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-              >
-                {SPECIALIST_OPINIONS.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </label>
+          <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest/60 p-4">
+            <h3 className="mb-4 text-lg font-bold text-on-surface">
+              دعم للإعاقات ذوي الهمم
+            </h3>
+            <div className="grid gap-4 md:grid-cols-3">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-on-surface">
+                  نوع الدعم
+                </span>
+                <select
+                  value={draft.formData.support.disabilitySupportType}
+                  onChange={(event) =>
+                    updateSupport("disabilitySupportType", event.target.value)
+                  }
+                  className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                >
+                  <option value="">اختر نوع الدعم</option>
+                  {DISABILITY_SUPPORT_OPTIONS.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block md:col-span-2">
+                <span className="mb-2 block text-sm font-medium text-on-surface">
+                  الوصف
+                </span>
+                <input
+                  value={draft.formData.support.disabilitySupportDescription}
+                  onChange={(event) =>
+                    updateSupport("disabilitySupportDescription", event.target.value)
+                  }
+                  placeholder="وصف الدعم المطلوب"
+                  className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                />
+              </label>
+              <label className="block max-w-sm">
+                <span className="mb-2 block text-sm font-medium text-on-surface">
+                  التكلفة
+                </span>
+                <input
+                  value={draft.formData.support.disabilitySupportCost}
+                  onChange={(event) =>
+                    updateSupport("disabilitySupportCost", event.target.value)
+                  }
+                  placeholder="التكلفة"
+                  className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                />
+              </label>
+            </div>
           </div>
 
-          <label className="block">
-            <span className="mb-2 block text-sm font-bold text-on-surface">
-              ملاحظات أخصائي التنمية
-            </span>
-            <textarea
-              rows={4}
-              value={draft.formData.support.specialistNotes}
-              onChange={(event) =>
-                updateSupport("specialistNotes", event.target.value)
-              }
-              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-            />
-          </label>
+          <div className="grid gap-5 lg:grid-cols-2">
+            <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest/60 p-5">
+              <h3 className="mb-4 text-lg font-bold text-on-surface">
+                بيانات الباحث
+              </h3>
+              <div className="grid gap-4">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-bold text-on-surface">
+                    الباحث
+                  </span>
+                  <input
+                    disabled
+                    value={draft.formData.support.specialistName || currentUserName}
+                    className="w-full rounded-2xl border border-outline-variant/40 bg-surface-container-low py-3 px-4 text-sm text-on-surface"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-bold text-on-surface">
+                    رأي الباحث
+                  </span>
+                  <select
+                    value={draft.formData.support.specialistOpinion}
+                    onChange={(event) =>
+                      updateSupport("specialistOpinion", event.target.value)
+                    }
+                    className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                  >
+                    {RESEARCHER_OPINIONS.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-bold text-on-surface">
+                    ملاحظات الباحث
+                  </span>
+                  <textarea
+                    rows={4}
+                    value={draft.formData.support.specialistNotes}
+                    onChange={(event) =>
+                      updateSupport("specialistNotes", event.target.value)
+                    }
+                    className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest/60 p-5">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <h3 className="text-lg font-bold text-on-surface">
+                  اعتماد مسؤول إدارة الحالة
+                </h3>
+                {!hasManagerAccess ? (
+                  <span className="rounded-full bg-surface-container px-3 py-1 text-xs font-bold text-on-surface-variant">
+                    للعرض فقط
+                  </span>
+                ) : null}
+              </div>
+              <div className="grid gap-4">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-bold text-on-surface">
+                    قرار الاعتماد
+                  </span>
+                  <select
+                    disabled={!hasManagerAccess}
+                    value={draft.formData.support.managerDecision}
+                    onChange={(event) =>
+                      updateSupport(
+                        "managerDecision",
+                        event.target.value as ManagerDecision,
+                      )
+                    }
+                    className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary disabled:bg-surface-container-low"
+                  >
+                    {MANAGER_DECISIONS.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-bold text-on-surface">
+                    تعليقات مسؤول إدارة الحالة
+                  </span>
+                  <textarea
+                    rows={4}
+                    disabled={!hasManagerAccess}
+                    value={draft.formData.support.managerComments}
+                    onChange={(event) =>
+                      updateSupport("managerComments", event.target.value)
+                    }
+                    className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary disabled:bg-surface-container-low"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
       </SectionCard>
 
@@ -2278,24 +2766,22 @@ export default function CaseIntakeForm({
                   {pdfLoading ? "جاري إنشاء PDF..." : "PDF من السيرفر"}
                 </button>
               ) : null}
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/dashboard/cases"
-                className="rounded-2xl border border-outline-variant/40 bg-surface-container-low px-5 py-3 text-sm font-bold text-on-surface"
-              >
-                العودة للقائمة
-              </Link>
-              {caseRecord && onDelete ? (
+              {mode === "edit" && onDelete ? (
                 <button
                   type="button"
                   onClick={deleteCase}
                   disabled={deleting}
-                  className="rounded-2xl bg-error px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-2xl bg-error/10 px-6 py-3 text-sm font-bold text-error"
                 >
-                  {deleting ? "جاري الحذف..." : "حذف الكارت"}
+                  {deleting ? "جاري الحذف..." : "حذف الحالة"}
                 </button>
               ) : null}
+            </div>
+            <div className="text-sm text-on-surface-variant">
+              {buildRegionString(
+                draft.formData.person.center,
+                draft.formData.person.village,
+              ) || "حدد المركز والقرية"}
             </div>
           </div>
         </div>

@@ -8,6 +8,13 @@ export interface CreateUserPayload {
   role: AppRole;
 }
 
+export interface UpdateUserPayload {
+  name?: string;
+  email?: string;
+  password?: string;
+  role?: AppRole;
+}
+
 export const usersService = {
   getAll: async () => {
     const response = await api.get<AppUser[]>("/users");
@@ -16,6 +23,11 @@ export const usersService = {
 
   create: async (payload: CreateUserPayload) => {
     const response = await api.post<AppUser>("/users", payload);
+    return response.data;
+  },
+
+  update: async (id: string, payload: UpdateUserPayload) => {
+    const response = await api.patch<AppUser>(`/users/${id}`, payload);
     return response.data;
   },
 

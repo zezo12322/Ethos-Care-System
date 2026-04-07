@@ -4,6 +4,7 @@ import { OperationRecord } from "@/types/api";
 export interface OperationFilterDto {
   status?: string;
   search?: string;
+  type?: string;
 }
 
 export interface CreateOperationDto {
@@ -62,6 +63,11 @@ export const operationsService = {
 
   create: async (data: CreateOperationDto) => {
     const response = await api.post<OperationsApiRecord>("/operations", data);
+    return normalizeOperation(response.data);
+  },
+
+  complete: async (id: string) => {
+    const response = await api.post<OperationsApiRecord>(`/operations/${id}/complete`);
     return normalizeOperation(response.data);
   },
 };

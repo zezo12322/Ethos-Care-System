@@ -31,10 +31,16 @@ export interface CaseIntakeFamilyMember {
   name: string;
   relation: string;
   classification?: string;
+  nationalId?: string;
   age?: string;
+  gender?: string;
   mobile?: string;
   education?: string;
+  educationType?: string;
+  educationStage?: string;
+  schoolYear?: string;
   job?: string;
+  monthlyIncome?: string;
 }
 
 export interface CaseIntakeHousingRoom {
@@ -46,6 +52,7 @@ export interface CaseIntakeHousingRoom {
 export interface CaseIntakePossessionItem {
   id: string;
   name: string;
+  selected?: boolean;
   type?: string;
   value?: string;
   notes?: string;
@@ -77,6 +84,8 @@ export interface CaseIntakeFormData {
     schoolYear: string;
     educationNotes: string;
     expensesExempted: boolean;
+    center: string;
+    village: string;
     region: string;
     association: string;
     detailedAddress: string;
@@ -108,6 +117,7 @@ export interface CaseIntakeFormData {
     oven: string;
     computer: string;
     internet: string;
+    rentAmount: string;
     transport: string[];
     rooms: CaseIntakeHousingRoom[];
     dataComplete: boolean;
@@ -132,6 +142,11 @@ export interface CaseIntakeFormData {
     specialistName: string;
     specialistNotes: string;
     specialistOpinion: string;
+    managerDecision: string;
+    managerComments: string;
+    disabilitySupportType: string;
+    disabilitySupportDescription: string;
+    disabilitySupportCost: string;
   };
 }
 

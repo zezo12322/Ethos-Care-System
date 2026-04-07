@@ -26,6 +26,7 @@ export default function NewCasePage() {
       <CaseIntakeForm
         mode="create"
         currentUserName={user?.name ?? "مستخدم النظام"}
+        currentUserRole={user?.role ?? "CASE_WORKER"}
         onSubmit={handleSubmit}
       />
     </div>

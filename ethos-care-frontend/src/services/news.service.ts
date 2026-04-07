@@ -25,6 +25,11 @@ export const newsService = {
     return response.data;
   },
 
+  update: async (id: string, payload: CreateNewsPayload) => {
+    const response = await api.patch<NewsRecord>(`/news/${id}`, payload);
+    return response.data;
+  },
+
   remove: async (id: string) => {
     await api.delete(`/news/${id}`);
   },

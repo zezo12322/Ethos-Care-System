@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Delete,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { FamiliesService } from './families.service';
@@ -29,19 +30,31 @@ export class FamiliesController {
   constructor(private familiesService: FamiliesService) {}
 
   @Get()
-  async findAll() {
-    const families = await this.familiesService.findAll();
+  async findAll(
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+  ) {
+    const families = await this.familiesService.findAll({ status, search });
     return families.map((f) => ({
       id: f.id,
       headName: f.headName,
+      nationalId: f.nationalId,
       membersCount: f.membersCount,
       income: `${f.income} ج.م`,
-      address: f.address,
+      address: f.address || f.addressDetails || 'غير محدد',
+      addressDetails: f.addressDetails,
       phone: f.phone,
+      city: f.city,
+      village: f.village,
+      socialStatus: f.socialStatus,
+      job: f.job,
+      education: f.education,
       lastVisit: f.lastVisit
         ? f.lastVisit.toISOString().split('T')[0]
         : 'غير محدد',
       status: f.status,
+      createdAt: f.createdAt.toISOString(),
+      updatedAt: f.updatedAt.toISOString(),
     }));
   }
 
@@ -56,14 +69,23 @@ export class FamiliesController {
     return {
       id: f.id,
       headName: f.headName,
+      nationalId: f.nationalId,
       membersCount: f.membersCount,
       income: `${f.income} ج.م`,
-      address: f.address,
+      address: f.address || f.addressDetails || 'غير محدد',
+      addressDetails: f.addressDetails,
       phone: f.phone,
+      city: f.city,
+      village: f.village,
+      socialStatus: f.socialStatus,
+      job: f.job,
+      education: f.education,
       lastVisit: f.lastVisit
         ? f.lastVisit.toISOString().split('T')[0]
         : 'غير محدد',
       status: f.status,
+      createdAt: f.createdAt.toISOString(),
+      updatedAt: f.updatedAt.toISOString(),
     };
   }
 
@@ -73,14 +95,23 @@ export class FamiliesController {
     return {
       id: f.id,
       headName: f.headName,
+      nationalId: f.nationalId,
       membersCount: f.membersCount,
       income: `${f.income} ج.م`,
-      address: f.address,
+      address: f.address || f.addressDetails || 'غير محدد',
+      addressDetails: f.addressDetails,
       phone: f.phone,
+      city: f.city,
+      village: f.village,
+      socialStatus: f.socialStatus,
+      job: f.job,
+      education: f.education,
       lastVisit: f.lastVisit
         ? f.lastVisit.toISOString().split('T')[0]
         : 'غير محدد',
       status: f.status,
+      createdAt: f.createdAt.toISOString(),
+      updatedAt: f.updatedAt.toISOString(),
     };
   }
 

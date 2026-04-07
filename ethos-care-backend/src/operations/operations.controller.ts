@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { OperationsService } from './operations.service';
 import { CreateOperationDto } from './dto/create-operation.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -19,11 +27,17 @@ export class OperationsController {
   constructor(private operationsService: OperationsService) {}
 
   @Get()
-  async findAll() {
-    const ops = await this.operationsService.findAll();
+  async findAll(
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+    @Query('type') type?: string,
+  ) {
+    const ops = await this.operationsService.findAll({ status, search, type });
     return ops.map((o) => ({
       id: o.id,
+      name: o.name,
       title: o.name,
+      target: o.target,
       type: o.type,
       targetFamilies: o.target,
       budget: `غير متوفر ج.م`,
@@ -46,7 +60,9 @@ export class OperationsController {
     const o = await this.operationsService.create(newOp);
     return {
       id: o.id,
+      name: o.name,
       title: o.name,
+      target: o.target,
       type: o.type,
       targetFamilies: o.target,
       budget: `غير متوفر ج.م`,

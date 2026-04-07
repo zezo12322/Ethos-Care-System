@@ -105,13 +105,13 @@ export default function Sidebar() {
         </Link>
         )}
         <div className="pt-6 mt-6 border-t border-white/10 space-y-2">
-        {isAuthorized(["ADMIN"]) && (
+        {isAuthorized(["ADMIN", "CEO"]) && (
           <Link
             href="/dashboard/admin"
             className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
           >
             <span className="material-symbols-outlined">admin_panel_settings</span>
-            <span>الإدارة</span>
+            <span>{userRole === "CEO" ? "الإدارة التنفيذية" : "الإدارة"}</span>
           </Link>
         )}
         </div>

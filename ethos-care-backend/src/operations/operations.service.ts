@@ -6,8 +6,32 @@ import { CreateOperationDto } from './dto/create-operation.dto';
 export class OperationsService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(
+    filters: { status?: string; search?: string; type?: string } = {},
+  ) {
+    const where: NonNullable<
+      Parameters<typeof this.prisma.operation.findMany>[0]
+    >['where'] = {};
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    if (filters.type) {
+      where.type = filters.type;
+    }
+
+    if (filters.search) {
+      const query = filters.search.trim();
+      where.OR = [
+        { name: { contains: query, mode: 'insensitive' } },
+        { type: { contains: query, mode: 'insensitive' } },
+        { id: { contains: query, mode: 'insensitive' } },
+      ];
+    }
+
     return this.prisma.operation.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
     });
   }

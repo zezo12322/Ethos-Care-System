@@ -21,6 +21,11 @@ export const partnersService = {
     return response.data;
   },
 
+  update: async (id: string, payload: CreatePartnerPayload) => {
+    const response = await api.patch<PartnerRecord>(`/partners/${id}`, payload);
+    return response.data;
+  },
+
   remove: async (id: string) => {
     await api.delete(`/partners/${id}`);
   },

@@ -54,7 +54,12 @@ export class CasePdfService {
     const support = this.getRecord(formData?.support);
 
     const familyMembers = this.getArray(family.members);
-    const possessionItems = this.getArray(possessions.items);
+    const possessionItems = this.getArray(possessions.items).filter((item) => {
+      const itemRecord = this.getRecord(item);
+      return (
+        this.getBoolean(itemRecord.selected) || this.getString(itemRecord.notes)
+      );
+    });
     const supportItems = this.getArray(support.items).filter((item) =>
       this.getBoolean(this.getRecord(item).selected),
     );
@@ -249,23 +254,38 @@ export class CasePdfService {
       </section>
 
       ${this.renderSection(
-        'بيانات الحالة',
+        'بيانات رب الأسرة',
         `
           <div class="grid-2">
             ${this.renderDetailCard('الاسم كامل', this.valueOf(person.fullName, caseData.applicantName))}
             ${this.renderDetailCard('الرقم القومي', this.valueOf(person.nationalId, caseData.nationalId ?? 'غير محدد'))}
             ${this.renderDetailCard('الديانة', person.religion)}
-            ${this.renderDetailCard('تاريخ الميلاد', person.birthDate)}
             ${this.renderDetailCard('العمر', person.age)}
             ${this.renderDetailCard('النوع', person.gender)}
             ${this.renderDetailCard('رقم المحمول', person.mobile)}
             ${this.renderDetailCard('الوظيفة', person.job)}
             ${this.renderDetailCard('الدخل الشهري', person.monthlyIncome)}
             ${this.renderDetailCard('المؤهل التعليمي', person.educationState)}
-            ${this.renderDetailCard('نوع التعليم', person.educationType)}
-            ${this.renderDetailCard('المرحلة الدراسية', person.educationStage)}
-            ${this.renderDetailCard('الصف الدراسي', person.schoolYear)}
-            ${this.renderDetailCard('المدينة / القرية', person.region)}
+            ${this.renderDetailCard(
+              'نوع التعليم',
+              this.valueOf(person.educationState) === 'طالب'
+                ? this.valueOf(person.educationType)
+                : 'غير منطبق',
+            )}
+            ${this.renderDetailCard(
+              'المرحلة الدراسية',
+              this.valueOf(person.educationState) === 'طالب'
+                ? this.valueOf(person.educationStage)
+                : 'غير منطبق',
+            )}
+            ${this.renderDetailCard(
+              'الصف الدراسي',
+              this.valueOf(person.educationState) === 'طالب'
+                ? this.valueOf(person.schoolYear)
+                : 'غير منطبق',
+            )}
+            ${this.renderDetailCard('المركز', person.center)}
+            ${this.renderDetailCard('القرية', person.village)}
             ${this.renderDetailCard('الجمعية', person.association)}
             ${this.renderDetailCard(
               'الدعم التمويني',
@@ -294,28 +314,32 @@ export class CasePdfService {
       )}
 
       ${this.renderSection(
-        'بيانات الأسرة',
+        'بيانات أفراد الأسرة',
         familyMembers.length
           ? this.renderTable(
               [
                 'الاسم',
                 'القرابة',
-                'التصنيف',
+                'الرقم القومي',
                 'السن',
+                'النوع',
                 'المحمول',
                 'التعليم',
                 'الوظيفة',
+                'الدخل الشهري',
               ],
               familyMembers.map((member) => {
                 const memberRecord = this.getRecord(member);
                 return [
                   this.valueOf(memberRecord.name),
                   this.valueOf(memberRecord.relation),
-                  this.valueOf(memberRecord.classification),
+                  this.valueOf(memberRecord.nationalId),
                   this.valueOf(memberRecord.age),
+                  this.valueOf(memberRecord.gender),
                   this.valueOf(memberRecord.mobile),
                   this.valueOf(memberRecord.education),
                   this.valueOf(memberRecord.job),
+                  this.valueOf(memberRecord.monthlyIncome, '0'),
                 ];
               }),
             )
@@ -328,6 +352,12 @@ export class CasePdfService {
           <div class="grid-2">
             ${this.renderDetailCard('وصف حالة السكن', this.valueOf(housing.description))}
             ${this.renderDetailCard('طبيعة السكن', this.valueOf(housing.residencyType))}
+            ${this.renderDetailCard(
+              'قيمة الإيجار',
+              this.valueOf(housing.residencyType) === 'إيجار'
+                ? this.valueOf(housing.rentAmount)
+                : 'غير منطبق',
+            )}
             ${this.renderDetailCard('طبيعة دورات المياه', this.valueOf(housing.bathroomType))}
             ${this.renderDetailCard('حالة دورات المياه', this.valueOf(housing.bathroomState))}
             ${this.renderDetailCard('الكهرباء', this.valueOf(housing.electricity))}
@@ -360,13 +390,11 @@ export class CasePdfService {
           ${
             possessionItems.length
               ? `<div style="margin-top: 12px;">${this.renderTable(
-                  ['الحيازة', 'النوع', 'القيمة', 'ملاحظات'],
+                  ['الحيازة', 'ملاحظات'],
                   possessionItems.map((item) => {
                     const itemRecord = this.getRecord(item);
                     return [
                       this.valueOf(itemRecord.name),
-                      this.valueOf(itemRecord.type),
-                      this.valueOf(itemRecord.value),
                       this.valueOf(itemRecord.notes),
                     ];
                   }),
@@ -410,7 +438,7 @@ export class CasePdfService {
       )}
 
       ${this.renderSection(
-        'الدعم الحالي',
+        'الدعم والاعتماد',
         `
           ${
             supportByCategory.length
@@ -441,13 +469,35 @@ export class CasePdfService {
               : `<div class="text-box">لا توجد خدمات محددة لهذه الحالة.</div>`
           }
           <div class="grid-2" style="margin-top: 12px;">
-            ${this.renderDetailCard('أخصائي التنمية', this.valueOf(support.specialistName))}
-            ${this.renderDetailCard('رأي أخصائي التنمية', this.valueOf(support.specialistOpinion))}
+            ${this.renderDetailCard('الباحث', this.valueOf(support.specialistName))}
+            ${this.renderDetailCard('رأي الباحث', this.valueOf(support.specialistOpinion))}
           </div>
           <div class="text-box" style="margin-top: 12px;">
-            <div class="muted">ملاحظات أخصائي التنمية</div>
+            <div class="muted">ملاحظات الباحث</div>
             ${this.escapeHtml(this.valueOf(support.specialistNotes, 'لا توجد ملاحظات'))}
           </div>
+          <div class="grid-2" style="margin-top: 12px;">
+            ${this.renderDetailCard(
+              'قرار مسؤول إدارة الحالة',
+              this.formatManagerDecision(
+                this.getString(support.managerDecision),
+              ),
+            )}
+            ${this.renderDetailCard(
+              'تعليقات مسؤول إدارة الحالة',
+              this.valueOf(support.managerComments, 'لا توجد تعليقات'),
+            )}
+          </div>
+          ${
+            this.getString(support.disabilitySupportType)
+              ? `<div class="text-box" style="margin-top: 12px;">
+                  <div class="muted">دعم للإعاقات ذوي الهمم</div>
+                  <div><strong>${this.escapeHtml(this.valueOf(support.disabilitySupportType))}</strong></div>
+                  <div style="margin-top: 6px;">${this.escapeHtml(this.valueOf(support.disabilitySupportDescription, 'لا يوجد وصف'))}</div>
+                  <div style="margin-top: 4px;">التكلفة: ${this.escapeHtml(this.valueOf(support.disabilitySupportCost, 'غير محددة'))}</div>
+                </div>`
+              : ''
+          }
         `,
       )}
     </div>
@@ -516,6 +566,13 @@ export class CasePdfService {
     if (priority === 'HIGH') return 'عالي';
     if (priority === 'NORMAL') return 'عادي';
     return priority;
+  }
+
+  private formatManagerDecision(value: string) {
+    if (value === 'APPROVE') return 'اعتماد';
+    if (value === 'RETURN') return 'إعادة للباحث';
+    if (value === 'REJECT') return 'رفض';
+    return 'بانتظار الاعتماد';
   }
 
   private getRecord(value: unknown): Record<string, unknown> {

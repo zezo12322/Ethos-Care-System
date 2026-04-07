@@ -86,6 +86,7 @@ export default function EditCasePage() {
         mode="edit"
         caseRecord={caseRecord}
         currentUserName={user?.name ?? "مستخدم النظام"}
+        currentUserRole={user?.role ?? "CASE_WORKER"}
         onSubmit={handleSubmit}
         onDelete={handleDelete}
       />

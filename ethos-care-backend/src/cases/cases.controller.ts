@@ -116,6 +116,7 @@ export class CasesController {
   }
 
   @Post(':id/transitions/review')
+  @Roles('ADMIN', 'CASE_WORKER', 'DATA_ENTRY')
   transitionReview(
     @Param('id') id: string,
     @Body() body: TransitionCaseDto,
@@ -132,6 +133,7 @@ export class CasesController {
   }
 
   @Post(':id/transitions/approve')
+  @Roles('ADMIN', 'CEO', 'MANAGER')
   transitionApprove(
     @Param('id') id: string,
     @Body() body: TransitionCaseDto,
@@ -148,6 +150,7 @@ export class CasesController {
   }
 
   @Post(':id/transitions/reject')
+  @Roles('ADMIN', 'CEO', 'MANAGER')
   transitionReject(
     @Param('id') id: string,
     @Body() body: TransitionCaseDto,
@@ -164,6 +167,7 @@ export class CasesController {
   }
 
   @Post(':id/transitions/complete')
+  @Roles('ADMIN', 'EXECUTION_OFFICER')
   transitionComplete(
     @Param('id') id: string,
     @Body() body: TransitionCaseDto,
@@ -180,6 +184,7 @@ export class CasesController {
   }
 
   @Post(':id/transitions/technical_reject')
+  @Roles('ADMIN', 'EXECUTION_OFFICER')
   transitionTechnicalReject(
     @Param('id') id: string,
     @Body() body: TransitionCaseDto,
@@ -196,6 +201,7 @@ export class CasesController {
   }
 
   @Post(':id/transitions/return_to_review')
+  @Roles('ADMIN', 'CEO', 'MANAGER')
   transitionReturnToReview(
     @Param('id') id: string,
     @Body() body: TransitionCaseDto,

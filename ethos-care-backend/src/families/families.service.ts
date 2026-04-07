@@ -7,8 +7,30 @@ import { UpdateFamilyDto } from './dto/update-family.dto';
 export class FamiliesService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(filters: { status?: string; search?: string } = {}) {
+    const where: NonNullable<
+      Parameters<typeof this.prisma.family.findMany>[0]
+    >['where'] = {};
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    if (filters.search) {
+      const query = filters.search.trim();
+      where.OR = [
+        { headName: { contains: query, mode: 'insensitive' } },
+        { nationalId: { contains: query, mode: 'insensitive' } },
+        { phone: { contains: query, mode: 'insensitive' } },
+        { address: { contains: query, mode: 'insensitive' } },
+        { city: { contains: query, mode: 'insensitive' } },
+        { village: { contains: query, mode: 'insensitive' } },
+        { id: { contains: query, mode: 'insensitive' } },
+      ];
+    }
+
     return this.prisma.family.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
     });
   }

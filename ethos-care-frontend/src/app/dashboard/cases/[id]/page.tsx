@@ -52,10 +52,14 @@ export default function CaseDetailsPage() {
     };
   }, [id]);
 
-  const handleTransition = async (action: string) => {
+  const handleTransition = async (action: string, promptLabel?: string) => {
     try {
       setActionLoading(true);
-      await casesService.transition(id, action, "تحديث من النظام");
+      const reason =
+        promptLabel && typeof window !== "undefined"
+          ? window.prompt(promptLabel, "تحديث من النظام") || "تحديث من النظام"
+          : "تحديث من النظام";
+      await casesService.transition(id, action, reason);
       const [updatedCase, updatedHistory] = await Promise.all([
         casesService.getById(id),
         casesService.getHistory(id),
@@ -134,8 +138,14 @@ export default function CaseDetailsPage() {
   };
 
 
-  const isCaseWorker = currentRole === "CASE_WORKER" || currentRole === "ADMIN";
-  const isExecDirector = currentRole === "CEO" || currentRole === "ADMIN";
+  const isCaseWorker =
+    currentRole === "CASE_WORKER" ||
+    currentRole === "DATA_ENTRY" ||
+    currentRole === "ADMIN";
+  const isCaseManager =
+    currentRole === "MANAGER" ||
+    currentRole === "CEO" ||
+    currentRole === "ADMIN";
   const isExecOfficer = currentRole === "EXECUTION_OFFICER" || currentRole === "ADMIN";
 
   const lc = lifecycleMap[caseData.lifecycleStatus] || { label: caseData.lifecycleStatus, color: "bg-surface-container" };
@@ -175,26 +185,26 @@ export default function CaseDetailsPage() {
               
               {/* Case Worker Actions */}
               {isCaseWorker && caseData.lifecycleStatus === 'DRAFT' && (
-                <button disabled={actionLoading} onClick={() => handleTransition('review')} className="px-5 py-2 bg-warning text-on-warning hover:bg-warning/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                <button disabled={actionLoading} onClick={() => handleTransition('review', 'تعليق الباحث عند رفع الحالة من المنطقة')} className="px-5 py-2 bg-warning text-on-warning hover:bg-warning/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
                   <span className="material-symbols-outlined">how_to_reg</span>
-                  إرسال للمراجعة المبدئية
+                  رفع الحالة من المنطقة
                 </button>
               )}
               
-              {/* CEO Actions (Administrative Approval) */}
-              {isExecDirector && (caseData.decisionStatus === 'PENDING_DECISION' || caseData.lifecycleStatus === 'INTAKE_REVIEW' || caseData.lifecycleStatus === 'COMMITTEE_REVIEW') && (
+              {/* Case Management Approval */}
+              {isCaseManager && (caseData.decisionStatus === 'PENDING_DECISION' || caseData.lifecycleStatus === 'INTAKE_REVIEW' || caseData.lifecycleStatus === 'COMMITTEE_REVIEW') && (
                 <>
-                  <button disabled={actionLoading} onClick={() => handleTransition('approve')} className="px-5 py-2 bg-success text-on-success hover:bg-success/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                  <button disabled={actionLoading} onClick={() => handleTransition('approve', 'تعليق مسؤول إدارة الحالة عند الاعتماد')} className="px-5 py-2 bg-success text-on-success hover:bg-success/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
                     <span className="material-symbols-outlined">fact_check</span>
-                    اعتماد إداري (موافقة نهائية)
+                    اعتماد مسؤول إدارة الحالة
                   </button>
-                  <button disabled={actionLoading} onClick={() => handleTransition('return_to_review')} className="px-5 py-2 bg-warning text-on-warning hover:bg-warning/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                  <button disabled={actionLoading} onClick={() => handleTransition('return_to_review', 'تعليق مسؤول إدارة الحالة عند إعادة الحالة')} className="px-5 py-2 bg-warning text-on-warning hover:bg-warning/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
                     <span className="material-symbols-outlined">assignment_return</span>
                     إعادة للباحث الميداني
                   </button>
-                  <button disabled={actionLoading} onClick={() => handleTransition('reject')} className="px-5 py-2 bg-error text-on-error hover:bg-error/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                  <button disabled={actionLoading} onClick={() => handleTransition('reject', 'تعليق مسؤول إدارة الحالة عند الرفض')} className="px-5 py-2 bg-error text-on-error hover:bg-error/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
                     <span className="material-symbols-outlined">cancel</span>
-                    رفض إداري
+                    رفض الحالة
                   </button>
                 </>
               )}
@@ -202,11 +212,11 @@ export default function CaseDetailsPage() {
               {/* Execution Officer Actions (Technical Execution) */}
               {isExecOfficer && caseData.lifecycleStatus === 'APPROVED' && (
                 <>
-                  <button disabled={actionLoading} onClick={() => handleTransition('complete')} className="px-5 py-2 bg-primary text-on-primary hover:bg-primary/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                  <button disabled={actionLoading} onClick={() => handleTransition('complete', 'تعليق مسؤول التنفيذ عند إتمام التدخل')} className="px-5 py-2 bg-primary text-on-primary hover:bg-primary/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
                     <span className="material-symbols-outlined">done_all</span>
                     تم التنفيذ بنجاح
                   </button>
-                  <button disabled={actionLoading} onClick={() => handleTransition('technical_reject')} className="px-5 py-2 bg-error text-on-error hover:bg-error/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                  <button disabled={actionLoading} onClick={() => handleTransition('technical_reject', 'تعليق مسؤول التنفيذ عند تعذر التنفيذ')} className="px-5 py-2 bg-error text-on-error hover:bg-error/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
                     <span className="material-symbols-outlined">block</span>
                     مرفوض فنياً
                   </button>
@@ -253,7 +263,7 @@ export default function CaseDetailsPage() {
                    <span className="material-symbols-outlined text-lg">gavel</span>
                  </div>
                  <div>
-                   <span className="text-xs text-on-surface-variant block">قرارات اللجنة</span>
+                   <span className="text-xs text-on-surface-variant block">قرار مسؤول إدارة الحالة</span>
                    <span className="font-bold text-sm">{ds.label}</span>
                  </div>
               </div>
@@ -312,6 +322,33 @@ export default function CaseDetailsPage() {
                   {caseData.description || "لا يوجد وصف مدون لهذه الحالة."}
                 </p>
               </div>
+
+              {caseData.formData?.support ? (
+                <div className="mt-8 grid grid-cols-1 gap-4 border-t border-outline-variant/30 pt-6 md:grid-cols-2">
+                  <div className="rounded-2xl bg-surface-container-lowest p-4">
+                    <label className="mb-1 block text-sm text-on-surface-variant">
+                      رأي الباحث
+                    </label>
+                    <p className="font-bold text-on-surface">
+                      {caseData.formData.support.specialistOpinion || "غير محدد"}
+                    </p>
+                    <p className="mt-2 text-sm text-on-surface-variant">
+                      {caseData.formData.support.specialistNotes || "لا توجد ملاحظات"}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-surface-container-lowest p-4">
+                    <label className="mb-1 block text-sm text-on-surface-variant">
+                      اعتماد مسؤول إدارة الحالة
+                    </label>
+                    <p className="font-bold text-on-surface">
+                      {caseData.formData.support.managerDecision || "بانتظار الاعتماد"}
+                    </p>
+                    <p className="mt-2 text-sm text-on-surface-variant">
+                      {caseData.formData.support.managerComments || "لا توجد تعليقات"}
+                    </p>
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className="bg-surface border border-outline-variant/30 rounded-3xl p-6 shadow-sm">
