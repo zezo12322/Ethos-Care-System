@@ -364,6 +364,11 @@ export default function ReportsPage() {
   const [operations, setOperations] = useState<OperationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [sourceErrors, setSourceErrors] = useState<Record<DatasetKey, string>>({
+    cases: "",
+    families: "",
+    operations: "",
+  });
   const [downloadingCaseId, setDownloadingCaseId] = useState<string | null>(null);
 
   const [dataset, setDataset] = useState<DatasetKey>("cases");
@@ -382,23 +387,56 @@ export default function ReportsPage() {
   const loadData = async () => {
     setLoading(true);
     setError("");
+    const results = await Promise.allSettled([
+      casesService.getAll(),
+      familiesService.getAll(),
+      operationsService.getAll(),
+    ]);
 
-    try {
-      const [casesData, familiesData, operationsData] = await Promise.all([
-        casesService.getAll(),
-        familiesService.getAll(),
-        operationsService.getAll(),
-      ]);
+    const nextSourceErrors: Record<DatasetKey, string> = {
+      cases: "",
+      families: "",
+      operations: "",
+    };
 
-      setCases(casesData);
-      setFamilies(familiesData);
-      setOperations(operationsData);
-    } catch (loadError) {
-      console.error(loadError);
-      setError("تعذر تحميل بيانات الاستخراجات الآن. حاول مرة أخرى.");
-    } finally {
-      setLoading(false);
+    const [casesResult, familiesResult, operationsResult] = results;
+
+    if (casesResult.status === "fulfilled") {
+      setCases(casesResult.value);
+    } else {
+      console.error(casesResult.reason);
+      nextSourceErrors.cases = "تعذر تحميل بيانات الحالات.";
     }
+
+    if (familiesResult.status === "fulfilled") {
+      setFamilies(familiesResult.value);
+    } else {
+      console.error(familiesResult.reason);
+      nextSourceErrors.families = "تعذر تحميل بيانات الأسر.";
+    }
+
+    if (operationsResult.status === "fulfilled") {
+      setOperations(operationsResult.value);
+    } else {
+      console.error(operationsResult.reason);
+      nextSourceErrors.operations = "تعذر تحميل بيانات العمليات.";
+    }
+
+    setSourceErrors(nextSourceErrors);
+
+    const failedSources = (Object.keys(nextSourceErrors) as DatasetKey[])
+      .filter((key) => nextSourceErrors[key])
+      .map((key) => DATASET_META[key].label);
+
+    if (failedSources.length > 0) {
+      setError(
+        `تعذر تحميل بعض المصادر الآن: ${failedSources.join(
+          "، ",
+        )}. تم عرض البيانات المتاحة فقط.`,
+      );
+    }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -439,6 +477,7 @@ export default function ReportsPage() {
 
   const activePreset =
     EXTRACT_PRESETS.find((preset) => preset.id === activePresetId) || null;
+  const activeDatasetError = sourceErrors[dataset];
 
   const caseTypeOptions = Array.from(
     new Set(cases.map((item) => item.caseType).filter(Boolean)),
@@ -1118,6 +1157,11 @@ export default function ReportsPage() {
                   {activePreset.badge}
                 </span>
               )}
+              {activeDatasetError && (
+                <span className="rounded-full bg-error/10 px-3 py-1.5 text-xs font-bold text-error">
+                  المصدر الحالي غير متاح
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -1148,7 +1192,16 @@ export default function ReportsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/20 text-sm">
-                {filteredCases.length === 0 ? (
+                {activeDatasetError ? (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="px-5 py-10 text-center text-error"
+                    >
+                      {activeDatasetError}
+                    </td>
+                  </tr>
+                ) : filteredCases.length === 0 ? (
                   <tr>
                     <td
                       colSpan={8}
@@ -1242,7 +1295,16 @@ export default function ReportsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/20 text-sm">
-                {filteredFamilies.length === 0 ? (
+                {activeDatasetError ? (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="px-5 py-10 text-center text-error"
+                    >
+                      {activeDatasetError}
+                    </td>
+                  </tr>
+                ) : filteredFamilies.length === 0 ? (
                   <tr>
                     <td
                       colSpan={8}
@@ -1321,7 +1383,16 @@ export default function ReportsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/20 text-sm">
-                {filteredOperations.length === 0 ? (
+                {activeDatasetError ? (
+                  <tr>
+                    <td
+                      colSpan={9}
+                      className="px-5 py-10 text-center text-error"
+                    >
+                      {activeDatasetError}
+                    </td>
+                  </tr>
+                ) : filteredOperations.length === 0 ? (
                   <tr>
                     <td
                       colSpan={9}
