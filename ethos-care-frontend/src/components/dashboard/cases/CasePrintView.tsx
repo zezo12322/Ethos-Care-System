@@ -254,7 +254,7 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
             { label: "حالة دورات المياه", value: formData?.housing.bathroomState },
             { label: "الكهرباء", value: formData?.housing.electricity },
             { label: "عداد المياه", value: formData?.housing.water },
-            { label: "طلمبة المياه", value: formData?.housing.waterPump },
+            { label: "طرمبة المياه", value: formData?.housing.waterPump },
             { label: "أجهزة الطبخ", value: formData?.housing.cookware },
             { label: "التلفاز", value: formData?.housing.tv },
             { label: "الثلاجة", value: formData?.housing.fridge },

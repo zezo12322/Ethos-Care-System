@@ -4,7 +4,6 @@ import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { familiesService } from "@/services/families.service";
 import { locationsService } from "@/services/locations.service";
-import { partnersService } from "@/services/partners.service";
 import { casesService, CreateCaseDto } from "@/services/cases.service";
 import {
   CaseIntakeFamilyMember,
@@ -15,7 +14,6 @@ import {
   CaseRecord,
   FamilyRecord,
   LocationRecord,
-  PartnerRecord,
 } from "@/types/api";
 
 type CasePriority = "NORMAL" | "HIGH" | "URGENT";
@@ -139,9 +137,9 @@ const HOUSE_RADIO_OPTIONS: Record<string, string[]> = {
   bathroomType: ["خاص", "مشترك"],
   bathroomState: ["آدمي", "غير آدمي"],
   electricity: ["لا يوجد", "ممارسة", "عداد"],
-  water: ["لا يوجد", "طلمبة", "عداد"],
+  water: ["لا يوجد", "طرمبة", "عداد"],
   waterPump: ["لا يوجد", "يوجد"],
-  cookware: ["لا يوجد", "غاز", "بوتاجاز"],
+  cookware: ["لا يوجد", "غاز", "انابيب"],
   tv: ["لا يوجد", "عادي", "شاشة"],
   fridge: ["لا يوجد", "يوجد"],
   washingMachine: ["لا يوجد", "عادية", "هاف", "أوتوماتيك"],
@@ -264,6 +262,26 @@ function parseRegionValue(value?: string | null) {
   const normalized = value.replace(/\s*>\s*/g, ">").replace(/\s*-\s*/g, ">");
   const [center = "", village = ""] = normalized.split(">").map((item) => item.trim());
   return { center, village };
+}
+
+function buildAssociationRegion(center: string, village: string) {
+  return [center, village].filter(Boolean).join(" > ");
+}
+
+function matchesAssociationLocation(
+  location: LocationRecord,
+  center: string,
+  village: string,
+) {
+  if (location.type !== "جمعية") {
+    return false;
+  }
+
+  const normalized = location.region.replace(/\s*>\s*/g, " > ").trim();
+  return (
+    normalized === buildAssociationRegion(center, village) ||
+    normalized === village
+  );
 }
 
 function normalizeCaseType(value?: string | null) {
@@ -614,7 +632,6 @@ export default function CaseIntakeForm({
   );
   const [families, setFamilies] = useState<FamilyRecord[]>([]);
   const [locations, setLocations] = useState<LocationRecord[]>([]);
-  const [partners, setPartners] = useState<PartnerRecord[]>([]);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -633,16 +650,14 @@ export default function CaseIntakeForm({
 
     const loadOptions = async () => {
       try {
-        const [familyRows, locationRows, partnerRows] = await Promise.all([
+        const [familyRows, locationRows] = await Promise.all([
           familiesService.getAll(),
           locationsService.getAll(),
-          partnersService.getAll(),
         ]);
 
         if (!cancelled) {
           setFamilies(familyRows);
           setLocations(locationRows);
-          setPartners(partnerRows);
         }
       } catch (error) {
         console.error(error);
@@ -859,7 +874,7 @@ export default function CaseIntakeForm({
           .flatMap((location) =>
             location.type === "مركز"
               ? [location.name]
-              : location.region
+              : location.type === "قرية" && location.region
                 ? [location.region]
                 : [],
           )
@@ -879,6 +894,32 @@ export default function CaseIntakeForm({
       .map((location) => location.name)
       .sort((left, right) => left.localeCompare(right, "ar"));
   }, [draft.formData.person.center, locations]);
+
+  const associationOptions = useMemo(() => {
+    const matchedAssociations = locations
+      .filter((location) =>
+        matchesAssociationLocation(
+          location,
+          draft.formData.person.center,
+          draft.formData.person.village,
+        ),
+      )
+      .map((location) => location.name);
+
+    const currentAssociation = draft.formData.person.association.trim();
+    const values = currentAssociation
+      ? [...matchedAssociations, currentAssociation]
+      : matchedAssociations;
+
+    return Array.from(new Set(values)).sort((left, right) =>
+      left.localeCompare(right, "ar"),
+    );
+  }, [
+    draft.formData.person.association,
+    draft.formData.person.center,
+    draft.formData.person.village,
+    locations,
+  ]);
 
   const selectedSupportByCategory = SUPPORT_CATALOG.map((category) => ({
     ...category,
@@ -1497,6 +1538,7 @@ export default function CaseIntakeForm({
               value={draft.formData.person.center}
               onChange={(event) => {
                 updatePerson("center", event.target.value);
+                updatePerson("association", "");
                 if (
                   draft.formData.person.village &&
                   !locations.some(
@@ -1525,7 +1567,10 @@ export default function CaseIntakeForm({
             </span>
             <select
               value={draft.formData.person.village}
-              onChange={(event) => updatePerson("village", event.target.value)}
+              onChange={(event) => {
+                updatePerson("village", event.target.value);
+                updatePerson("association", "");
+              }}
               className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
             >
               <option value="">اختر القرية</option>
@@ -1546,9 +1591,9 @@ export default function CaseIntakeForm({
               className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
             >
               <option value="">اختر الجمعية</option>
-              {partners.map((partner) => (
-                <option key={partner.id} value={partner.name}>
-                  {partner.name}
+              {associationOptions.map((association) => (
+                <option key={association} value={association}>
+                  {association}
                 </option>
               ))}
             </select>
@@ -2089,7 +2134,7 @@ export default function CaseIntakeForm({
                   bathroomState: "حالة دورات المياه",
                   electricity: "الكهرباء",
                   water: "المياه",
-                  waterPump: "طلمبة المياه",
+                  waterPump: "طرمبة المياه",
                   cookware: "أجهزة الطبخ",
                   tv: "التلفاز",
                   fridge: "الثلاجة",
