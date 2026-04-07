@@ -16,6 +16,7 @@ export default function CaseDetailsPage() {
   const [historyData, setHistoryData] = useState<CaseHistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,6 +67,21 @@ export default function CaseDetailsPage() {
       alert("حدث خطأ أثناء محاولة تحديث الحالة");
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleOpenPdf = async () => {
+    try {
+      setPdfLoading(true);
+      const blob = await casesService.getPdf(id);
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, "_blank", "noopener,noreferrer");
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    } catch (error) {
+      console.error(error);
+      alert("تعذر إنشاء ملف PDF للحالة.");
+    } finally {
+      setPdfLoading(false);
     }
   };
 
@@ -201,6 +217,11 @@ export default function CaseDetailsPage() {
                 <span className="material-symbols-outlined text-lg">edit_square</span>
                 تعديل الكارت
               </Link>
+
+              <button onClick={() => void handleOpenPdf()} disabled={pdfLoading} className="px-5 py-2 bg-success/10 text-success hover:bg-success/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                <span className="material-symbols-outlined text-lg">print</span>
+                {pdfLoading ? "جاري إنشاء PDF..." : "PDF من السيرفر"}
+              </button>
               
               <Link href="/dashboard/cases" className="px-5 py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
                 <span className="material-symbols-outlined text-lg">list</span>

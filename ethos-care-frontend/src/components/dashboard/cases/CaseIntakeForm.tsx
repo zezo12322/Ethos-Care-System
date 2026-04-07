@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { familiesService } from "@/services/families.service";
 import { locationsService } from "@/services/locations.service";
 import { partnersService } from "@/services/partners.service";
-import { CreateCaseDto } from "@/services/cases.service";
+import { casesService, CreateCaseDto } from "@/services/cases.service";
 import {
   CaseIntakeFamilyMember,
   CaseIntakeFormData,
@@ -541,6 +541,7 @@ export default function CaseIntakeForm({
   const [partners, setPartners] = useState<PartnerRecord[]>([]);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     setDraft(buildInitialFormData(caseRecord, currentUserName));
@@ -987,6 +988,25 @@ export default function CaseIntakeForm({
       await onDelete();
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const openServerPdf = async () => {
+    if (!caseRecord) {
+      return;
+    }
+
+    try {
+      setPdfLoading(true);
+      const blob = await casesService.getPdf(caseRecord.id);
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, "_blank", "noopener,noreferrer");
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    } catch (error) {
+      console.error(error);
+      alert("تعذر إنشاء ملف PDF للحالة.");
+    } finally {
+      setPdfLoading(false);
     }
   };
 
@@ -2247,6 +2267,16 @@ export default function CaseIntakeForm({
                 >
                   عرض التفاصيل
                 </Link>
+              ) : null}
+              {caseRecord ? (
+                <button
+                  type="button"
+                  onClick={openServerPdf}
+                  disabled={pdfLoading}
+                  className="rounded-2xl bg-tertiary px-6 py-3 text-sm font-bold text-white shadow-lg shadow-tertiary/15"
+                >
+                  {pdfLoading ? "جاري إنشاء PDF..." : "PDF من السيرفر"}
+                </button>
               ) : null}
             </div>
             <div className="flex flex-wrap gap-3">

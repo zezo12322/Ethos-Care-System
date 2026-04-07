@@ -8,6 +8,8 @@ import {
   Delete,
   Query,
   UseGuards,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
 import { CasesService } from './cases.service';
 import { CreateCaseDto } from './dto/create-case.dto';
@@ -18,6 +20,9 @@ import { Roles } from '../auth/roles.decorator';
 import { TransitionCaseDto } from './dto/transition-case.dto';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthUser } from '../auth/interfaces/auth-user.interface';
+import type { Response } from 'express';
+import { CasePdfService } from './case-pdf.service';
+import { buildCasePdfFilename } from './utils/case-pdf-filename';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(
@@ -30,7 +35,10 @@ import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 )
 @Controller('cases')
 export class CasesController {
-  constructor(private readonly casesService: CasesService) {}
+  constructor(
+    private readonly casesService: CasesService,
+    private readonly casePdfService: CasePdfService,
+  ) {}
 
   @Post()
   create(@Body() createCaseDto: CreateCaseDto) {
@@ -74,6 +82,27 @@ export class CasesController {
   @Get(':id/history')
   getHistory(@Param('id') id: string) {
     return this.casesService.getHistory(id);
+  }
+
+  @Get(':id/pdf')
+  async downloadPdf(
+    @Param('id') id: string,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const caseData = await this.casesService.findOne(id);
+    const pdfBuffer = await this.casePdfService.generateCasePdf(caseData);
+    const filename = buildCasePdfFilename(
+      caseData.applicantName,
+      caseData.id.slice(0, 8).toUpperCase(),
+    );
+
+    response.setHeader('Content-Type', 'application/pdf');
+    response.setHeader(
+      'Content-Disposition',
+      `inline; filename*=UTF-8''${encodeURIComponent(filename)}`,
+    );
+
+    return new StreamableFile(pdfBuffer);
   }
 
   @Patch(':id')

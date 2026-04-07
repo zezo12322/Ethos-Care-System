@@ -38,6 +38,13 @@ export const casesService = {
     return response.data;
   },
 
+  getPdf: async (id: string) => {
+    const response = await api.get<Blob>(`/cases/${id}/pdf`, {
+      responseType: "blob",
+    });
+    return response.data;
+  },
+
   create: async (data: CreateCaseDto) => {
     const response = await api.post<CaseRecord>("/cases", data);
     return response.data;
