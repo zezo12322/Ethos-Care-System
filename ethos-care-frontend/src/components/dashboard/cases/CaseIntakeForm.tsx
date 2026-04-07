@@ -868,19 +868,22 @@ export default function CaseIntakeForm({
   }, [draft.formData.finance.expenses, draft.formData.finance.incomes]);
 
   const centerOptions = useMemo(() => {
-    return Array.from(
-      new Set(
-        locations
-          .flatMap((location) =>
-            location.type === "مركز"
-              ? [location.name]
-              : location.type === "قرية" && location.region
-                ? [location.region]
-                : [],
-          )
-          .filter(Boolean),
-      ),
-    ).sort((left, right) => left.localeCompare(right, "ar"));
+    const explicitCenters = locations
+      .filter((location) => location.type === "مركز")
+      .map((location) => location.name)
+      .filter(Boolean);
+
+    const fallbackCenters =
+      explicitCenters.length > 0
+        ? []
+        : locations
+            .filter((location) => location.type === "قرية" && location.region)
+            .map((location) => location.region)
+            .filter(Boolean);
+
+    return Array.from(new Set([...explicitCenters, ...fallbackCenters])).sort(
+      (left, right) => left.localeCompare(right, "ar"),
+    );
   }, [locations]);
 
   const villageOptions = useMemo(() => {
@@ -1566,12 +1569,13 @@ export default function CaseIntakeForm({
               القرية
             </span>
             <select
+              disabled={!draft.formData.person.center}
               value={draft.formData.person.village}
               onChange={(event) => {
                 updatePerson("village", event.target.value);
                 updatePerson("association", "");
               }}
-              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary disabled:cursor-not-allowed disabled:bg-surface-container-low"
             >
               <option value="">اختر القرية</option>
               {villageOptions.map((village) => (
@@ -1580,15 +1584,21 @@ export default function CaseIntakeForm({
                 </option>
               ))}
             </select>
+            {!draft.formData.person.center ? (
+              <span className="mt-2 block text-xs font-medium text-on-surface-variant">
+                اختر المركز أولًا لتظهر القرى التابعة له.
+              </span>
+            ) : null}
           </label>
           <label className="xl:col-span-2">
             <span className="mb-2 block text-sm font-bold text-on-surface">
               الجمعية
             </span>
             <select
+              disabled={!draft.formData.person.village}
               value={draft.formData.person.association}
               onChange={(event) => updatePerson("association", event.target.value)}
-              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary disabled:cursor-not-allowed disabled:bg-surface-container-low"
             >
               <option value="">اختر الجمعية</option>
               {associationOptions.map((association) => (
@@ -1597,6 +1607,15 @@ export default function CaseIntakeForm({
                 </option>
               ))}
             </select>
+            {!draft.formData.person.village ? (
+              <span className="mt-2 block text-xs font-medium text-on-surface-variant">
+                اختر القرية أولًا لتظهر الجمعيات التابعة لها.
+              </span>
+            ) : associationOptions.length === 0 ? (
+              <span className="mt-2 block text-xs font-medium text-on-surface-variant">
+                لا توجد جمعيات مضافة لهذه القرية حتى الآن.
+              </span>
+            ) : null}
           </label>
 
           <label className="xl:col-span-6">

@@ -177,7 +177,7 @@ export default function LocationsPage() {
         ? {
             name: trimmedName,
             type: "مركز",
-            region: "بني سويف",
+            region: "",
             status: formData.status,
           }
         : creationContext.kind === "village"
