@@ -4,7 +4,11 @@ import Image from "next/image";
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
-export default function Header() {
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
+
+export default function Header({ onMenuClick }: HeaderProps) {
   const { user } = useAuth();
   const roleNames: Record<string, string> = {
     ADMIN: "مدير النظام",
@@ -17,21 +21,33 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-surface/80 backdrop-blur-md border-b border-outline-variant/10">
-      <div className="flex items-center justify-between px-8 py-4">
-        {/* Empty left space for flexibility */}
-        <div className="flex-1"></div>
+      <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="flex min-w-0 items-center gap-3">
+          <button
+            type="button"
+            onClick={onMenuClick}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant transition-colors hover:bg-surface-container-highest lg:hidden"
+          >
+            <span className="material-symbols-outlined text-[20px]">menu</span>
+          </button>
+          <div className="min-w-0 lg:hidden">
+            <div className="truncate text-sm font-bold text-on-surface">لوحة التحكم</div>
+            <div className="truncate text-[11px] text-on-surface-variant">
+              {user ? (roleNames[user.role] || user.role) : "..."}
+            </div>
+          </div>
+        </div>
 
-        {/* Right side actions */}
-        <div className="flex flex-row-reverse items-center justify-start gap-4">
-          <button className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-colors relative group">
+        <div className="flex flex-row-reverse items-center justify-start gap-2 sm:gap-4">
+          <button className="relative flex h-10 w-10 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant transition-colors hover:bg-surface-container-highest">
             <span className="material-symbols-outlined text-[20px]">
               notifications
             </span>
             <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border border-surface"></span>
           </button>
           
-          <button className="flex items-center gap-3 pr-4 border-r border-outline-variant/20 hover:opacity-80 transition-opacity">
-            <div className="flex flex-col items-end">
+          <button className="flex items-center gap-3 pr-0 transition-opacity hover:opacity-80 sm:pr-4 sm:border-r sm:border-outline-variant/20">
+            <div className="hidden flex-col items-end sm:flex">
               <span className="text-sm font-bold text-on-surface font-headline">
                 {user ? user.name : "..."}
               </span>

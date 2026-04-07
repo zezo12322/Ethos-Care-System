@@ -12,12 +12,12 @@ export default function Home() {
       <ImmediateSearch />
 
       {/* Quick Action Buttons */}
-      <div className="mt-12 flex justify-center gap-4">
-        <Link href="/dashboard/cases/new" className="px-6 py-3 bg-surface-container-highest font-bold rounded-xl hover:bg-surface-variant transition-colors flex items-center gap-2">
+      <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
+        <Link href="/dashboard/cases/new" className="flex items-center justify-center gap-2 rounded-xl bg-surface-container-highest px-6 py-3 text-center font-bold transition-colors hover:bg-surface-variant">
           <span className="material-symbols-outlined">add</span>
           تسجيل حالة جديدة
         </Link>
-        <Link href="/dashboard/families/new" className="px-6 py-3 bg-surface-container-highest font-bold rounded-xl hover:bg-surface-variant transition-colors flex items-center gap-2">
+        <Link href="/dashboard/families/new" className="flex items-center justify-center gap-2 rounded-xl bg-surface-container-highest px-6 py-3 text-center font-bold transition-colors hover:bg-surface-variant">
           <span className="material-symbols-outlined">add</span>
           ملف أسرة جديد
         </Link>
