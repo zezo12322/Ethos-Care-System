@@ -41,6 +41,35 @@ function getStatusTone(status: string) {
     : "bg-amber-100 text-amber-800";
 }
 
+function getRequestErrorMessage(error: unknown, fallback: string) {
+  const responseMessage = (
+    error as {
+      response?: { data?: { message?: string | string[] } };
+    }
+  )?.response?.data?.message;
+
+  if (Array.isArray(responseMessage)) {
+    const normalized = responseMessage
+      .map((item) => item?.trim())
+      .filter(Boolean)
+      .join("، ");
+
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  if (typeof responseMessage === "string" && responseMessage.trim()) {
+    return responseMessage.trim();
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return error.message.trim();
+  }
+
+  return fallback;
+}
+
 export default function LocationsPage() {
   const { user } = useAuth();
   const [locations, setLocations] = useState<LocationRecord[]>([]);
@@ -186,6 +215,11 @@ export default function LocationsPage() {
       return;
     }
 
+    if (trimmedName.length < 2) {
+      setError("الاسم يجب ألا يقل عن حرفين.");
+      return;
+    }
+
     const payload =
       creationContext.kind === "center"
         ? {
@@ -224,7 +258,9 @@ export default function LocationsPage() {
       refreshLocations();
     } catch (createError) {
       console.error(createError);
-      setError("تعذر حفظ هذا العنصر الآن.");
+      setError(
+        getRequestErrorMessage(createError, "تعذر حفظ هذا العنصر الآن."),
+      );
     }
   };
 
@@ -268,7 +304,9 @@ export default function LocationsPage() {
       refreshLocations();
     } catch (deleteError) {
       console.error(deleteError);
-      setError("تعذر حذف هذا العنصر الآن.");
+      setError(
+        getRequestErrorMessage(deleteError, "تعذر حذف هذا العنصر الآن."),
+      );
     }
   };
 
