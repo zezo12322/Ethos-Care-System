@@ -22,6 +22,7 @@ export class LocationsController {
   constructor(private readonly locationsService: LocationsService) {}
 
   @Post()
+  @Roles('ADMIN', 'CEO', 'MANAGER')
   create(@Body() createLocationDto: CreateLocationDto) {
     return this.locationsService.create(createLocationDto);
   }
@@ -37,6 +38,7 @@ export class LocationsController {
   }
 
   @Patch(':id')
+  @Roles('ADMIN', 'CEO', 'MANAGER')
   update(
     @Param('id') id: string,
     @Body() updateLocationDto: UpdateLocationDto,
@@ -45,6 +47,7 @@ export class LocationsController {
   }
 
   @Delete(':id')
+  @Roles('ADMIN', 'CEO', 'MANAGER')
   remove(@Param('id') id: string) {
     return this.locationsService.remove(id);
   }

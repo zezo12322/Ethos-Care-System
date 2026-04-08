@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/contexts/AuthContext";
 import { locationsService } from "@/services/locations.service";
 import { LocationRecord } from "@/types/api";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -41,6 +42,7 @@ function getStatusTone(status: string) {
 }
 
 export default function LocationsPage() {
+  const { user } = useAuth();
   const [locations, setLocations] = useState<LocationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
@@ -146,8 +148,15 @@ export default function LocationsPage() {
   const centersCount = centerNodes.length;
   const villagesCount = locations.filter((location) => location.type === "قرية").length;
   const associationsCount = locations.filter((location) => location.type === "جمعية").length;
+  const canManageLocations = ["ADMIN", "CEO", "MANAGER"].includes(user?.role ?? "");
 
   const openCreateModal = (context: CreationContext) => {
+    if (!canManageLocations) {
+      setError("ليست لديك صلاحية إضافة مراكز أو قرى أو جمعيات.");
+      setFeedback("");
+      return;
+    }
+
     setCreationContext(context);
     setFormData(emptyForm);
     setError("");
@@ -165,6 +174,11 @@ export default function LocationsPage() {
     event.preventDefault();
     setError("");
     setFeedback("");
+
+    if (!canManageLocations) {
+      setError("ليست لديك صلاحية تنفيذ هذا الإجراء.");
+      return;
+    }
 
     const trimmedName = formData.name.trim();
     if (!trimmedName) {
@@ -215,6 +229,12 @@ export default function LocationsPage() {
   };
 
   const handleDeleteLocation = async (location: LocationRecord) => {
+    if (!canManageLocations) {
+      setError("ليست لديك صلاحية حذف عناصر النطاق الجغرافي.");
+      setFeedback("");
+      return;
+    }
+
     if (location.type === "مركز") {
       const hasVillages = locations.some(
         (candidate) => candidate.type === "قرية" && candidate.region === location.name,
@@ -276,13 +296,19 @@ export default function LocationsPage() {
           <p className="mt-1 text-sm text-on-surface-variant">
             إدارة هرمية مباشرة: المركز يضم قرى، وكل قرية تضم جمعياتها المحلية.
           </p>
+          <p className="mt-2 text-xs text-on-surface-variant">
+            الإدارة متاحة لمدير النظام والمدير التنفيذي ومسؤول إدارة الحالة، وباقي
+            الأدوار لها حق الاستعراض فقط.
+          </p>
         </div>
-        <button
-          onClick={() => openCreateModal({ kind: "center" })}
-          className="rounded-2xl bg-primary px-5 py-3 text-sm font-bold text-white"
-        >
-          إضافة مركز
-        </button>
+        {canManageLocations ? (
+          <button
+            onClick={() => openCreateModal({ kind: "center" })}
+            className="rounded-2xl bg-primary px-5 py-3 text-sm font-bold text-white"
+          >
+            إضافة مركز
+          </button>
+        ) : null}
       </div>
 
       {(error || feedback) && (
@@ -354,18 +380,20 @@ export default function LocationsPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() =>
-                        openCreateModal({
-                          kind: "village",
-                          centerName: centerNode.name,
-                        })
-                      }
-                      className="rounded-2xl bg-primary px-4 py-2 text-sm font-bold text-white"
-                    >
-                      إضافة قرية
-                    </button>
-                    {centerNode.record ? (
+                    {canManageLocations ? (
+                      <button
+                        onClick={() =>
+                          openCreateModal({
+                            kind: "village",
+                            centerName: centerNode.name,
+                          })
+                        }
+                        className="rounded-2xl bg-primary px-4 py-2 text-sm font-bold text-white"
+                      >
+                        إضافة قرية
+                      </button>
+                    ) : null}
+                    {canManageLocations && centerNode.record ? (
                       <button
                         onClick={() => handleDeleteLocation(centerNode.record!)}
                         className="rounded-2xl bg-error/10 px-4 py-2 text-sm font-bold text-error"
@@ -405,26 +433,28 @@ export default function LocationsPage() {
                           </p>
                         </div>
 
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            onClick={() =>
-                              openCreateModal({
-                                kind: "association",
-                                centerName: centerNode.name,
-                                villageName: village.name,
-                              })
-                            }
-                            className="rounded-2xl bg-tertiary px-4 py-2 text-sm font-bold text-white"
-                          >
-                            إضافة جمعية
-                          </button>
-                          <button
-                            onClick={() => handleDeleteLocation(village)}
-                            className="rounded-2xl bg-error/10 px-4 py-2 text-sm font-bold text-error"
-                          >
-                            حذف القرية
-                          </button>
-                        </div>
+                        {canManageLocations ? (
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              onClick={() =>
+                                openCreateModal({
+                                  kind: "association",
+                                  centerName: centerNode.name,
+                                  villageName: village.name,
+                                })
+                              }
+                              className="rounded-2xl bg-tertiary px-4 py-2 text-sm font-bold text-white"
+                            >
+                              إضافة جمعية
+                            </button>
+                            <button
+                              onClick={() => handleDeleteLocation(village)}
+                              className="rounded-2xl bg-error/10 px-4 py-2 text-sm font-bold text-error"
+                            >
+                              حذف القرية
+                            </button>
+                          </div>
+                        ) : null}
                       </div>
 
                       <div className="mt-4 space-y-3">
@@ -453,12 +483,14 @@ export default function LocationsPage() {
                                   الجمعية مرتبطة بالقرية {village.name}
                                 </p>
                               </div>
-                              <button
-                                onClick={() => handleDeleteLocation(association)}
-                                className="self-start rounded-2xl bg-error/10 px-4 py-2 text-sm font-bold text-error sm:self-auto"
-                              >
-                                حذف الجمعية
-                              </button>
+                              {canManageLocations ? (
+                                <button
+                                  onClick={() => handleDeleteLocation(association)}
+                                  className="self-start rounded-2xl bg-error/10 px-4 py-2 text-sm font-bold text-error sm:self-auto"
+                                >
+                                  حذف الجمعية
+                                </button>
+                              ) : null}
                             </div>
                           ))
                         )}
@@ -472,7 +504,7 @@ export default function LocationsPage() {
         )}
       </section>
 
-      {isModalOpen ? (
+      {isModalOpen && canManageLocations ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
             <div className="mb-5 flex items-start justify-between gap-4">

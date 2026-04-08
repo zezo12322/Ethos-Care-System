@@ -13,7 +13,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const roleNames: Record<string, string> = {
     ADMIN: "مدير النظام",
     CEO: "المدير التنفيذي",
-    MANAGER: "مدير البرامج",
+    MANAGER: "مسؤول إدارة الحالة",
     CASE_WORKER: "باحث حالة",
     DATA_ENTRY: "مدخل بيانات",
     EXECUTION_OFFICER: "مسؤول التنفيذ",
