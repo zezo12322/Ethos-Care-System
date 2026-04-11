@@ -4,6 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { UsersService } from '../users/users.service';
@@ -13,6 +14,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -29,10 +31,21 @@ export class AuthService {
       throw new UnauthorizedException('بيانات الدخول غير صحيحة');
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      loginDto.password,
-      user.password,
-    );
+    // Check bcrypt hash first
+    const isBcrypt = user.password.startsWith('$2');
+    let isPasswordValid = false;
+
+    if (isBcrypt) {
+      isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+    } else if (loginDto.password === user.password) {
+      // Plaintext match — auto-upgrade to bcrypt
+      isPasswordValid = true;
+      const hashed = await bcrypt.hash(loginDto.password, 10);
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { password: hashed },
+      });
+    }
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('بيانات الدخول غير صحيحة');
