@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authService } from "@/services/auth.service";
-import Cookies from "js-cookie";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -17,16 +18,15 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setErrorMsg("");
-    
+
     try {
       const response = await authService.login({
         email: username.trim(),
         password: password
       });
 
-      // Save token to cookies
-      if (response && response.access_token) {
-        Cookies.set("access_token", response.access_token, { expires: 1 }); // expires in 1 day
+      if (response && response.access_token && response.user) {
+        login(response.access_token, response.user);
         router.push("/dashboard");
       } else {
         throw new Error("Invalid response from server");

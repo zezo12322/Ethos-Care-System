@@ -130,7 +130,7 @@ const ATTACHMENT_OPTIONS = [
 ] as const;
 
 const RESIDENCY_TYPES = ["خاص", "إيجار", "منزل عائلة"] as const;
-const ROOF_OPTIONS = ["مسلح", "خشب", "سعف", "جريد"] as const;
+const ROOF_OPTIONS = ["مسلح", "خشب", "صاج", "جريد"] as const;
 const FLOOR_OPTIONS = ["تراب", "أسمنت", "بلاط", "سيراميك"] as const;
 const ENTRANCE_OPTIONS = ["تراب", "أسمنت", "بلاط", "سيراميك", "رخام"] as const;
 const WALL_OPTIONS = ["طوب أحمر", "بلوك", "محارة", "دهان", "طوب لبن"] as const;
@@ -236,6 +236,7 @@ const POSSESSION_CATALOG = [
   { id: "livestock", name: "ماشية" },
   { id: "agricultural-land", name: "أراضي زراعية" },
   { id: "owned-land", name: "أراضي ملك" },
+  { id: "other", name: "أخرى" },
 ] as const;
 
 const SECTION_IDS = [
@@ -2289,7 +2290,7 @@ export default function CaseIntakeForm({
       <SectionCard
         id="possessions"
         title="الحيازة"
-        subtitle="الحيازة مقتصرة على ماشية وأراضي زراعية وأراضي ملك."
+        subtitle="الحيازة تشمل ماشية وأراضي زراعية وأراضي ملك وأخرى مع ملاحظة."
         open={sectionsOpen.possessions}
         onToggle={toggleSection}
         footer={
