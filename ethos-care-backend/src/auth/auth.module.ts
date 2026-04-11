@@ -9,10 +9,12 @@ import type { StringValue } from 'ms';
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
-  if (!secret || secret === 'change-me') {
-    throw new Error(
-      'JWT_SECRET environment variable is required and must not be the default value. Set a strong secret before starting the server.',
-    );
+  if (!secret) {
+    console.warn('WARNING: JWT_SECRET not set — using fallback. Set a strong secret in production.');
+    return 'ethos-care-default-secret';
+  }
+  if (secret === 'change-me') {
+    console.warn('WARNING: JWT_SECRET is still the default "change-me". Set a strong secret in production.');
   }
   return secret;
 }
