@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { familiesService } from "@/services/families.service";
+import { useToast } from "@/components/ui/Toast";
 import { FamilyRecord } from "@/types/api";
 
 interface EditingFamilyState {
@@ -39,6 +40,7 @@ const parseIncome = (value?: string | null) => {
 };
 
 export default function FamiliesPage() {
+  const { toast } = useToast();
   const [families, setFamilies] = useState<FamilyRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -123,7 +125,7 @@ export default function FamiliesPage() {
       refreshFamilies();
     } catch (updateError) {
       console.error(updateError);
-      alert("حدث خطأ أثناء تعديل بيانات الأسرة");
+      toast("حدث خطأ أثناء تعديل بيانات الأسرة", "error");
     }
   };
 
@@ -137,7 +139,7 @@ export default function FamiliesPage() {
       refreshFamilies();
     } catch (deleteError) {
       console.error(deleteError);
-      alert("تعذر حذف ملف الأسرة الآن.");
+      toast("تعذر حذف ملف الأسرة الآن.", "error");
     }
   };
 

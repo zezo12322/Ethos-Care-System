@@ -5,12 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import CaseIntakeForm from "@/components/dashboard/cases/CaseIntakeForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { casesService, CreateCaseDto } from "@/services/cases.service";
+import { useToast } from "@/components/ui/Toast";
 import { CaseRecord } from "@/types/api";
 
 export default function EditCasePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [caseRecord, setCaseRecord] = useState<CaseRecord | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +29,7 @@ export default function EditCasePage() {
       } catch (error) {
         console.error(error);
         if (!cancelled) {
-          alert("تعذر تحميل بيانات الحالة.");
+          toast("تعذر تحميل بيانات الحالة.", "error");
           router.push("/dashboard/cases");
         }
       } finally {
@@ -48,10 +50,10 @@ export default function EditCasePage() {
     try {
       const updatedCase = await casesService.update(id, payload);
       setCaseRecord(updatedCase);
-      alert("تم تحديث الحالة بنجاح.");
+      toast("تم تحديث الحالة بنجاح.", "success");
     } catch (error) {
       console.error(error);
-      alert("حدث خطأ أثناء تعديل الحالة.");
+      toast("حدث خطأ أثناء تعديل الحالة.", "error");
       throw error;
     }
   };
@@ -59,11 +61,11 @@ export default function EditCasePage() {
   const handleDelete = async () => {
     try {
       await casesService.remove(id);
-      alert("تم حذف الحالة.");
+      toast("تم حذف الحالة.", "success");
       router.push("/dashboard/cases");
     } catch (error) {
       console.error(error);
-      alert("حدث خطأ أثناء حذف الحالة.");
+      toast("حدث خطأ أثناء حذف الحالة.", "error");
       throw error;
     }
   };

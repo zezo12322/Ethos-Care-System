@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { familiesService, FamilyMemberInput } from "@/services/families.service";
+import { useToast } from "@/components/ui/Toast";
 
 export default function NewFamilyPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [membersData, setMembersData] = useState<FamilyMemberInput[]>([{ name: "", age: "", relation: "ابن/ة", education: "لا يدرس" }]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -52,12 +54,12 @@ export default function NewFamilyPage() {
     if (membersData.length > 0) {
       const hasInvalid = membersData.some(m => !m.name.trim() || !m.age);
       if (hasInvalid) {
-        alert("الرجاء إدخال اسم وسن جميع الأفراد التابعين بشكل صحيح");
+        toast("الرجاء إدخال اسم وسن جميع الأفراد التابعين بشكل صحيح", "warning");
         return;
       }
     }
     if (!formData.headName || !formData.phone) {
-      alert("الرجاء إدخال اسم العائل ورقم التليفون الأساسي");
+      toast("الرجاء إدخال اسم العائل ورقم التليفون الأساسي", "warning");
       return;
     }
     
@@ -72,7 +74,7 @@ export default function NewFamilyPage() {
       router.push("/dashboard/families");
     } catch (error) {
       console.error("Error creating family", error);
-      alert("حدث خطأ أثناء تسجيل الأسرة");
+      toast("حدث خطأ أثناء تسجيل الأسرة", "error");
     } finally {
       setLoading(false);
     }

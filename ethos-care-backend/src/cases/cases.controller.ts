@@ -115,6 +115,14 @@ export class CasesController {
     return this.casesService.remove(id);
   }
 
+  /* ──────────────────────────────────────────────
+   *  Lifecycle:  DRAFT → REVIEW → FIELD_VERIFICATION → APPROVED → EXECUTION → COMPLETED
+   *  First 3 stages  → Researcher  (CASE_WORKER / DATA_ENTRY)
+   *  Last  3 stages  → Case Manager (MANAGER / CEO)
+   *  ADMIN can do everything.
+   * ────────────────────────────────────────────── */
+
+  // Researcher: DRAFT → REVIEW
   @Post(':id/transitions/review')
   @Roles('ADMIN', 'CASE_WORKER', 'DATA_ENTRY')
   transitionReview(
@@ -124,7 +132,7 @@ export class CasesController {
   ) {
     return this.casesService.transition(
       id,
-      'INTAKE_REVIEW',
+      'REVIEW',
       'PENDING_DECISION',
       'review',
       body.reason,
@@ -132,6 +140,25 @@ export class CasesController {
     );
   }
 
+  // Researcher: REVIEW → FIELD_VERIFICATION
+  @Post(':id/transitions/field_verify')
+  @Roles('ADMIN', 'CASE_WORKER', 'DATA_ENTRY')
+  transitionFieldVerify(
+    @Param('id') id: string,
+    @Body() body: TransitionCaseDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.casesService.transition(
+      id,
+      'FIELD_VERIFICATION',
+      'PENDING_DECISION',
+      'field_verify',
+      body.reason,
+      user.id,
+    );
+  }
+
+  // Case Manager: FIELD_VERIFICATION → APPROVED
   @Post(':id/transitions/approve')
   @Roles('ADMIN', 'CEO', 'MANAGER')
   transitionApprove(
@@ -149,25 +176,27 @@ export class CasesController {
     );
   }
 
-  @Post(':id/transitions/reject')
+  // Case Manager: APPROVED → EXECUTION
+  @Post(':id/transitions/execute')
   @Roles('ADMIN', 'CEO', 'MANAGER')
-  transitionReject(
+  transitionExecute(
     @Param('id') id: string,
     @Body() body: TransitionCaseDto,
     @CurrentUser() user: AuthUser,
   ) {
     return this.casesService.transition(
       id,
-      'REJECTED',
-      'REJECTED',
-      'reject',
+      'EXECUTION',
+      'APPROVED',
+      'execute',
       body.reason,
       user.id,
     );
   }
 
+  // Case Manager: EXECUTION → COMPLETED
   @Post(':id/transitions/complete')
-  @Roles('ADMIN', 'EXECUTION_OFFICER')
+  @Roles('ADMIN', 'CEO', 'MANAGER')
   transitionComplete(
     @Param('id') id: string,
     @Body() body: TransitionCaseDto,
@@ -183,26 +212,10 @@ export class CasesController {
     );
   }
 
-  @Post(':id/transitions/technical_reject')
-  @Roles('ADMIN', 'EXECUTION_OFFICER')
-  transitionTechnicalReject(
-    @Param('id') id: string,
-    @Body() body: TransitionCaseDto,
-    @CurrentUser() user: AuthUser,
-  ) {
-    return this.casesService.transition(
-      id,
-      'TECH_REJECTED',
-      'APPROVED',
-      'technical_reject',
-      body.reason,
-      user.id,
-    );
-  }
-
-  @Post(':id/transitions/return_to_review')
+  // Case Manager: return to DRAFT (any stage)
+  @Post(':id/transitions/return_to_draft')
   @Roles('ADMIN', 'CEO', 'MANAGER')
-  transitionReturnToReview(
+  transitionReturnToDraft(
     @Param('id') id: string,
     @Body() body: TransitionCaseDto,
     @CurrentUser() user: AuthUser,
@@ -211,7 +224,7 @@ export class CasesController {
       id,
       'DRAFT',
       'PENDING_DECISION',
-      'return_to_review',
+      'return_to_draft',
       body.reason,
       user.id,
     );

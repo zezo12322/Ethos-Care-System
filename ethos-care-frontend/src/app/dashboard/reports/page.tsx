@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useToast } from "@/components/ui/Toast";
 import {
   startTransition,
   useDeferredValue,
@@ -66,16 +67,19 @@ const DATASET_META: Record<
 
 const CASE_LIFECYCLE_LABELS: Record<string, string> = {
   DRAFT: "مسودة",
-  INTAKE_REVIEW: "مراجعة مبدئية",
+  REVIEW: "مراجعة",
   FIELD_VERIFICATION: "تحقق ميداني",
-  COMMITTEE_REVIEW: "مراجعة اللجنة",
-  APPROVED: "معتمدة",
-  IN_PROGRESS: "قيد التنفيذ",
-  COMPLETED: "مكتملة",
-  REJECTED: "مرفوضة",
-  ON_HOLD: "معلقة",
-  ARCHIVED: "مؤرشفة",
-  TECH_REJECTED: "مرفوضة فنيًا",
+  APPROVED: "موافقة",
+  EXECUTION: "تنفيذ",
+  COMPLETED: "مكتمل",
+  // Legacy
+  INTAKE_REVIEW: "مراجعة (قديم)",
+  COMMITTEE_REVIEW: "لجنة (قديم)",
+  IN_PROGRESS: "تنفيذ (قديم)",
+  REJECTED: "مرفوض (قديم)",
+  ON_HOLD: "معلق (قديم)",
+  ARCHIVED: "مؤرشف (قديم)",
+  TECH_REJECTED: "مرفوض فنياً (قديم)",
 };
 
 const CASE_DECISION_LABELS: Record<string, string> = {
@@ -104,7 +108,7 @@ const EXTRACT_PRESETS: ExtractPreset[] = [
       badge: "bg-blue-100 text-blue-700",
     },
     matchesCase: (item) =>
-      ["DRAFT", "INTAKE_REVIEW", "FIELD_VERIFICATION"].includes(
+      ["DRAFT", "REVIEW", "FIELD_VERIFICATION"].includes(
         item.lifecycleStatus,
       ),
   },
@@ -135,7 +139,7 @@ const EXTRACT_PRESETS: ExtractPreset[] = [
       badge: "bg-emerald-100 text-emerald-700",
     },
     matchesCase: (item) =>
-      ["APPROVED", "IN_PROGRESS"].includes(item.lifecycleStatus),
+      ["APPROVED", "EXECUTION"].includes(item.lifecycleStatus),
   },
   {
     id: "families-eligible",
@@ -308,15 +312,10 @@ const getCaseLifecycleTone = (status: string) => {
     case "APPROVED":
     case "COMPLETED":
       return "bg-emerald-100 text-emerald-700";
-    case "IN_PROGRESS":
+    case "EXECUTION":
       return "bg-blue-100 text-blue-700";
-    case "REJECTED":
-    case "TECH_REJECTED":
-      return "bg-rose-100 text-rose-700";
-    case "COMMITTEE_REVIEW":
-      return "bg-violet-100 text-violet-700";
     case "FIELD_VERIFICATION":
-    case "INTAKE_REVIEW":
+    case "REVIEW":
       return "bg-amber-100 text-amber-800";
     default:
       return "bg-slate-100 text-slate-700";
@@ -359,6 +358,7 @@ const getOperationStatusTone = (status: string) => {
 };
 
 export default function ReportsPage() {
+  const { toast } = useToast();
   const [cases, setCases] = useState<CaseRecord[]>([]);
   const [families, setFamilies] = useState<FamilyRecord[]>([]);
   const [operations, setOperations] = useState<OperationRecord[]>([]);
@@ -589,7 +589,7 @@ export default function ReportsPage() {
             label: "جاهزة للتنفيذ",
             value: formatNumber(
               filteredCases.filter((item) =>
-                ["APPROVED", "IN_PROGRESS"].includes(item.lifecycleStatus),
+                ["APPROVED", "EXECUTION"].includes(item.lifecycleStatus),
               ).length,
             ),
             icon: "task_alt",
@@ -742,7 +742,7 @@ export default function ReportsPage() {
       window.setTimeout(() => URL.revokeObjectURL(url), 5_000);
     } catch (downloadError) {
       console.error(downloadError);
-      alert("تعذر إنشاء PDF لهذه الحالة الآن.");
+      toast("تعذر إنشاء PDF لهذه الحالة الآن.", "error");
     } finally {
       setDownloadingCaseId(null);
     }

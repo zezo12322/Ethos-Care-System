@@ -4,19 +4,21 @@ import { useRouter } from "next/navigation";
 import CaseIntakeForm from "@/components/dashboard/cases/CaseIntakeForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { casesService, CreateCaseDto } from "@/services/cases.service";
+import { useToast } from "@/components/ui/Toast";
 
 export default function NewCasePage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const handleSubmit = async (payload: CreateCaseDto) => {
     try {
       const createdCase = await casesService.create(payload);
-      alert("تم تسجيل الحالة بنجاح.");
+      toast("تم تسجيل الحالة بنجاح.", "success");
       router.push(`/dashboard/cases/${createdCase.id}/edit`);
     } catch (error) {
       console.error(error);
-      alert("حدث خطأ أثناء تسجيل الحالة.");
+      toast("حدث خطأ أثناء تسجيل الحالة.", "error");
       throw error;
     }
   };

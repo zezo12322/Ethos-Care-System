@@ -5,11 +5,129 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { casesService } from "@/services/cases.service";
 import { CaseHistoryRecord, CaseRecord } from "@/types/api";
+import { useToast } from "@/components/ui/Toast";
+
+/* ──────────────────────────────────────────────
+ *  Lifecycle (6 stages only):
+ *    DRAFT → REVIEW → FIELD_VERIFICATION → APPROVED → EXECUTION → COMPLETED
+ *  Researcher (CASE_WORKER/DATA_ENTRY) owns first 3
+ *  Case Manager (MANAGER/CEO) owns last 3
+ * ────────────────────────────────────────────── */
+
+const LIFECYCLE_STEPS = [
+  { key: "DRAFT", label: "مسودة", icon: "edit_note" },
+  { key: "REVIEW", label: "مراجعة", icon: "rate_review" },
+  { key: "FIELD_VERIFICATION", label: "تحقق ميداني", icon: "location_searching" },
+  { key: "APPROVED", label: "موافقة", icon: "check_circle" },
+  { key: "EXECUTION", label: "تنفيذ", icon: "engineering" },
+  { key: "COMPLETED", label: "مكتمل", icon: "task_alt" },
+] as const;
+
+const lifecycleMap: Record<string, { label: string; color: string }> = {
+  DRAFT: { label: "مسودة", color: "bg-surface-container text-on-surface" },
+  REVIEW: { label: "مراجعة", color: "bg-warning/20 text-warning" },
+  FIELD_VERIFICATION: { label: "تحقق ميداني", color: "bg-warning/30 text-on-surface" },
+  APPROVED: { label: "موافقة", color: "bg-success/20 text-success" },
+  EXECUTION: { label: "تنفيذ", color: "bg-primary/20 text-primary" },
+  COMPLETED: { label: "مكتمل", color: "bg-success text-on-success" },
+  // Legacy statuses — render gracefully if they still exist in DB
+  INTAKE_REVIEW: { label: "مراجعة (قديم)", color: "bg-warning/20 text-warning" },
+  COMMITTEE_REVIEW: { label: "مراجعة لجنة (قديم)", color: "bg-tertiary/20 text-tertiary" },
+  IN_PROGRESS: { label: "قيد التنفيذ (قديم)", color: "bg-primary/20 text-primary" },
+  REJECTED: { label: "مرفوض (قديم)", color: "bg-error/20 text-error" },
+  TECH_REJECTED: { label: "مرفوض فنياً (قديم)", color: "bg-error text-on-error" },
+  ON_HOLD: { label: "معلق (قديم)", color: "bg-surface-variant text-on-surface-variant" },
+  ARCHIVED: { label: "مؤرشف (قديم)", color: "bg-outline text-surface" },
+};
+
+const decisionMap: Record<string, { label: string; bg: string }> = {
+  PENDING_DECISION: { label: "قيد القرار", bg: "bg-warning/20 text-warning" },
+  APPROVED: { label: "مقبول", bg: "bg-success/20 text-success" },
+  REJECTED: { label: "مرفوض", bg: "bg-error/20 text-error" },
+  RETURNED_FOR_COMPLETION: { label: "مردود للاستكمال", bg: "bg-tertiary/20 text-tertiary" },
+};
+
+const completenessMap: Record<string, { label: string; bg: string }> = {
+  COMPLETE: { label: "مكتمل الملفات", bg: "bg-primary/20 text-primary" },
+  MISSING_NATIONAL_ID: { label: "ينقص رقم قومي", bg: "bg-error/20 text-error" },
+  MISSING_DOCUMENTS: { label: "مستندات ناقصة", bg: "bg-warning/20 text-warning" },
+};
+
+function getStepIndex(status: string): number {
+  const idx = LIFECYCLE_STEPS.findIndex((s) => s.key === status);
+  return idx >= 0 ? idx : 0;
+}
+
+/* ──────────────────────────────────────────────
+ *  Stepper Component
+ * ────────────────────────────────────────────── */
+
+function CaseLifecycleStepper({ currentStatus }: { currentStatus: string }) {
+  const currentIdx = getStepIndex(currentStatus);
+
+  return (
+    <div className="flex items-center gap-1 overflow-x-auto rounded-3xl border border-outline-variant/30 bg-white p-4 shadow-sm">
+      {LIFECYCLE_STEPS.map((step, idx) => {
+        const isCompleted = idx < currentIdx;
+        const isCurrent = idx === currentIdx;
+        const isResearcher = idx < 3;
+
+        return (
+          <React.Fragment key={step.key}>
+            {idx > 0 && (
+              <div
+                className={`hidden h-0.5 flex-1 sm:block ${
+                  isCompleted ? "bg-primary" : "bg-outline-variant/30"
+                }`}
+              />
+            )}
+            <div className="flex flex-col items-center gap-1.5 px-2">
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-full text-sm transition-all ${
+                  isCompleted
+                    ? "bg-primary text-on-primary"
+                    : isCurrent
+                      ? "bg-primary/20 text-primary ring-2 ring-primary"
+                      : "bg-surface-container text-on-surface-variant"
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg">
+                  {isCompleted ? "check" : step.icon}
+                </span>
+              </div>
+              <span
+                className={`text-center text-[11px] font-bold leading-tight ${
+                  isCurrent ? "text-primary" : "text-on-surface-variant"
+                }`}
+              >
+                {step.label}
+              </span>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
+                  isResearcher
+                    ? "bg-warning/10 text-warning"
+                    : "bg-tertiary/10 text-tertiary"
+                }`}
+              >
+                {isResearcher ? "الباحث" : "إدارة الحالة"}
+              </span>
+            </div>
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────
+ *  Page Component
+ * ────────────────────────────────────────────── */
 
 export default function CaseDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuth();
+  const { toast } = useToast();
   const currentRole = user?.role || "CASE_WORKER";
 
   const [caseData, setCaseData] = useState<CaseRecord | null>(null);
@@ -36,7 +154,7 @@ export default function CaseDetailsPage() {
       } catch (err) {
         console.error(err);
         if (!cancelled) {
-          alert("حدث خطأ في تحميل تفاصيل الحالة");
+          toast("حدث خطأ في تحميل تفاصيل الحالة", "error");
         }
       } finally {
         if (!cancelled) {
@@ -68,7 +186,7 @@ export default function CaseDetailsPage() {
       setHistoryData(updatedHistory);
     } catch (err) {
       console.error(err);
-      alert("حدث خطأ أثناء محاولة تحديث الحالة");
+      toast("حدث خطأ أثناء محاولة تحديث الحالة", "error");
     } finally {
       setActionLoading(false);
     }
@@ -83,7 +201,7 @@ export default function CaseDetailsPage() {
       window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
     } catch (error) {
       console.error(error);
-      alert("تعذر إنشاء ملف PDF للحالة.");
+      toast("تعذر إنشاء ملف PDF للحالة", "error");
     } finally {
       setPdfLoading(false);
     }
@@ -109,36 +227,7 @@ export default function CaseDetailsPage() {
     );
   }
 
-  // Maps
-  const lifecycleMap: Record<string, { label: string; color: string }> = {
-    DRAFT: { label: "مسودة", color: "bg-surface-container text-on-surface" },
-    INTAKE_REVIEW: { label: "مراجعة مبدئية", color: "bg-warning/20 text-warning" },
-    FIELD_VERIFICATION: { label: "تحقق ميداني", color: "bg-warning/30 text-warning-dark" },
-    COMMITTEE_REVIEW: { label: "مراجعة اللجنة", color: "bg-tertiary/20 text-tertiary" },
-    APPROVED: { label: "في انتظار التنفيذ (مقبول إدارياً)", color: "bg-success/20 text-success" },
-    IN_PROGRESS: { label: "قيد التنفيذ", color: "bg-primary/20 text-primary" },
-    COMPLETED: { label: "تم النفيذ (مكتملة)", color: "bg-success text-on-success" },
-    REJECTED: { label: "مرفوضة إدارياً", color: "bg-error/20 text-error" },
-    TECH_REJECTED: { label: "مرفوضة فنياً (لتعذر التنفيذ)", color: "bg-error text-on-error" },
-    ON_HOLD: { label: "معلقة", color: "bg-surface-variant text-on-surface-variant" },
-    ARCHIVED: { label: "مؤرشفة", color: "bg-outline text-surface" },
-  };
-
-  const decisionMap: Record<string, { label: string; bg: string }> = {
-    PENDING_DECISION: { label: "قيد القرار", bg: "bg-warning/20 text-warning" },
-    APPROVED: { label: "مقبول", bg: "bg-success/20 text-success" },
-    REJECTED: { label: "مرفوض", bg: "bg-error/20 text-error" },
-    RETURNED_FOR_COMPLETION: { label: "مردود للاستكمال", bg: "bg-tertiary/20 text-tertiary" },
-  };
-
-  const completenessMap: Record<string, { label: string; bg: string }> = {
-    COMPLETE: { label: "مكتمل الملفات", bg: "bg-primary/20 text-primary" },
-    MISSING_NATIONAL_ID: { label: "ينقص رقم قومي", bg: "bg-error/20 text-error" },
-    MISSING_DOCUMENTS: { label: "مستندات ناقصة", bg: "bg-warning/20 text-warning" },
-  };
-
-
-  const isCaseWorker =
+  const isResearcher =
     currentRole === "CASE_WORKER" ||
     currentRole === "DATA_ENTRY" ||
     currentRole === "ADMIN";
@@ -146,10 +235,8 @@ export default function CaseDetailsPage() {
     currentRole === "MANAGER" ||
     currentRole === "CEO" ||
     currentRole === "ADMIN";
-  const isExecOfficer = currentRole === "EXECUTION_OFFICER" || currentRole === "ADMIN";
 
   const lc = lifecycleMap[caseData.lifecycleStatus] || { label: caseData.lifecycleStatus, color: "bg-surface-container" };
- 
   const ds = decisionMap[caseData.decisionStatus] || { label: caseData.decisionStatus, bg: "bg-surface-container" };
   const cs = completenessMap[caseData.completenessStatus] || { label: caseData.completenessStatus, bg: "bg-surface-container" };
 
@@ -158,9 +245,18 @@ export default function CaseDetailsPage() {
       {/* Header */}
       <header className="bg-surface border-b border-outline-variant/30 sticky top-0 z-20">
         <div className="max-w-[1600px] mx-auto px-6 py-4">
+          {/* Breadcrumb */}
+          <nav className="mb-3 flex items-center gap-1.5 text-xs text-on-surface-variant">
+            <Link href="/dashboard" className="hover:text-primary transition-colors">لوحة التحكم</Link>
+            <span className="material-symbols-outlined text-sm rtl:rotate-180">chevron_right</span>
+            <Link href="/dashboard/cases" className="hover:text-primary transition-colors">الحالات</Link>
+            <span className="material-symbols-outlined text-sm rtl:rotate-180">chevron_right</span>
+            <span className="font-bold text-on-surface">{caseData.id.slice(0, 8).toUpperCase()}</span>
+          </nav>
+
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex gap-4 items-center">
-              <button 
+              <button
                 onClick={() => router.back()}
                 className="w-10 h-10 rounded-full hover:bg-surface-variant flex items-center justify-center transition-colors text-on-surface-variant"
               >
@@ -180,47 +276,57 @@ export default function CaseDetailsPage() {
               </div>
             </div>
 
-            <div className="flex gap-3">
-              {/* Transition actions based on statuses */}
-              
-              {/* Case Worker Actions */}
-              {isCaseWorker && caseData.lifecycleStatus === 'DRAFT' && (
-                <button disabled={actionLoading} onClick={() => handleTransition('review', 'تعليق الباحث عند رفع الحالة من المنطقة')} className="px-5 py-2 bg-warning text-on-warning hover:bg-warning/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
-                  <span className="material-symbols-outlined">how_to_reg</span>
-                  رفع الحالة من المنطقة
+            <div className="flex flex-wrap gap-3">
+              {/* ── Researcher Actions (first 3 stages) ── */}
+
+              {/* DRAFT → REVIEW */}
+              {isResearcher && caseData.lifecycleStatus === "DRAFT" && (
+                <button disabled={actionLoading} onClick={() => handleTransition("review", "تعليق الباحث عند رفع الحالة للمراجعة")} className="px-5 py-2 bg-warning text-on-warning hover:bg-warning/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                  <span className="material-symbols-outlined">rate_review</span>
+                  رفع للمراجعة
                 </button>
               )}
-              
-              {/* Case Management Approval */}
-              {isCaseManager && (caseData.decisionStatus === 'PENDING_DECISION' || caseData.lifecycleStatus === 'INTAKE_REVIEW' || caseData.lifecycleStatus === 'COMMITTEE_REVIEW') && (
-                <>
-                  <button disabled={actionLoading} onClick={() => handleTransition('approve', 'تعليق مسؤول إدارة الحالة عند الاعتماد')} className="px-5 py-2 bg-success text-on-success hover:bg-success/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
-                    <span className="material-symbols-outlined">fact_check</span>
-                    اعتماد مسؤول إدارة الحالة
-                  </button>
-                  <button disabled={actionLoading} onClick={() => handleTransition('return_to_review', 'تعليق مسؤول إدارة الحالة عند إعادة الحالة')} className="px-5 py-2 bg-warning text-on-warning hover:bg-warning/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
-                    <span className="material-symbols-outlined">assignment_return</span>
-                    إعادة للباحث الميداني
-                  </button>
-                  <button disabled={actionLoading} onClick={() => handleTransition('reject', 'تعليق مسؤول إدارة الحالة عند الرفض')} className="px-5 py-2 bg-error text-on-error hover:bg-error/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
-                    <span className="material-symbols-outlined">cancel</span>
-                    رفض الحالة
-                  </button>
-                </>
+
+              {/* REVIEW → FIELD_VERIFICATION */}
+              {isResearcher && caseData.lifecycleStatus === "REVIEW" && (
+                <button disabled={actionLoading} onClick={() => handleTransition("field_verify", "تعليق الباحث عند بدء التحقق الميداني")} className="px-5 py-2 bg-warning text-on-warning hover:bg-warning/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                  <span className="material-symbols-outlined">location_searching</span>
+                  بدء التحقق الميداني
+                </button>
               )}
 
-              {/* Execution Officer Actions (Technical Execution) */}
-              {isExecOfficer && caseData.lifecycleStatus === 'APPROVED' && (
-                <>
-                  <button disabled={actionLoading} onClick={() => handleTransition('complete', 'تعليق مسؤول التنفيذ عند إتمام التدخل')} className="px-5 py-2 bg-primary text-on-primary hover:bg-primary/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
-                    <span className="material-symbols-outlined">done_all</span>
-                    تم التنفيذ بنجاح
-                  </button>
-                  <button disabled={actionLoading} onClick={() => handleTransition('technical_reject', 'تعليق مسؤول التنفيذ عند تعذر التنفيذ')} className="px-5 py-2 bg-error text-on-error hover:bg-error/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
-                    <span className="material-symbols-outlined">block</span>
-                    مرفوض فنياً
-                  </button>
-                </>
+              {/* ── Case Manager Actions (last 3 stages) ── */}
+
+              {/* FIELD_VERIFICATION → APPROVED */}
+              {isCaseManager && caseData.lifecycleStatus === "FIELD_VERIFICATION" && (
+                <button disabled={actionLoading} onClick={() => handleTransition("approve", "تعليق مسؤول إدارة الحالة عند الموافقة")} className="px-5 py-2 bg-success text-on-success hover:bg-success/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                  <span className="material-symbols-outlined">check_circle</span>
+                  موافقة
+                </button>
+              )}
+
+              {/* APPROVED → EXECUTION */}
+              {isCaseManager && caseData.lifecycleStatus === "APPROVED" && (
+                <button disabled={actionLoading} onClick={() => handleTransition("execute", "تعليق مسؤول إدارة الحالة عند بدء التنفيذ")} className="px-5 py-2 bg-primary text-on-primary hover:bg-primary/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                  <span className="material-symbols-outlined">engineering</span>
+                  بدء التنفيذ
+                </button>
+              )}
+
+              {/* EXECUTION → COMPLETED */}
+              {isCaseManager && caseData.lifecycleStatus === "EXECUTION" && (
+                <button disabled={actionLoading} onClick={() => handleTransition("complete", "تعليق مسؤول إدارة الحالة عند إتمام التنفيذ")} className="px-5 py-2 bg-success text-on-success hover:bg-success/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                  <span className="material-symbols-outlined">task_alt</span>
+                  تم التنفيذ
+                </button>
+              )}
+
+              {/* Case Manager: return to draft from any non-DRAFT stage */}
+              {isCaseManager && caseData.lifecycleStatus !== "DRAFT" && caseData.lifecycleStatus !== "COMPLETED" && (
+                <button disabled={actionLoading} onClick={() => handleTransition("return_to_draft", "تعليق مسؤول إدارة الحالة عند إعادة الحالة للباحث")} className="px-5 py-2 bg-error/10 text-error hover:bg-error/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                  <span className="material-symbols-outlined">assignment_return</span>
+                  إعادة للباحث
+                </button>
               )}
 
               <Link href={`/dashboard/cases/${caseData.id}/edit`} className="px-5 py-2 bg-tertiary/10 text-tertiary hover:bg-tertiary/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
@@ -232,21 +338,21 @@ export default function CaseDetailsPage() {
                 <span className="material-symbols-outlined text-lg">print</span>
                 {pdfLoading ? "جاري إنشاء PDF..." : "PDF من السيرفر"}
               </button>
-              
-              <Link href="/dashboard/cases" className="px-5 py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
-                <span className="material-symbols-outlined text-lg">list</span>
-                العودة لقائمة الحالات
-              </Link>
             </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-[1600px] mx-auto px-6 py-8">
+        {/* Lifecycle Stepper */}
+        <div className="mb-8">
+          <CaseLifecycleStepper currentStatus={caseData.lifecycleStatus} />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           <div className="lg:col-span-2 space-y-6">
-            
+
             {/* Status overview cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-surface border border-outline-variant/30 rounded-2xl p-4 flex gap-3 items-center">
@@ -254,7 +360,7 @@ export default function CaseDetailsPage() {
                    <span className="material-symbols-outlined text-lg">autorenew</span>
                  </div>
                  <div>
-                   <span className="text-xs text-on-surface-variant block">دورة حياة الحالة</span>
+                   <span className="text-xs text-on-surface-variant block">مرحلة الحالة</span>
                    <span className="font-bold text-sm">{lc.label}</span>
                  </div>
               </div>
@@ -283,7 +389,7 @@ export default function CaseDetailsPage() {
                 <span className="material-symbols-outlined text-primary">info</span>
                 تفاصيل الحالة
               </h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="text-sm text-on-surface-variant mb-1 block">نوع التدخل المطلوب</label>
@@ -354,7 +460,7 @@ export default function CaseDetailsPage() {
             <div className="bg-surface border border-outline-variant/30 rounded-3xl p-6 shadow-sm">
               <h2 className="text-xl font-bold text-on-surface mb-6 flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">history</span>
-                سجل التعاملات (History)
+                سجل التعاملات
               </h2>
               <div className="relative border-r-2 border-outline-variant/50 pr-6 gap-6 flex flex-col rtl:border-l-2 rtl:border-r-0 rtl:pl-6 rtl:pr-0">
                 {historyData.map((item) => (
@@ -367,7 +473,11 @@ export default function CaseDetailsPage() {
                           {new Date(item.performedAt).toLocaleString("ar-EG")}
                         </span>
                       </div>
-                      <p className="text-sm text-on-surface-variant mt-1">تم نقل دورة الحياة إلى: <span className="font-bold">{lifecycleMap[item.toLifecycleStatus]?.label || item.toLifecycleStatus}</span> / القرار: <span className="font-bold">{decisionMap[item.toDecisionStatus]?.label || item.toDecisionStatus}</span></p>
+                      <p className="text-sm text-on-surface-variant mt-1">
+                        المرحلة: <span className="font-bold">{lifecycleMap[item.toLifecycleStatus]?.label || item.toLifecycleStatus}</span>
+                        {" / "}
+                        القرار: <span className="font-bold">{decisionMap[item.toDecisionStatus]?.label || item.toDecisionStatus}</span>
+                      </p>
                       {item.performedBy?.name ? (
                         <p className="text-xs text-on-surface-variant mt-2">
                           بواسطة: <span className="font-bold">{item.performedBy.name}</span>
@@ -393,7 +503,7 @@ export default function CaseDetailsPage() {
                 <span className="material-symbols-outlined text-tertiary">family_home</span>
                 الأسرة المرتبطة
               </h2>
-              
+
               {caseData.family ? (
                 <>
                   <div className="flex items-center gap-4 mb-6">
@@ -405,7 +515,7 @@ export default function CaseDetailsPage() {
                       <p className="text-sm text-on-surface-variant">{caseData.family.membersCount} أفراد</p>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-4 mb-6">
                     <div className="flex items-center gap-3 text-sm">
                       <span className="material-symbols-outlined text-on-surface-variant w-5">phone</span>
@@ -420,8 +530,8 @@ export default function CaseDetailsPage() {
                       <span className="text-on-surface font-medium">{caseData.family.job || 'لا يوجد وظيفة'}</span>
                     </div>
                   </div>
-                  
-                  <Link 
+
+                  <Link
                     href={`/dashboard/families/${caseData.familyId}`}
                     className="w-full py-2.5 bg-tertiary/10 text-tertiary hover:bg-tertiary/20 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
                   >

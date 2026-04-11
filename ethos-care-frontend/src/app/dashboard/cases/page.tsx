@@ -63,15 +63,18 @@ export default function CasesPage() {
 
   const lifecycleMap: Record<string, { label: string; color: string }> = {
     DRAFT: { label: "مسودة", color: "bg-surface-container text-on-surface" },
-    INTAKE_REVIEW: { label: "مراجعة مبدئية", color: "bg-warning/20 text-warning-dark" },
-    FIELD_VERIFICATION: { label: "تحقق ميداني", color: "bg-warning/30 text-warning-dark" },
-    COMMITTEE_REVIEW: { label: "مراجعة اللجنة", color: "bg-tertiary/20 text-tertiary" },
-    APPROVED: { label: "تمت الموافقة", color: "bg-success/20 text-success" },
-    IN_PROGRESS: { label: "قيد التنفيذ", color: "bg-primary/20 text-primary" },
-    COMPLETED: { label: "مكتملة", color: "bg-success text-on-success" },
-    REJECTED: { label: "مرفوضة", color: "bg-error/20 text-error" },
-    ON_HOLD: { label: "معلقة", color: "bg-surface-variant text-on-surface-variant" },
-    ARCHIVED: { label: "مؤرشفة", color: "bg-outline text-surface" },
+    REVIEW: { label: "مراجعة", color: "bg-warning/20 text-warning" },
+    FIELD_VERIFICATION: { label: "تحقق ميداني", color: "bg-warning/30 text-on-surface" },
+    APPROVED: { label: "موافقة", color: "bg-success/20 text-success" },
+    EXECUTION: { label: "تنفيذ", color: "bg-primary/20 text-primary" },
+    COMPLETED: { label: "مكتمل", color: "bg-success text-on-success" },
+    // Legacy
+    INTAKE_REVIEW: { label: "مراجعة (قديم)", color: "bg-warning/20 text-warning" },
+    COMMITTEE_REVIEW: { label: "لجنة (قديم)", color: "bg-tertiary/20 text-tertiary" },
+    IN_PROGRESS: { label: "تنفيذ (قديم)", color: "bg-primary/20 text-primary" },
+    REJECTED: { label: "مرفوض (قديم)", color: "bg-error/20 text-error" },
+    ON_HOLD: { label: "معلق (قديم)", color: "bg-surface-variant text-on-surface-variant" },
+    ARCHIVED: { label: "مؤرشف (قديم)", color: "bg-outline text-surface" },
   };
 
   const filteredCases = cases.filter(c => {
@@ -123,15 +126,11 @@ export default function CasesPage() {
             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="bg-surface-container-lowest border border-outline-variant/50 text-sm rounded-lg px-3 py-2 outline-none focus:border-primary">
               <option value="الكل">جميع الحالات</option>
               <option value="DRAFT">مسودة</option>
-              <option value="INTAKE_REVIEW">مراجعة مبدئية</option>
+              <option value="REVIEW">مراجعة</option>
               <option value="FIELD_VERIFICATION">تحقق ميداني</option>
-              <option value="COMMITTEE_REVIEW">مراجعة اللجنة</option>
-              <option value="APPROVED">تمت الموافقة</option>
-              <option value="IN_PROGRESS">قيد التنفيذ</option>
-              <option value="COMPLETED">مكتملة</option>
-              <option value="REJECTED">مرفوضة</option>
-              <option value="ON_HOLD">معلقة</option>
-              <option value="ARCHIVED">مؤرشفة</option>
+              <option value="APPROVED">موافقة</option>
+              <option value="EXECUTION">تنفيذ</option>
+              <option value="COMPLETED">مكتمل</option>
             </select>
           </div>
         </div>

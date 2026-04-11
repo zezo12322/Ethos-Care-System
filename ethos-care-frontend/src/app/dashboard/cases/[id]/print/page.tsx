@@ -6,9 +6,11 @@ import { useParams } from "next/navigation";
 import CasePrintView from "@/components/dashboard/cases/CasePrintView";
 import { casesService } from "@/services/cases.service";
 import { CaseRecord } from "@/types/api";
+import { useToast } from "@/components/ui/Toast";
 
 export default function CasePrintPage() {
   const { id } = useParams<{ id: string }>();
+  const { toast } = useToast();
   const [caseRecord, setCaseRecord] = useState<CaseRecord | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -25,7 +27,7 @@ export default function CasePrintPage() {
       } catch (error) {
         console.error(error);
         if (!cancelled) {
-          alert("تعذر تحميل تقرير الحالة.");
+          toast("تعذر تحميل تقرير الحالة.", "error");
         }
       } finally {
         if (!cancelled) {

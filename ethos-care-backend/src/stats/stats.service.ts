@@ -22,9 +22,8 @@ export class StatsService {
           lifecycleStatus: {
             in: [
               'DRAFT',
-              'INTAKE_REVIEW',
+              'REVIEW',
               'FIELD_VERIFICATION',
-              'COMMITTEE_REVIEW',
             ],
           },
         },

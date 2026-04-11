@@ -35,40 +35,41 @@ export class CasesService {
   }
 
   async create(createCaseDto: CreateCaseDto) {
-    // Initial status defaults are mapped based on inputs
     const lifecycleStatus = 'DRAFT';
     const completenessStatus = createCaseDto.nationalId
       ? 'COMPLETE'
       : 'MISSING_NATIONAL_ID';
     const decisionStatus = 'PENDING_DECISION';
 
-    const newCase = await this.prisma.case.create({
-      data: {
-        ...this.buildCreatePayload(createCaseDto),
-        lifecycleStatus,
-        completenessStatus,
-        decisionStatus,
-      },
-    });
+    // Atomic transaction — create case + record history together
+    return this.prisma.$transaction(async (tx) => {
+      const newCase = await tx.case.create({
+        data: {
+          ...this.buildCreatePayload(createCaseDto),
+          lifecycleStatus,
+          completenessStatus,
+          decisionStatus,
+        },
+      });
 
-    // Record history
-    await this.prisma.caseHistory.create({
-      data: {
-        caseId: newCase.id,
-        toLifecycleStatus: lifecycleStatus,
-        toDecisionStatus: decisionStatus,
-        action: 'CREATED',
-      },
-    });
+      await tx.caseHistory.create({
+        data: {
+          caseId: newCase.id,
+          toLifecycleStatus: lifecycleStatus,
+          toDecisionStatus: decisionStatus,
+          action: 'CREATED',
+        },
+      });
 
-    return newCase;
+      return newCase;
+    });
   }
 
   async getUrgentQueue() {
     return this.prisma.case.findMany({
       where: {
         priority: 'URGENT',
-        lifecycleStatus: { notIn: ['COMPLETED', 'REJECTED', 'ARCHIVED'] },
+        lifecycleStatus: { notIn: ['COMPLETED'] },
       },
       include: { family: true },
     });
@@ -85,7 +86,7 @@ export class CasesService {
     return this.prisma.case.findMany({
       where: {
         lifecycleStatus: {
-          in: ['INTAKE_REVIEW', 'FIELD_VERIFICATION', 'COMMITTEE_REVIEW'],
+          in: ['REVIEW', 'FIELD_VERIFICATION'],
         },
       },
       include: { family: true },
@@ -95,8 +96,7 @@ export class CasesService {
   async getAwaitingExecutionQueue() {
     return this.prisma.case.findMany({
       where: {
-        decisionStatus: 'APPROVED',
-        lifecycleStatus: 'APPROVED',
+        lifecycleStatus: { in: ['APPROVED', 'EXECUTION'] },
       },
       include: { family: true },
     });
@@ -158,29 +158,29 @@ export class CasesService {
   ) {
     const currentCase = await this.findOne(id);
 
-    // Update case
-    const updatedCase = await this.prisma.case.update({
-      where: { id },
-      data: {
-        lifecycleStatus: toLifecycle,
-        decisionStatus: toDecision,
-        lastActionAt: new Date(),
-      },
-    });
-
-    // Record transition history
-    await this.prisma.caseHistory.create({
-      data: {
-        caseId: id,
-        fromLifecycleStatus: currentCase.lifecycleStatus,
-        toLifecycleStatus: toLifecycle,
-        fromDecisionStatus: currentCase.decisionStatus,
-        toDecisionStatus: toDecision,
-        action,
-        reason,
-        performedById,
-      },
-    });
+    // Atomic transaction — update case + record history together
+    const [updatedCase] = await this.prisma.$transaction([
+      this.prisma.case.update({
+        where: { id },
+        data: {
+          lifecycleStatus: toLifecycle,
+          decisionStatus: toDecision,
+          lastActionAt: new Date(),
+        },
+      }),
+      this.prisma.caseHistory.create({
+        data: {
+          caseId: id,
+          fromLifecycleStatus: currentCase.lifecycleStatus,
+          toLifecycleStatus: toLifecycle,
+          fromDecisionStatus: currentCase.decisionStatus,
+          toDecisionStatus: toDecision,
+          action,
+          reason,
+          performedById,
+        },
+      }),
+    ]);
 
     return updatedCase;
   }

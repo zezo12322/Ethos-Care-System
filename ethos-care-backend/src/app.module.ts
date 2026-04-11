@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CasesModule } from './cases/cases.module';
@@ -17,6 +17,10 @@ import { SearchModule } from './search/search.module';
 import { UsersModule } from './users/users.module';
 import { NewsModule } from './news/news.module';
 import { PublicModule } from './public/public.module';
+import {
+  RateLimitMiddleware,
+  AuthRateLimitMiddleware,
+} from './common/rate-limit.middleware';
 
 @Module({
   imports: [
@@ -36,4 +40,11 @@ import { PublicModule } from './public/public.module';
   controllers: [AppController, FamiliesController, OperationsController],
   providers: [AppService, FamiliesService, OperationsService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Strict rate limit on login endpoint (5 req/min per IP)
+    consumer.apply(AuthRateLimitMiddleware).forRoutes('api/auth/login');
+    // General rate limit on all API endpoints (30 req/min per IP)
+    consumer.apply(RateLimitMiddleware).forRoutes('*');
+  }
+}

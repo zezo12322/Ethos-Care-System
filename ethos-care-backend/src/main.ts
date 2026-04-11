@@ -2,11 +2,26 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
+function getCorsOrigins(): string[] | true {
+  const origins = process.env.CORS_ORIGINS;
+  if (!origins) {
+    // Default allowed origins for development and production
+    return [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://ethos-care-system.vercel.app',
+      'https://ethos-care-system-production.up.railway.app',
+    ];
+  }
+  if (origins === '*') return true;
+  return origins.split(',').map((o) => o.trim());
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: true,
+    origin: getCorsOrigins(),
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });

@@ -29,14 +29,10 @@ export class AuthService {
       throw new UnauthorizedException('بيانات الدخول غير صحيحة');
     }
 
-    let isPasswordValid = await bcrypt.compare(
+    const isPasswordValid = await bcrypt.compare(
       loginDto.password,
       user.password,
     );
-    if (!isPasswordValid && user.password === loginDto.password) {
-      isPasswordValid = true;
-      await this.usersService.update(user.id, { password: loginDto.password });
-    }
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('بيانات الدخول غير صحيحة');

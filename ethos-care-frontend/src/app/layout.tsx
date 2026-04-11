@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Cairo } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ToastProvider } from "@/components/ui/Toast";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -32,7 +33,9 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className={`${jakarta.variable} ${cairo.variable} ${dinNext.variable}`}>
       <body className="min-h-screen bg-background font-body text-on-surface antialiased flex flex-col">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   );

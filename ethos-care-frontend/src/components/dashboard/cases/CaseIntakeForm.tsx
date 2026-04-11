@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { familiesService } from "@/services/families.service";
 import { locationsService } from "@/services/locations.service";
 import { casesService, CreateCaseDto } from "@/services/cases.service";
@@ -15,6 +15,9 @@ import {
   FamilyRecord,
   LocationRecord,
 } from "@/types/api";
+import { useOfflineDraft } from "@/hooks/useOfflineDraft";
+import { useToast } from "@/components/ui/Toast";
+import SyncStatusBar from "./SyncStatusBar";
 
 type CasePriority = "NORMAL" | "HIGH" | "URGENT";
 type ManagerDecision = "PENDING" | "APPROVE" | "RETURN" | "REJECT";
@@ -624,9 +627,27 @@ export default function CaseIntakeForm({
   onSubmit,
   onDelete,
 }: CaseIntakeFormProps) {
-  const [draft, setDraft] = useState<CaseFormDraft>(() =>
-    buildInitialFormData(caseRecord, currentUserName),
-  );
+  const draftKey = caseRecord?.id
+    ? `case-draft-${caseRecord.id}`
+    : "case-draft-new";
+
+  const {
+    loadDraft,
+    saveDraft: saveDraftToLocal,
+    clearDraft: clearLocalDraft,
+    syncStatus,
+    isOnline,
+    lastSavedAt,
+    pendingCount,
+  } = useOfflineDraft<CaseFormDraft>({ storageKey: draftKey });
+
+  const { toast } = useToast();
+
+  const [draft, setDraft] = useState<CaseFormDraft>(() => {
+    const local = loadDraft();
+    if (local) return local;
+    return buildInitialFormData(caseRecord, currentUserName);
+  });
   const [sectionsOpen, setSectionsOpen] = useState<Record<string, boolean>>(
     Object.fromEntries(SECTION_IDS.map((id) => [id, true])),
   );
@@ -640,6 +661,16 @@ export default function CaseIntakeForm({
     currentUserRole === "MANAGER" ||
     currentUserRole === "CEO" ||
     currentUserRole === "ADMIN";
+
+  // Auto-save draft to localStorage on every change
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    saveDraftToLocal(draft);
+  }, [draft, saveDraftToLocal]);
 
   useEffect(() => {
     setDraft(buildInitialFormData(caseRecord, currentUserName));
@@ -1204,17 +1235,17 @@ export default function CaseIntakeForm({
     event.preventDefault();
 
     if (!draft.formData.person.fullName.trim()) {
-      alert("يجب إدخال اسم رب الأسرة.");
+      toast("يجب إدخال اسم رب الأسرة.", "warning");
       return;
     }
 
     if (!draft.formData.person.center.trim()) {
-      alert("يجب اختيار المركز.");
+      toast("يجب اختيار المركز.", "warning");
       return;
     }
 
     if (!draft.caseType.trim()) {
-      alert("يجب اختيار نوع الدعم أو التدخل.");
+      toast("يجب اختيار نوع الدعم أو التدخل.", "warning");
       return;
     }
 
@@ -1247,6 +1278,7 @@ export default function CaseIntakeForm({
     try {
       setSaving(true);
       await onSubmit(payload);
+      clearLocalDraft();
     } finally {
       setSaving(false);
     }
@@ -1282,7 +1314,7 @@ export default function CaseIntakeForm({
       window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
     } catch (error) {
       console.error(error);
-      alert("تعذر إنشاء ملف PDF للحالة.");
+      toast("تعذر إنشاء ملف PDF للحالة.", "error");
     } finally {
       setPdfLoading(false);
     }
@@ -1290,6 +1322,14 @@ export default function CaseIntakeForm({
 
   return (
     <form onSubmit={submitForm} className="space-y-6">
+      {/* Offline / Sync Status Bar */}
+      <SyncStatusBar
+        syncStatus={syncStatus}
+        isOnline={isOnline}
+        lastSavedAt={lastSavedAt}
+        pendingCount={pendingCount}
+      />
+
       <div className="rounded-[28px] border border-outline-variant/30 bg-white px-6 py-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>

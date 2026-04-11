@@ -5,6 +5,7 @@ import {
   operationsService,
 } from "@/services/operations.service";
 import { OperationRecord } from "@/types/api";
+import { useToast } from "@/components/ui/Toast";
 import {
   FormEvent,
   startTransition,
@@ -36,6 +37,7 @@ const getOperationIcon = (type: string) => {
 };
 
 export default function OperationsPage() {
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"all" | "active" | "completed">(
     "all",
   );
@@ -116,7 +118,7 @@ export default function OperationsPage() {
       refreshOperations();
     } catch (completeError) {
       console.error(completeError);
-      alert("تعذر إنهاء العملية الآن.");
+      toast("تعذر إنهاء العملية الآن.", "error");
     } finally {
       setCompletingId(null);
     }
