@@ -9,6 +9,8 @@ function getCorsOrigins(): string[] | true {
     return [
       'http://localhost:3000',
       'http://localhost:3001',
+      'https://lifemakers-bns.com',
+      'https://www.lifemakers-bns.com',
       'https://ethos-care-system.vercel.app',
       'https://ethos-care-system-production.up.railway.app',
     ];

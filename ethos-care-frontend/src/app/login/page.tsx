@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import axios from "axios";
 import { authService } from "@/services/auth.service";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -13,6 +14,48 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+
+  const getLoginErrorMessage = (error: unknown) => {
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      const responseMessage = error.response?.data?.message;
+
+      if (status === 401) {
+        return "بيانات الدخول غير صحيحة، يرجى المحاولة مرة أخرى.";
+      }
+
+      if (status === 429) {
+        return typeof responseMessage === "string" && responseMessage.trim()
+          ? responseMessage
+          : "تم تجاوز الحد المسموح من محاولات الدخول. الرجاء المحاولة بعد دقيقة.";
+      }
+
+      if (!error.response) {
+        return "تعذر الاتصال بالخادم. تحقق من إعدادات النطاق أو CORS أو حالة الخادم.";
+      }
+
+      if (Array.isArray(responseMessage)) {
+        const normalized = responseMessage
+          .map((item) => item?.trim())
+          .filter(Boolean)
+          .join("، ");
+
+        if (normalized) {
+          return normalized;
+        }
+      }
+
+      if (typeof responseMessage === "string" && responseMessage.trim()) {
+        return responseMessage.trim();
+      }
+    }
+
+    if (error instanceof Error && error.message.trim()) {
+      return error.message.trim();
+    }
+
+    return "تعذر تسجيل الدخول الآن. حاول مرة أخرى بعد قليل.";
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +76,7 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error("Login failed:", error);
-      setErrorMsg("بيانات الدخول غير صحيحة، يرجى المحاولة مرة أخرى.");
+      setErrorMsg(getLoginErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
