@@ -40,17 +40,26 @@ export class CasesService {
       ? 'COMPLETE'
       : 'MISSING_NATIONAL_ID';
     const decisionStatus = 'PENDING_DECISION';
+    const familyId = createCaseDto.familyId?.trim() || undefined;
 
     // Atomic transaction — create case + record history together
     return this.prisma.$transaction(async (tx) => {
       const newCase = await tx.case.create({
         data: {
           ...this.buildCreatePayload(createCaseDto),
+          familyId,
           lifecycleStatus,
           completenessStatus,
           decisionStatus,
         },
       });
+
+      if (familyId) {
+        await tx.family.update({
+          where: { id: familyId },
+          data: { lastVisit: new Date() },
+        });
+      }
 
       await tx.caseHistory.create({
         data: {
@@ -138,9 +147,36 @@ export class CasesService {
   }
 
   async update(id: string, updateCaseDto: UpdateCaseDto) {
-    return this.prisma.case.update({
+    const currentCase = await this.prisma.case.findUnique({
       where: { id },
-      data: this.buildUpdatePayload(updateCaseDto),
+      select: { familyId: true },
+    });
+
+    if (!currentCase) {
+      throw new NotFoundException('Case not found');
+    }
+
+    const nextFamilyId = updateCaseDto.familyId?.trim() || undefined;
+
+    return this.prisma.$transaction(async (tx) => {
+      const updatedCase = await tx.case.update({
+        where: { id },
+        data: {
+          ...this.buildUpdatePayload(updateCaseDto),
+          ...(updateCaseDto.familyId !== undefined
+            ? { familyId: nextFamilyId }
+            : {}),
+        },
+      });
+
+      if (nextFamilyId && nextFamilyId !== currentCase.familyId) {
+        await tx.family.update({
+          where: { id: nextFamilyId },
+          data: { lastVisit: new Date() },
+        });
+      }
+
+      return updatedCase;
     });
   }
 
