@@ -61,27 +61,27 @@ jobs:
           cd /home/site/wwwroot
 
           echo "Starting Ethos Care backend..."
-          echo "Looking for main.js..."
-          find . -maxdepth 4 -type f -name "main.js" -print || true
-
-          if [ -f dist/main.js ]; then
-            exec node dist/main.js
-          fi
+          echo "Searching for main.js..."
+          find . -maxdepth 5 -type f -name "main.js" -print || true
 
           if [ -f dist/src/main.js ]; then
             exec node dist/src/main.js
           fi
 
-          echo "ERROR: Cannot find dist/main.js or dist/src/main.js"
-          echo "Current files:"
+          if [ -f dist/main.js ]; then
+            exec node dist/main.js
+          fi
+
+          echo "ERROR: Cannot find main.js"
+          echo "Root files:"
           ls -la
-          echo "Dist:"
-          ls -la dist || true
+          echo "Dist files:"
+          find dist -maxdepth 5 -type f | sort || true
           exit 1
           EOF
 
           chmod +x startup.sh
-
+          
       - name: Prepare deployment artifact
         run: |
           rm -rf release
@@ -94,8 +94,8 @@ jobs:
           ls -la release
           echo "Release dist:"
           find release/dist -maxdepth 4 -type f | sort
-          test -f release/dist/main.js
-
+          test -f release/dist/src/main.js
+          
       - name: Zip artifact
         run: |
           cd release
