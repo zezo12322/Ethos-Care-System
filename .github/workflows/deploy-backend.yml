@@ -46,8 +46,8 @@ jobs:
           echo "Files:"
           ls -la
           echo "Dist files:"
-          find dist -maxdepth 4 -type f | sort
-          test -f dist/main.js
+          find dist -maxdepth 5 -type f | sort
+          test -f dist/src/main.js
           
       - name: Prune dev dependencies
         run: npm prune --omit=dev
