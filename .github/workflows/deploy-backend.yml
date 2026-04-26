@@ -39,18 +39,68 @@ jobs:
       - name: Build backend
         run: npm run build
 
+      - name: Verify build output
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Files:"
+          ls -la
+          echo "Dist files:"
+          find dist -maxdepth 4 -type f | sort
+          test -f dist/main.js
+
       - name: Prune dev dependencies
         run: npm prune --omit=dev
 
+      - name: Create startup script
+        run: |
+          cat > startup.sh <<'EOF'
+          #!/usr/bin/env bash
+          set -e
+
+          cd /home/site/wwwroot
+
+          echo "Starting Ethos Care backend..."
+          echo "Looking for main.js..."
+          find . -maxdepth 4 -type f -name "main.js" -print || true
+
+          if [ -f dist/main.js ]; then
+            exec node dist/main.js
+          fi
+
+          if [ -f dist/src/main.js ]; then
+            exec node dist/src/main.js
+          fi
+
+          echo "ERROR: Cannot find dist/main.js or dist/src/main.js"
+          echo "Current files:"
+          ls -la
+          echo "Dist:"
+          ls -la dist || true
+          exit 1
+          EOF
+
+          chmod +x startup.sh
+
       - name: Prepare deployment artifact
         run: |
+          rm -rf release
           mkdir -p release
-          cp -r dist prisma node_modules package.json package-lock.json release/
+          cp -r dist prisma node_modules package.json package-lock.json startup.sh release/
+
+      - name: Verify artifact contents
+        run: |
+          echo "Release files:"
+          ls -la release
+          echo "Release dist:"
+          find release/dist -maxdepth 4 -type f | sort
+          test -f release/dist/main.js
 
       - name: Zip artifact
         run: |
           cd release
           zip -r ../release.zip .
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
