@@ -48,7 +48,7 @@ jobs:
           echo "Dist files:"
           find dist -maxdepth 4 -type f | sort
           test -f dist/main.js
-
+          
       - name: Prune dev dependencies
         run: npm prune --omit=dev
 
