@@ -36,12 +36,6 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
 
-      - name: Apply Prisma migrations
-        run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
-
       - name: Build backend
         run: npm run build
 
@@ -54,7 +48,6 @@ jobs:
         run: |
           cd release
           zip -r ../release.zip .
-
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
