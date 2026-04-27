@@ -329,10 +329,12 @@ export default function CaseDetailsPage() {
                 </button>
               )}
 
-              <Link href={`/dashboard/cases/${caseData.id}/edit`} className="px-5 py-2 bg-tertiary/10 text-tertiary hover:bg-tertiary/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
-                <span className="material-symbols-outlined text-lg">edit_square</span>
-                تعديل الكارت
-              </Link>
+              {currentRole !== "CALL_CENTER" && (
+                <Link href={`/dashboard/cases/${caseData.id}/edit`} className="px-5 py-2 bg-tertiary/10 text-tertiary hover:bg-tertiary/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                  <span className="material-symbols-outlined text-lg">edit_square</span>
+                  تعديل الكارت
+                </Link>
+              )}
 
               <button onClick={() => void handleOpenPdf()} disabled={pdfLoading} className="px-5 py-2 bg-success/10 text-success hover:bg-success/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
                 <span className="material-symbols-outlined text-lg">print</span>

@@ -54,7 +54,7 @@ export default function Sidebar({
         <p className="text-white/60 text-xs">لوحة التحكم الإدارية</p>
       </div>
       <nav className="space-y-2">
-        {isAuthorized(["ADMIN", "CEO", "MANAGER", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
+        {isAuthorized(["ADMIN", "CEO", "MANAGER", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER", "CALL_CENTER"]) && (
         <Link
           href="/dashboard"
           onClick={onClose}
@@ -74,7 +74,7 @@ export default function Sidebar({
           <span>العمليات</span>
         </Link>
         )}
-        {isAuthorized(["ADMIN", "CEO", "MANAGER", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
+        {isAuthorized(["ADMIN", "CEO", "MANAGER", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER", "CALL_CENTER"]) && (
         <Link
           href="/dashboard/cases"
           onClick={onClose}
@@ -84,7 +84,7 @@ export default function Sidebar({
           <span>الحالات</span>
         </Link>
         )}
-        {isAuthorized(["ADMIN", "CEO", "MANAGER", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
+        {isAuthorized(["ADMIN", "CEO", "MANAGER", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER", "CALL_CENTER"]) && (
         <Link
           href="/dashboard/families"
           onClick={onClose}
@@ -94,7 +94,7 @@ export default function Sidebar({
           <span>الأسر</span>
         </Link>
         )}
-        {isAuthorized(["ADMIN", "CEO", "MANAGER", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER"]) && (
+        {isAuthorized(["ADMIN", "CEO", "MANAGER", "CASE_WORKER", "DATA_ENTRY", "EXECUTION_OFFICER", "CALL_CENTER"]) && (
         <Link
           href="/dashboard/search"
           onClick={onClose}

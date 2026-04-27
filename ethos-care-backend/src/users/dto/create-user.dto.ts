@@ -7,6 +7,7 @@ export const APP_ROLES = [
   'CASE_WORKER',
   'DATA_ENTRY',
   'EXECUTION_OFFICER',
+  'CALL_CENTER',
 ] as const;
 
 export class CreateUserDto {

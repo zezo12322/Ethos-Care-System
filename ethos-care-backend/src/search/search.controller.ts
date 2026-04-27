@@ -12,6 +12,7 @@ import { Roles } from '../auth/roles.decorator';
   'CASE_WORKER',
   'DATA_ENTRY',
   'EXECUTION_OFFICER',
+  'CALL_CENTER',
 )
 @Controller('search')
 export class SearchController {

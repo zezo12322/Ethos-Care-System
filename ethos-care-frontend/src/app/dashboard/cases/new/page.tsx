@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CaseIntakeForm from "@/components/dashboard/cases/CaseIntakeForm";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +11,12 @@ export default function NewCasePage() {
   const router = useRouter();
   const { user } = useAuth();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (user?.role === "CALL_CENTER") {
+      router.replace("/dashboard/cases");
+    }
+  }, [user, router]);
 
   const handleSubmit = async (payload: CreateCaseDto) => {
     try {

@@ -32,6 +32,7 @@ import { buildCasePdfFilename } from './utils/case-pdf-filename';
   'CASE_WORKER',
   'DATA_ENTRY',
   'EXECUTION_OFFICER',
+  'CALL_CENTER',
 )
 @Controller('cases')
 export class CasesController {
@@ -41,6 +42,7 @@ export class CasesController {
   ) {}
 
   @Post()
+  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'DATA_ENTRY', 'EXECUTION_OFFICER')
   create(@Body() createCaseDto: CreateCaseDto) {
     return this.casesService.create(createCaseDto);
   }
@@ -106,11 +108,13 @@ export class CasesController {
   }
 
   @Patch(':id')
+  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'DATA_ENTRY', 'EXECUTION_OFFICER')
   update(@Param('id') id: string, @Body() updateCaseDto: UpdateCaseDto) {
     return this.casesService.update(id, updateCaseDto);
   }
 
   @Delete(':id')
+  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'DATA_ENTRY', 'EXECUTION_OFFICER')
   remove(@Param('id') id: string) {
     return this.casesService.remove(id);
   }

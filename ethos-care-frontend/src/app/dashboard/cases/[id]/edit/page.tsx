@@ -17,6 +17,13 @@ export default function EditCasePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (user?.role === "CALL_CENTER") {
+      router.replace(`/dashboard/cases/${id}`);
+      return;
+    }
+  }, [user, id, router]);
+
+  useEffect(() => {
     let cancelled = false;
 
     const loadCase = async () => {

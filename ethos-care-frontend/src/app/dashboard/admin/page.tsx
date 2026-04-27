@@ -15,6 +15,7 @@ const roleLabels: Record<AppRole, string> = {
   CASE_WORKER: "باحث اجتماعي",
   DATA_ENTRY: "مدخل بيانات",
   EXECUTION_OFFICER: "مسؤول التنفيذ",
+  CALL_CENTER: "موظف كول سنتر",
 };
 
 const emptyForm = {

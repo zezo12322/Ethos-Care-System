@@ -24,6 +24,7 @@ import { Roles } from '../auth/roles.decorator';
   'CASE_WORKER',
   'DATA_ENTRY',
   'EXECUTION_OFFICER',
+  'CALL_CENTER',
 )
 @Controller('families')
 export class FamiliesController {
@@ -64,6 +65,7 @@ export class FamiliesController {
   }
 
   @Post()
+  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'DATA_ENTRY', 'EXECUTION_OFFICER')
   async create(@Body() newFamily: CreateFamilyDto) {
     const f = await this.familiesService.create(newFamily);
     return {
@@ -90,6 +92,7 @@ export class FamiliesController {
   }
 
   @Patch(':id')
+  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'DATA_ENTRY', 'EXECUTION_OFFICER')
   async update(@Param('id') id: string, @Body() updateData: UpdateFamilyDto) {
     const f = await this.familiesService.update(id, updateData);
     return {
@@ -116,6 +119,7 @@ export class FamiliesController {
   }
 
   @Delete(':id')
+  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'DATA_ENTRY', 'EXECUTION_OFFICER')
   async remove(@Param('id') id: string) {
     return this.familiesService.remove(id);
   }
