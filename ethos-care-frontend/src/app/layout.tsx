@@ -21,8 +21,11 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "أجيال أجيال صناع الحياة - نظام إدارة الحالات",
+  title: "أجيال صناع الحياة - نظام إدارة الحالات",
   description: "نظام إدارة الحالات والطلبات لجمعية أجيال صناع الحياة",
+  verification: {
+    google: "Uk0KZwFWNzFNu8oGZ3ui1tn5HW8lHx_ppXACAHyIG0Y",
+  },
 };
 
 export default function RootLayout({

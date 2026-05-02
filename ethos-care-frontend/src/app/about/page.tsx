@@ -105,8 +105,77 @@ export default function AboutPage() {
           </div>
         </section>
         
+        {/* Registration Details */}
+        <section className="py-20 bg-white" id="registration">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold font-headline text-on-surface mb-4">البيانات التسجيلية الرسمية</h2>
+              <div className="w-16 h-1.5 bg-[#fcb900] rounded-full mx-auto mb-4"></div>
+              <p className="text-on-surface-variant max-w-2xl mx-auto">
+                جمعية مرخصة ومسجلة رسمياً لدى وزارة التضامن الاجتماعي - جمهورية مصر العربية
+              </p>
+            </div>
+
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-3xl overflow-hidden shadow-sm">
+                <div className="bg-primary px-8 py-5 flex items-center gap-3">
+                  <span className="material-symbols-outlined text-white text-2xl">verified</span>
+                  <h3 className="font-bold text-white text-xl font-headline">بيانات التسجيل والترخيص</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-outline-variant/20">
+                  <div className="p-8 space-y-6">
+                    <div>
+                      <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">الاسم الرسمي</p>
+                      <p className="font-bold text-on-surface text-lg">جمعية أجيال صناع الحياة للتنمية ببني سويف</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">رقم القيد</p>
+                      <p className="font-bold text-primary text-2xl font-mono">1880</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">سنة القيد</p>
+                      <p className="font-bold text-on-surface">2013</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">تاريخ القيد</p>
+                      <p className="font-bold text-on-surface" dir="ltr">29 / 07 / 2012</p>
+                    </div>
+                  </div>
+
+                  <div className="p-8 space-y-6">
+                    <div>
+                      <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">الجهة المسجلة</p>
+                      <p className="font-bold text-on-surface">مديرية التضامن الاجتماعي - بني سويف</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">كود النشاط الضريبي</p>
+                      <p className="font-bold text-on-surface font-mono">9609</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">الرقم الضريبي</p>
+                      <p className="font-bold text-on-surface font-mono" dir="ltr">266-144-626-765-492</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">الموقع الرسمي</p>
+                      <p className="font-bold text-primary" dir="ltr">lifemakers-bns.com</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="px-8 py-5 bg-green-50 border-t border-outline-variant/20 flex items-center gap-3">
+                  <span className="material-symbols-outlined text-green-600">check_circle</span>
+                  <p className="text-sm text-green-800 font-medium">
+                    مسجلة ومرخصة وفقاً لأحكام القانون رقم 149 لسنة 2019 ولائحته التنفيذية
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Team Section */}
-        <section className="py-20 bg-white">
+        <section className="py-20 bg-surface-container-lowest border-t border-outline-variant/10">
           <div className="max-w-7xl mx-auto px-6 text-center">
             <h2 className="text-3xl font-bold font-headline text-on-surface mb-8">فريق العمل (بني سويف)</h2>
             <p className="text-on-surface-variant max-w-2xl mx-auto text-lg mb-12">
