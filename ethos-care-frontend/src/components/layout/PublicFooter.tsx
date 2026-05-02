@@ -75,10 +75,15 @@ export default function PublicFooter() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/50">
-        <p>© 2024 جمعية أجيال صناع الحياة ببني سويف. جميع الحقوق محفوظة.</p>
+        <div className="flex flex-col items-center md:items-start gap-1">
+          <p>© 2024 جمعية أجيال صناع الحياة ببني سويف. جميع الحقوق محفوظة.</p>
+          <p className="text-white/30">
+            رقم القيد: <span className="text-white/50 font-mono">1880</span> لسنة 2013 — مديرية التضامن الاجتماعي بني سويف | الموقع: <span className="text-white/50" dir="ltr">lifemakers-bns.com</span>
+          </p>
+        </div>
         <div className="flex gap-6">
+          <Link href="/about#registration" className="hover:text-white">البيانات التسجيلية</Link>
           <Link href="#" className="hover:text-white">سياسة الخصوصية</Link>
-          <Link href="#" className="hover:text-white">شروط الاستخدام</Link>
         </div>
       </div>
     </footer>
