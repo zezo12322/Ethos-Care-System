@@ -6,6 +6,27 @@ import { useEffect, useState } from "react";
 
 type Tab = "content" | "campaigns" | "programs";
 
+const CAMPAIGN_LABELS: Record<string, string> = {
+  title: "العنوان",
+  description: "الوصف",
+  category: "الفئة",
+  icon: "الأيقونة (اسم Material Icon)",
+  color: "لون الشريط (مثل: bg-primary)",
+  lightColor: "لون الخلفية الفاتح (مثل: bg-primary/10)",
+  target: "المبلغ المستهدف",
+  raised: "المبلغ المجموع",
+  order: "الترتيب",
+};
+
+const PROGRAM_LABELS: Record<string, string> = {
+  title: "العنوان",
+  description: "الوصف",
+  icon: "الأيقونة (اسم Material Icon)",
+  bg: "لون الخلفية (مثل: bg-primary/10)",
+  accent: "لون النص (مثل: text-primary)",
+  order: "الترتيب",
+};
+
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "content", label: "محتوى الموقع", icon: "article" },
   { id: "campaigns", label: "الحملات", icon: "campaign" },
@@ -402,7 +423,7 @@ export default function CmsPage() {
             <div className="p-6 space-y-4">
               {(["title", "description", "category", "icon", "color", "lightColor"] as const).map((field) => (
                 <div key={field}>
-                  <label className="block text-xs font-bold mb-1 text-on-surface-variant capitalize">{field}</label>
+                  <label className="block text-xs font-bold mb-1 text-on-surface-variant">{CAMPAIGN_LABELS[field]}</label>
                   <input
                     value={(campaignForm as Record<string, unknown>)[field] as string ?? ""}
                     onChange={(e) => setCampaignForm({ ...campaignForm, [field]: e.target.value })}
@@ -413,7 +434,7 @@ export default function CmsPage() {
               <div className="grid grid-cols-2 gap-4">
                 {(["target", "raised", "order"] as const).map((field) => (
                   <div key={field}>
-                    <label className="block text-xs font-bold mb-1 text-on-surface-variant capitalize">{field}</label>
+                    <label className="block text-xs font-bold mb-1 text-on-surface-variant">{CAMPAIGN_LABELS[field]}</label>
                     <input
                       type="number"
                       value={(campaignForm as Record<string, unknown>)[field] as number ?? 0}
@@ -459,7 +480,7 @@ export default function CmsPage() {
             <div className="p-6 space-y-4">
               {(["title", "description", "icon", "bg", "accent"] as const).map((field) => (
                 <div key={field}>
-                  <label className="block text-xs font-bold mb-1 text-on-surface-variant capitalize">{field}</label>
+                  <label className="block text-xs font-bold mb-1 text-on-surface-variant">{PROGRAM_LABELS[field]}</label>
                   <input
                     value={(programForm as Record<string, unknown>)[field] as string ?? ""}
                     onChange={(e) => setProgramForm({ ...programForm, [field]: e.target.value })}
@@ -469,7 +490,7 @@ export default function CmsPage() {
               ))}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold mb-1 text-on-surface-variant">order</label>
+                  <label className="block text-xs font-bold mb-1 text-on-surface-variant">{PROGRAM_LABELS.order}</label>
                   <input
                     type="number"
                     value={programForm.order ?? 0}
