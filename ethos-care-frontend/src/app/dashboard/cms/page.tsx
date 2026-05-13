@@ -21,11 +21,85 @@ const CAMPAIGN_LABELS: Record<string, string> = {
 const PROGRAM_LABELS: Record<string, string> = {
   title: "العنوان",
   description: "الوصف",
-  icon: "الأيقونة (اسم Material Icon)",
+  icon: "الأيقونة",
   bg: "لون الخلفية (مثل: bg-primary/10)",
   accent: "لون النص (مثل: text-primary)",
   order: "الترتيب",
 };
+
+const ICON_LIST = [
+  "volunteer_activism", "favorite", "people", "groups", "diversity_3",
+  "handshake", "support", "psychology", "healing", "medical_services",
+  "local_hospital", "emergency", "vaccines", "local_pharmacy", "health_and_safety",
+  "food_bank", "lunch_dining", "water_drop", "grain", "agriculture",
+  "school", "menu_book", "book", "science", "child_care",
+  "home", "house", "family_restroom", "elderly", "accessibility",
+  "work", "construction", "inventory", "recycling", "eco",
+  "campaign", "announcement", "star", "emoji_events", "workspace_premium",
+  "attach_money", "payments", "savings", "card_giftcard", "redeem",
+  "directions_bus", "airport_shuttle", "clean_hands", "sanitizer", "baby_changing_station",
+];
+
+function IconPicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (icon: string) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const filtered = ICON_LIST.filter((ic) => ic.includes(search.toLowerCase().replace(/\s+/g, "_")));
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-3">
+        {value ? (
+          <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+            <span className="material-symbols-outlined text-2xl">{value}</span>
+          </div>
+        ) : (
+          <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center flex-shrink-0">
+            <span className="material-symbols-outlined text-2xl text-on-surface-variant">image</span>
+          </div>
+        )}
+        <input
+          placeholder="بحث عن أيقونة..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1 border border-outline-variant/50 rounded-xl px-3 py-2 text-sm outline-none focus:border-primary"
+        />
+      </div>
+      <div className="grid grid-cols-8 gap-1 max-h-36 overflow-y-auto p-1 bg-surface-container-lowest rounded-xl border border-outline-variant/20">
+        {filtered.map((ic) => (
+          <button
+            key={ic}
+            type="button"
+            title={ic}
+            onClick={() => onChange(ic)}
+            className={`flex items-center justify-center w-9 h-9 rounded-lg transition-colors ${
+              value === ic
+                ? "bg-primary text-white"
+                : "hover:bg-primary/10 text-on-surface-variant hover:text-primary"
+            }`}
+          >
+            <span className="material-symbols-outlined text-xl">{ic}</span>
+          </button>
+        ))}
+        {filtered.length === 0 && (
+          <div className="col-span-8 py-4 text-center text-xs text-on-surface-variant">لا توجد نتائج</div>
+        )}
+      </div>
+      <p className="text-[10px] text-on-surface-variant">أو اكتب اسم الأيقونة يدوياً:
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="mr-2 border-b border-outline-variant/50 text-xs outline-none px-1 w-40 focus:border-primary"
+          placeholder="مثال: volunteer_activism"
+        />
+      </p>
+    </div>
+  );
+}
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "content", label: "محتوى الموقع", icon: "article" },
@@ -421,7 +495,24 @@ export default function CmsPage() {
               </button>
             </div>
             <div className="p-6 space-y-4">
-              {(["title", "description", "category", "icon", "color", "lightColor"] as const).map((field) => (
+              {(["title", "description", "category"] as const).map((field) => (
+                <div key={field}>
+                  <label className="block text-xs font-bold mb-1 text-on-surface-variant">{CAMPAIGN_LABELS[field]}</label>
+                  <input
+                    value={(campaignForm as Record<string, unknown>)[field] as string ?? ""}
+                    onChange={(e) => setCampaignForm({ ...campaignForm, [field]: e.target.value })}
+                    className="w-full border border-outline-variant/50 rounded-xl px-3 py-2 text-sm outline-none focus:border-primary"
+                  />
+                </div>
+              ))}
+              <div>
+                <label className="block text-xs font-bold mb-2 text-on-surface-variant">{CAMPAIGN_LABELS.icon}</label>
+                <IconPicker
+                  value={campaignForm.icon ?? ""}
+                  onChange={(ic) => setCampaignForm({ ...campaignForm, icon: ic })}
+                />
+              </div>
+              {(["color", "lightColor"] as const).map((field) => (
                 <div key={field}>
                   <label className="block text-xs font-bold mb-1 text-on-surface-variant">{CAMPAIGN_LABELS[field]}</label>
                   <input
@@ -478,7 +569,24 @@ export default function CmsPage() {
               </button>
             </div>
             <div className="p-6 space-y-4">
-              {(["title", "description", "icon", "bg", "accent"] as const).map((field) => (
+              {(["title", "description"] as const).map((field) => (
+                <div key={field}>
+                  <label className="block text-xs font-bold mb-1 text-on-surface-variant">{PROGRAM_LABELS[field]}</label>
+                  <input
+                    value={(programForm as Record<string, unknown>)[field] as string ?? ""}
+                    onChange={(e) => setProgramForm({ ...programForm, [field]: e.target.value })}
+                    className="w-full border border-outline-variant/50 rounded-xl px-3 py-2 text-sm outline-none focus:border-primary"
+                  />
+                </div>
+              ))}
+              <div>
+                <label className="block text-xs font-bold mb-2 text-on-surface-variant">{PROGRAM_LABELS.icon}</label>
+                <IconPicker
+                  value={programForm.icon ?? ""}
+                  onChange={(ic) => setProgramForm({ ...programForm, icon: ic })}
+                />
+              </div>
+              {(["bg", "accent"] as const).map((field) => (
                 <div key={field}>
                   <label className="block text-xs font-bold mb-1 text-on-surface-variant">{PROGRAM_LABELS[field]}</label>
                   <input
