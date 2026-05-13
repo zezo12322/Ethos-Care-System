@@ -4,9 +4,35 @@ import PublicFooter from "@/components/layout/PublicFooter";
 import PublicHeader from "@/components/layout/PublicHeader";
 import { publicService } from "@/services/public.service";
 import { SubmissionResponse } from "@/types/api";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
+
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://ethos-care-system-production.up.railway.app/api";
 
 export default function ContactPage() {
+  const [contactInfo, setContactInfo] = useState({
+    address: "حي الزهور، مقابل مسجد ثروت الدعوري، مركز بني سويف، محافظة بني سويف",
+    phone1: "01020040935",
+    phone2: "19222",
+    email: "info@lifemakers-bns.org",
+  });
+
+  useEffect(() => {
+    fetch(`${API_URL}/cms/public`)
+      .then((r) => r.json())
+      .then((data) => {
+        const c = data.content ?? {};
+        setContactInfo((prev) => ({
+          address: c.contact_address ?? prev.address,
+          phone1: c.contact_phone1 ?? prev.phone1,
+          phone2: c.contact_phone2 ?? prev.phone2,
+          email: c.contact_email ?? prev.email,
+        }));
+      })
+      .catch(() => {});
+  }, []);
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -68,7 +94,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-on-surface text-lg mb-1">العنوان</h3>
-                    <p className="text-on-surface-variant text-sm">حي الزهور، مقابل مسجد ثروت الدعوري، مركز بني سويف، محافظة بني سويف</p>
+                    <p className="text-on-surface-variant text-sm">{contactInfo.address}</p>
                   </div>
                 </div>
 
@@ -78,8 +104,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-on-surface text-lg mb-1">الهاتف</h3>
-                    <p className="text-on-surface-variant text-sm" dir="ltr">01020040935</p>
-                    <p className="text-on-surface-variant text-sm" dir="ltr">19222</p>
+                    <p className="text-on-surface-variant text-sm" dir="ltr">{contactInfo.phone1}</p>
+                    <p className="text-on-surface-variant text-sm" dir="ltr">{contactInfo.phone2}</p>
                   </div>
                 </div>
 
@@ -89,7 +115,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-on-surface text-lg mb-1">البريد الإلكتروني</h3>
-                    <p className="text-on-surface-variant text-sm" dir="ltr">info@lifemakers-bns.org</p>
+                    <p className="text-on-surface-variant text-sm" dir="ltr">{contactInfo.email}</p>
                   </div>
                 </div>
               </div>

@@ -17,6 +17,7 @@ import { SearchModule } from './search/search.module';
 import { UsersModule } from './users/users.module';
 import { NewsModule } from './news/news.module';
 import { PublicModule } from './public/public.module';
+import { CmsModule } from './cms/cms.module';
 import {
   RateLimitMiddleware,
   AuthRateLimitMiddleware,
@@ -36,6 +37,7 @@ import {
     UsersModule,
     NewsModule,
     PublicModule,
+    CmsModule,
   ],
   controllers: [AppController, FamiliesController, OperationsController],
   providers: [AppService, FamiliesService, OperationsService],

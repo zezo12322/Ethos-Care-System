@@ -3,7 +3,28 @@ import PublicHeader from "@/components/layout/PublicHeader";
 import PublicFooter from "@/components/layout/PublicFooter";
 import Link from "next/link";
 
-export default function AboutPage() {
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://ethos-care-system-production.up.railway.app/api";
+
+async function getCmsContent(): Promise<Record<string, string>> {
+  try {
+    const res = await fetch(`${API_URL}/cms/public`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) throw new Error("failed");
+    const data = await res.json();
+    return data.content ?? {};
+  } catch {
+    return {};
+  }
+}
+
+export default async function AboutPage() {
+  const content = await getCmsContent();
+
+  const c = (key: string, fallback: string) => content[key] ?? fallback;
+
   return (
     <div className="min-h-screen bg-surface flex flex-col font-body">
       <PublicHeader />
@@ -15,7 +36,7 @@ export default function AboutPage() {
           <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
             <h1 className="text-4xl font-bold font-headline mb-4">من نحن</h1>
             <p className="text-primary-container text-lg max-w-2xl mx-auto">
-              جمعية أجيال صناع الحياة، مؤسسة أهلية وطنية غير هادفة للربح، تعمل في مجال التنمية المجتمعية وتعبئة طاقات الشباب نحو العمل التطوعي.
+              {c("about_intro", "جمعية أجيال صناع الحياة، مؤسسة أهلية وطنية غير هادفة للربح، تعمل في مجال التنمية المجتمعية وتعبئة طاقات الشباب نحو العمل التطوعي.")}
             </p>
           </div>
         </section>
@@ -39,17 +60,17 @@ export default function AboutPage() {
                   </div>
                   <h3 className="font-bold font-headline text-xl mb-2">رؤيتنا</h3>
                   <p className="text-sm text-on-surface-variant leading-relaxed">
-                    أن نكون المؤسسة الرائدة في بناء قدرات الشباب وإحداث أثر إيجابي وتنمية مستدامة في المجتمع المصري.
+                    {c("about_vision", "أن نكون المؤسسة الرائدة في بناء قدرات الشباب وإحداث أثر إيجابي وتنمية مستدامة في المجتمع المصري.")}
                   </p>
                 </div>
-                
+
                 <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/20 shadow-sm">
                   <div className="w-12 h-12 bg-[#fcb900]/10 text-[#a37600] rounded-xl flex items-center justify-center mb-4">
                     <span className="material-symbols-outlined">flag</span>
                   </div>
                   <h3 className="font-bold font-headline text-xl mb-2">رسالتنا</h3>
                   <p className="text-sm text-on-surface-variant leading-relaxed">
-                    تحفيز العمل التطوعي، وتمكين الفئات المهمشة من خلال برامج تنموية ومساعدات فعّالة تضمن حياة كريمة ومستقلة.
+                    {c("about_mission", "تحفيز العمل التطوعي، وتمكين الفئات المهمشة من خلال برامج تنموية ومساعدات فعّالة تضمن حياة كريمة ومستقلة.")}
                   </p>
                 </div>
               </div>
@@ -60,7 +81,9 @@ export default function AboutPage() {
               <div className="bg-gradient-to-tr from-primary/20 to-surface-container rounded-3xl overflow-hidden aspect-[4/3] border-8 border-white shadow-2xl relative flex items-center justify-center">
                  <span className="material-symbols-outlined text-[100px] text-primary/30">diversity_3</span>
                  <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-sm text-center">
-                    <p className="font-bold text-primary font-headline">أكثر من 15 عاماً من العطاء</p>
+                    <p className="font-bold text-primary font-headline">
+                      أكثر من {c("about_years", "15")} عاماً من العطاء
+                    </p>
                  </div>
               </div>
             </div>
@@ -82,29 +105,29 @@ export default function AboutPage() {
                 <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <span className="material-symbols-outlined text-3xl">handshake</span>
                 </div>
-                <h3 className="font-bold text-xl mb-3">التطوع والعطاء</h3>
-                <p className="text-sm text-on-surface-variant leading-relaxed">نؤمن بأن كل جهد يقدمه الشباب قادر على تغيير حياة الكثيرين، وأن التطوع هو المحرك الأساسي لنهضة الأمم.</p>
+                <h3 className="font-bold text-xl mb-3">{c("value1_title", "التطوع والعطاء")}</h3>
+                <p className="text-sm text-on-surface-variant leading-relaxed">{c("value1_body", "نؤمن بأن كل جهد يقدمه الشباب قادر على تغيير حياة الكثيرين، وأن التطوع هو المحرك الأساسي لنهضة الأمم.")}</p>
               </div>
 
               <div className="text-center p-8 bg-white border border-outline-variant/20 rounded-3xl shadow-sm hover:-translate-y-2 transition-transform duration-300 cursor-default">
                 <div className="w-16 h-16 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <span className="material-symbols-outlined text-3xl">verified</span>
                 </div>
-                <h3 className="font-bold text-xl mb-3">الشفافية والأمانة</h3>
-                <p className="text-sm text-on-surface-variant leading-relaxed">نلتزم بالشفافية المطلقة في توجيه أموال المتبرعين ووصول المساعدات لمستحقيها بناءً على بحوث ميدانية دقيقة.</p>
+                <h3 className="font-bold text-xl mb-3">{c("value2_title", "الشفافية والأمانة")}</h3>
+                <p className="text-sm text-on-surface-variant leading-relaxed">{c("value2_body", "نلتزم بالشفافية المطلقة في توجيه أموال المتبرعين ووصول المساعدات لمستحقيها بناءً على بحوث ميدانية دقيقة.")}</p>
               </div>
 
               <div className="text-center p-8 bg-white border border-outline-variant/20 rounded-3xl shadow-sm hover:-translate-y-2 transition-transform duration-300 cursor-default">
                 <div className="w-16 h-16 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <span className="material-symbols-outlined text-3xl">trending_up</span>
                 </div>
-                <h3 className="font-bold text-xl mb-3">التنمية المستدامة</h3>
-                <p className="text-sm text-on-surface-variant leading-relaxed">لا نكتفي بتقديم المساعدات العاجلة، بل نسعى لتمكين الأسر اقتصادياً عبر مشاريع صغيرة تضمن لهم دخلاً ثابتاً.</p>
+                <h3 className="font-bold text-xl mb-3">{c("value3_title", "التنمية المستدامة")}</h3>
+                <p className="text-sm text-on-surface-variant leading-relaxed">{c("value3_body", "لا نكتفي بتقديم المساعدات العاجلة، بل نسعى لتمكين الأسر اقتصادياً عبر مشاريع صغيرة تضمن لهم دخلاً ثابتاً.")}</p>
               </div>
             </div>
           </div>
         </section>
-        
+
         {/* Registration Details */}
         <section className="py-20 bg-white" id="registration">
           <div className="max-w-7xl mx-auto px-6">
@@ -127,38 +150,38 @@ export default function AboutPage() {
                   <div className="p-8 space-y-6">
                     <div>
                       <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">الاسم الرسمي</p>
-                      <p className="font-bold text-on-surface text-lg">جمعية أجيال صناع الحياة للتنمية ببني سويف</p>
+                      <p className="font-bold text-on-surface text-lg">{c("reg_name", "جمعية أجيال صناع الحياة للتنمية ببني سويف")}</p>
                     </div>
                     <div>
                       <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">رقم القيد</p>
-                      <p className="font-bold text-primary text-2xl font-mono">1880</p>
+                      <p className="font-bold text-primary text-2xl font-mono">{c("reg_number", "1880")}</p>
                     </div>
                     <div>
                       <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">سنة القيد</p>
-                      <p className="font-bold text-on-surface">2013</p>
+                      <p className="font-bold text-on-surface">{c("reg_year", "2013")}</p>
                     </div>
                     <div>
                       <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">تاريخ القيد</p>
-                      <p className="font-bold text-on-surface" dir="ltr">29 / 07 / 2012</p>
+                      <p className="font-bold text-on-surface" dir="ltr">{c("reg_date", "29 / 07 / 2012")}</p>
                     </div>
                   </div>
 
                   <div className="p-8 space-y-6">
                     <div>
                       <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">الجهة المسجلة</p>
-                      <p className="font-bold text-on-surface">مديرية التضامن الاجتماعي - بني سويف</p>
+                      <p className="font-bold text-on-surface">{c("reg_authority", "مديرية التضامن الاجتماعي - بني سويف")}</p>
                     </div>
                     <div>
                       <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">كود النشاط الضريبي</p>
-                      <p className="font-bold text-on-surface font-mono">9609</p>
+                      <p className="font-bold text-on-surface font-mono">{c("tax_code", "9609")}</p>
                     </div>
                     <div>
                       <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">الرقم الضريبي</p>
-                      <p className="font-bold text-on-surface font-mono" dir="ltr">266-144-626-765-492</p>
+                      <p className="font-bold text-on-surface font-mono" dir="ltr">{c("tax_number", "266-144-626-765-492")}</p>
                     </div>
                     <div>
                       <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-1">الموقع الرسمي</p>
-                      <p className="font-bold text-primary" dir="ltr">lifemakers-bns.com</p>
+                      <p className="font-bold text-primary" dir="ltr">{c("contact_website", "lifemakers-bns.com")}</p>
                     </div>
                   </div>
                 </div>

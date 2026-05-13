@@ -147,3 +147,84 @@ model FamilyMember {
   updatedAt DateTime @updatedAt
   family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
 }
+
+// ─── CMS Models ───────────────────────────────────────────────────────────────
+
+model ServiceType {
+  id        String   @id @default(uuid())
+  name      String
+  category  String?
+  active    Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DocumentType {
+  id        String   @id @default(uuid())
+  name      String
+  required  Boolean  @default(false)
+  active    Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DropdownOption {
+  id        String   @id @default(uuid())
+  category  String
+  value     String
+  label     String
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([category, value])
+}
+
+model SystemConfig {
+  key       String   @id
+  value     String
+  type      String   @default("string")
+  label     String?
+  group     String?
+  updatedAt DateTime @updatedAt
+}
+
+model SiteContent {
+  key       String   @id
+  value     String
+  label     String?
+  group     String?
+  updatedAt DateTime @updatedAt
+}
+
+model Campaign {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  target      Int      @default(0)
+  raised      Int      @default(0)
+  category    String
+  icon        String
+  color       String   @default("bg-primary")
+  lightColor  String   @default("bg-primary/10")
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Program {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  icon        String
+  accent      String   @default("text-primary")
+  bg          String   @default("bg-primary/10")
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

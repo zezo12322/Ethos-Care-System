@@ -116,6 +116,16 @@ export default function Sidebar({
         )}
         {isAuthorized(["ADMIN", "CEO"]) && (
         <Link
+          href="/dashboard/cms"
+          onClick={onClose}
+          className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
+        >
+          <span className="material-symbols-outlined">edit_note</span>
+          <span>محتوى الموقع</span>
+        </Link>
+        )}
+        {isAuthorized(["ADMIN", "CEO"]) && (
+        <Link
           href="/dashboard/partners"
           onClick={onClose}
           className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
