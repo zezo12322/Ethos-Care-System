@@ -1,0 +1,780 @@
+{
+  "version": "0.4",
+  "title": "Hazem Abdelbaset — Start Project",
+  "type": "page",
+  "page_settings": {
+    "background_background": "classic",
+    "background_color": "#1A1A1A",
+    "margin": {
+      "unit": "px",
+      "top": "0",
+      "right": "0",
+      "bottom": "0",
+      "left": "0",
+      "isLinked": true
+    },
+    "padding": {
+      "unit": "px",
+      "top": "0",
+      "right": "0",
+      "bottom": "0",
+      "left": "0",
+      "isLinked": true
+    },
+    "hide_title": "yes"
+  },
+  "content": [
+    {
+      "id": "e0d1c2ee",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "layout": "full_width",
+        "background_background": "classic",
+        "background_color": "#1A1A1A",
+        "padding": {
+          "unit": "px",
+          "top": "0",
+          "right": "0",
+          "bottom": "0",
+          "left": "0",
+          "isLinked": false
+        },
+        "gap": "default",
+        "css_classes": "hz-bg-base"
+      },
+      "elements": [
+        {
+          "id": "39525e21",
+          "elType": "column",
+          "settings": {
+            "_column_size": 100,
+            "_inline_size": null,
+            "content_position": "top"
+          },
+          "elements": [
+            {
+              "id": "2cbb69c4",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<style id=\"hz-tokens\">\n/* ── DARK (default) ────────────────────────── */\n:root,[data-theme=dark]{\n  --hz-bg:     #1A1A1A;\n  --hz-bg-e:   #212121;\n  --hz-bg-c:   #212121;\n  --hz-bg-ph:  #171717;\n  --hz-text:   #F5F0E8;\n  --hz-text-s: rgba(245,240,232,.55);\n  --hz-text-t: rgba(245,240,232,.3);\n  --hz-text-d: rgba(245,240,232,.05);\n  --hz-green:  #20C997;\n  --hz-green-m:#56A176;\n  --hz-border: rgba(245,240,232,.08);\n  --hz-border-c:rgba(245,240,232,.12);\n  --hz-tag-bg: rgba(32,201,151,.07);\n  --hz-tag-bd: rgba(32,201,151,.12);\n  --hz-nav-bg: rgba(26,26,26,.97);\n  --hz-inp-bg: #212121;\n}\n/* ── LIGHT ──────────────────────────────────── */\n[data-theme=light]{\n  --hz-bg:     #F5F0E8;\n  --hz-bg-e:   #EAE5DD;\n  --hz-bg-c:   #E4DFD7;\n  --hz-bg-ph:  #D8D3CB;\n  --hz-text:   #1A1A1A;\n  --hz-text-s: rgba(26,26,26,.6);\n  --hz-text-t: rgba(26,26,26,.35);\n  --hz-text-d: rgba(26,26,26,.05);\n  --hz-green:  #1aad85;\n  --hz-green-m:#3d8a5f;\n  --hz-border: rgba(26,26,26,.1);\n  --hz-border-c:rgba(26,26,26,.15);\n  --hz-tag-bg: rgba(26,173,133,.07);\n  --hz-tag-bd: rgba(26,173,133,.2);\n  --hz-nav-bg: rgba(245,240,232,.97);\n  --hz-inp-bg: #EAE5DD;\n}\n/* ── AUTO (OS preference) ───────────────────── */\n@media(prefers-color-scheme:light){\n  :root:not([data-theme=dark]){\n    --hz-bg:#F5F0E8;--hz-bg-e:#EAE5DD;--hz-bg-c:#E4DFD7;--hz-bg-ph:#D8D3CB;\n    --hz-text:#1A1A1A;--hz-text-s:rgba(26,26,26,.6);--hz-text-t:rgba(26,26,26,.35);\n    --hz-text-d:rgba(26,26,26,.05);--hz-green:#1aad85;--hz-green-m:#3d8a5f;\n    --hz-border:rgba(26,26,26,.1);--hz-border-c:rgba(26,26,26,.15);\n    --hz-tag-bg:rgba(26,173,133,.07);--hz-tag-bd:rgba(26,173,133,.2);\n    --hz-nav-bg:rgba(245,240,232,.97);--hz-inp-bg:#EAE5DD;\n  }\n}\n\n/* ── TRANSITIONS ────────────────────────────── */\nbody,body *{transition:background-color .25s,border-color .25s,color .2s!important;}\n\n/* ── PAGE BACKGROUND ────────────────────────── */\nbody{background-color:var(--hz-bg)!important;}\n\n/* ── SECTION BACKGROUNDS ────────────────────── */\n.hz-bg-base{background-color:var(--hz-bg)!important;}\n.hz-bg-elevated{background-color:var(--hz-bg-e)!important;}\n\n/* ── CARD / COLUMN BACKGROUNDS ──────────────── */\n.hz-card,\n.hz-card>.elementor-column-wrap,\n.hz-card>.elementor-widget-wrap{\n  background-color:var(--hz-bg-c)!important;\n  border-color:var(--hz-border)!important;\n}\n\n/* ── HEADING WIDGET ─────────────────────────── */\n.elementor-widget-heading .elementor-heading-title{\n  color:var(--hz-text)!important;\n}\n.hz-accent .elementor-heading-title{color:var(--hz-green)!important;}\n\n/* ── TEXT-EDITOR WIDGET ─────────────────────── */\n.elementor-widget-text-editor p{color:var(--hz-text)!important;}\n.elementor-widget-text-editor span{color:inherit;}\n.elementor-widget-text-editor span[style*=\"#20C997\"]{color:var(--hz-green)!important;}\n.elementor-widget-text-editor span[style*=\"color:#20C997\"]{color:var(--hz-green)!important;}\n.elementor-widget-text-editor span[style*=\"rgba(245,240,232,.3)\"],\n.elementor-widget-text-editor span[style*=\"rgba(245,240,232, .3)\"]{\n  color:var(--hz-text-t)!important;\n}\n.elementor-widget-text-editor p[style*=\"rgba(245,240,232,.05)\"]{\n  color:var(--hz-text-d)!important;\n}\n.elementor-widget-text-editor p[style*=\"rgba(245,240,232,.5)\"],\n.elementor-widget-text-editor p[style*=\"rgba(245,240,232,.55)\"],\n.elementor-widget-text-editor p[style*=\"rgba(245,240,232,.45)\"],\n.elementor-widget-text-editor p[style*=\"rgba(245,240,232,.4)\"]{\n  color:var(--hz-text-s)!important;\n}\n\n/* ── ICON LIST ───────────────────────────────── */\n.elementor-widget-icon-list .elementor-icon-list-item .elementor-icon-list-text{\n  color:var(--hz-text-s)!important;\n}\n.elementor-widget-icon-list .elementor-icon-list-item i,\n.elementor-widget-icon-list .elementor-icon-list-item svg{\n  color:var(--hz-green)!important;\n  fill:var(--hz-green)!important;\n}\n\n/* ── DIVIDER ─────────────────────────────────── */\n.elementor-widget-divider .elementor-divider-separator{\n  border-color:var(--hz-border)!important;\n}\n\n/* ── NAV ─────────────────────────────────────── */\n.hznw{\n  position:sticky;top:0;z-index:100;\n  background:var(--hz-nav-bg)!important;\n  border-bottom:1px solid var(--hz-border)!important;\n  transition:box-shadow .3s,background .25s,border-color .25s!important;\n}\n.hznw.is-scrolled{box-shadow:0 1px 28px rgba(0,0,0,.35)!important;}\n.hznav a,.hznav__logo{color:var(--hz-text)!important;}\n.hznav__link{color:var(--hz-text-s)!important;}\n.hznav__cta{background:var(--hz-green)!important;color:#1A1A1A!important;}\n\n/* ── FOOTER ──────────────────────────────────── */\n.hzft{\n  background:var(--hz-bg)!important;\n  border-top:1px solid var(--hz-border)!important;\n}\n.hzft__name{color:var(--hz-text)!important;}\n.hzft__role,.hzft__tag{color:var(--hz-text-s)!important;}\n.hzft__links a{color:var(--hz-text-s)!important;}\n.hzft__links a:hover{color:var(--hz-green)!important;}\n\n/* ── FORM INPUTS ─────────────────────────────── */\n.hzfi,.hzfse,.hzfta{\n  background:var(--hz-inp-bg)!important;\n  border-color:var(--hz-border-c)!important;\n  color:var(--hz-text)!important;\n}\n.hzfi:focus,.hzfse:focus,.hzfta:focus{border-color:var(--hz-green)!important;}\n.hzfro label{\n  background:var(--hz-inp-bg)!important;\n  border-color:var(--hz-border-c)!important;\n  color:var(--hz-text-s)!important;\n}\n.hzfro input:checked+label{\n  border-color:var(--hz-green)!important;\n  color:var(--hz-green)!important;\n  background:var(--hz-tag-bg)!important;\n}\n.hzft2{color:var(--hz-text)!important;}\n.hzfs,.hzfh,.hzfnote{color:var(--hz-text-s)!important;}\n\n/* ── WORK CARD PLACEHOLDER ───────────────────── */\n.hz-ph{background:var(--hz-bg-ph)!important;}\n\n/* ── SERVICE TAG LABELS ──────────────────────── */\n.hz-svc-tag{\n  background:var(--hz-tag-bg)!important;\n  border-color:var(--hz-tag-bd)!important;\n  color:var(--hz-green)!important;\n}\n\n/* ── THEME TOGGLE BUTTON ─────────────────────── */\n.hz-toggle{\n  background:none;border:1px solid var(--hz-border);border-radius:6px;\n  padding:.38rem .55rem;cursor:pointer;color:var(--hz-text);\n  font-size:.95rem;line-height:1;margin-left:.75rem;\n  transition:border-color .3s,color .3s,background .3s!important;\n}\n.hz-toggle:hover{border-color:var(--hz-green);color:var(--hz-green);}\n\n/* ── SCROLL REVEAL ANIMATIONS ────────────────── */\n.reveal{\n  opacity:0;\n  transform:translateY(28px);\n  transition:opacity .75s cubic-bezier(.16,1,.3,1),\n             transform .75s cubic-bezier(.16,1,.3,1)!important;\n}\n.reveal.is-visible{\n  opacity:1!important;\n  transform:none!important;\n}\n.reveal--d1{transition-delay:.08s!important;}\n.reveal--d2{transition-delay:.2s!important;}\n.reveal--d3{transition-delay:.35s!important;}\n.reveal--d4{transition-delay:.52s!important;}\n</style>\n\n<script>\n/* 1. Restore theme before first paint (runs sync) */\n(function(){\n  var saved=localStorage.getItem('hz-theme');\n  var auto=window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark';\n  document.documentElement.setAttribute('data-theme',saved||auto);\n})();\n\n/* 2. Animations — run after DOM ready */\ndocument.addEventListener('DOMContentLoaded',function(){\n\n  /* Scroll reveal */\n  if('IntersectionObserver' in window){\n    var obs=new IntersectionObserver(function(entries){\n      entries.forEach(function(e){\n        if(e.isIntersecting){e.target.classList.add('is-visible');obs.unobserve(e.target);}\n      });\n    },{threshold:.1,rootMargin:'0px 0px -40px 0px'});\n    document.querySelectorAll('.reveal').forEach(function(el){obs.observe(el);});\n  } else {\n    /* Fallback: show everything immediately */\n    document.querySelectorAll('.reveal').forEach(function(el){el.classList.add('is-visible');});\n  }\n\n  /* Nav scroll shadow */\n  window.addEventListener('scroll',function(){\n    var nav=document.querySelector('.hznw');\n    if(!nav)return;\n    nav.classList.toggle('is-scrolled',window.scrollY>60);\n  },{passive:true});\n\n  /* Cursor glow — desktop only */\n  if(window.matchMedia('(pointer:fine)').matches){\n    var g=document.createElement('div');\n    g.style.cssText=\n      'position:fixed;width:400px;height:400px;border-radius:50%;pointer-events:none;'\n      +'background:radial-gradient(circle,rgba(32,201,151,.04) 0%,transparent 70%);'\n      +'transform:translate(-50%,-50%);z-index:0;'\n      +'transition:left .6s cubic-bezier(.16,1,.3,1),top .6s cubic-bezier(.16,1,.3,1);'\n      +'left:-500px;top:-500px;';\n    document.body.appendChild(g);\n    document.addEventListener('mousemove',function(e){\n      g.style.left=e.clientX+'px';\n      g.style.top=e.clientY+'px';\n    },{passive:true});\n  }\n});\n</script>"
+              },
+              "elements": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "42e615fb",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "layout": "full_width",
+        "background_background": "classic",
+        "background_color": "#1A1A1A",
+        "padding": {
+          "unit": "px",
+          "top": "0",
+          "right": "0",
+          "bottom": "0",
+          "left": "0",
+          "isLinked": false
+        },
+        "gap": "default",
+        "css_classes": "hz-bg-base"
+      },
+      "elements": [
+        {
+          "id": "31f4f6ab",
+          "elType": "column",
+          "settings": {
+            "_column_size": 100,
+            "_inline_size": null,
+            "content_position": "top"
+          },
+          "elements": [
+            {
+              "id": "ffc8d3e1",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<style>.hznav{max-width:1200px;margin:0 auto;padding:1rem 3rem;display:flex;align-items:center;justify-content:space-between;}.hznav a{text-decoration:none;font-family:Poppins,sans-serif;}.hznav__logo{font-size:.9rem;font-weight:700;transition:color .3s;}.hznav__logo:hover{color:var(--hz-green,#20C997);}.hznav__links{display:flex;align-items:center;gap:2rem;}.hznav__link{font-size:.78rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;transition:color .3s;}.hznav__link:hover{color:var(--hz-text,#F5F0E8)!important;}.hznav__cta{padding:.5rem 1.1rem;border-radius:5px;font-weight:600;}@media(max-width:768px){.hznav__links{display:none;}}</style><div class=\"hznw\"><div class=\"hznav\"><a href=\"/\" class=\"hznav__logo\">Hazem Abdelbaset</a><div class=\"hznav__links\"><a href=\"/#work\" class=\"hznav__link\">Work</a><a href=\"/#about\" class=\"hznav__link\">About</a><a href=\"/#process\" class=\"hznav__link\">Process</a><a href=\"/start-project\" class=\"hznav__link hznav__cta\">Start a Project</a><button id=\"hz-tm\" class=\"hz-toggle\" aria-label=\"Toggle theme\">&#9728;</button></div></div></div><script>(function(){var btn=document.getElementById(\"hz-tm\");if(!btn)return;function upd(){var t=document.documentElement.getAttribute(\"data-theme\")||\"dark\";btn.innerHTML=t===\"dark\"?\"&#9728;\":\"&#9790;\";}upd();btn.addEventListener(\"click\",function(){var c=document.documentElement.getAttribute(\"data-theme\")||\"dark\";var n=c===\"dark\"?\"light\":\"dark\";document.documentElement.setAttribute(\"data-theme\",n);localStorage.setItem(\"hz-theme\",n);upd();});})();</script>"
+              },
+              "elements": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2cec12c7",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "layout": "full_width",
+        "background_background": "classic",
+        "background_color": "#1A1A1A",
+        "padding": {
+          "unit": "px",
+          "top": "0",
+          "right": "20",
+          "bottom": "0",
+          "left": "20",
+          "isLinked": false
+        },
+        "gap": "default",
+        "css_classes": "hz-bg-base"
+      },
+      "elements": [
+        {
+          "id": "f5de3f7d",
+          "elType": "column",
+          "settings": {
+            "_column_size": 100,
+            "_inline_size": null,
+            "content_position": "top"
+          },
+          "elements": [
+            {
+              "id": "14468f59",
+              "elType": "widget",
+              "widgetType": "spacer",
+              "settings": {
+                "space": {
+                  "unit": "px",
+                  "size": 80,
+                  "sizes": []
+                }
+              },
+              "elements": []
+            },
+            {
+              "id": "35513598",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p><a href=\"/\" style=\"color:rgba(245,240,232,.45);text-decoration:none;font-family:Poppins,sans-serif;font-size:.78rem;font-weight:500;\">&larr; Back to home</a></p>",
+                "align": "center",
+                "text_color": "#F5F0E8",
+                "typography_typography": "custom",
+                "typography_font_family": "Poppins",
+                "typography_font_size": {
+                  "unit": "px",
+                  "size": 16,
+                  "sizes": []
+                },
+                "typography_font_weight": "400",
+                "typography_line_height": {
+                  "unit": "em",
+                  "size": 1.7,
+                  "sizes": []
+                },
+                "_margin": {
+                  "unit": "px",
+                  "top": "0",
+                  "right": "0",
+                  "bottom": "24",
+                  "left": "0",
+                  "isLinked": false
+                }
+              },
+              "elements": []
+            },
+            {
+              "id": "820996bb",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Start a Project",
+                "header_size": "h1",
+                "align": "center",
+                "title_color": "#F5F0E8",
+                "typography_typography": "custom",
+                "typography_font_family": "Poppins",
+                "typography_font_size": {
+                  "unit": "px",
+                  "size": 48,
+                  "sizes": []
+                },
+                "typography_font_size_tablet": {
+                  "unit": "px",
+                  "size": 38,
+                  "sizes": []
+                },
+                "typography_font_size_mobile": {
+                  "unit": "px",
+                  "size": 30,
+                  "sizes": []
+                },
+                "typography_font_weight": "800",
+                "typography_letter_spacing": {
+                  "unit": "em",
+                  "size": -0.03,
+                  "sizes": []
+                },
+                "typography_line_height": {
+                  "unit": "em",
+                  "size": 1.1,
+                  "sizes": []
+                },
+                "_margin": {
+                  "unit": "px",
+                  "top": "0",
+                  "right": "0",
+                  "bottom": "24",
+                  "left": "0",
+                  "isLinked": false
+                }
+              },
+              "elements": []
+            },
+            {
+              "id": "df071a7d",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p dir=\"rtl\" style=\"text-align:center;font-size:clamp(1.05rem,2.5vw,1.35rem);font-weight:500;line-height:1.9;color:#F5F0E8;\">&#1582;&#1604;&#1610;&#1606;&#1575; &#1606;&#1601;&#1607;&#1605; &#1575;&#1604;&#1576;&#1585;&#1575;&#1606;&#1583; &#1575;&#1604;&#1571;&#1608;&#1604;.</p>",
+                "align": "center",
+                "text_color": "#F5F0E8",
+                "typography_typography": "custom",
+                "typography_font_family": "Poppins",
+                "typography_font_size": {
+                  "unit": "px",
+                  "size": 16,
+                  "sizes": []
+                },
+                "typography_font_weight": "400",
+                "typography_line_height": {
+                  "unit": "em",
+                  "size": 1.7,
+                  "sizes": []
+                },
+                "_margin": {
+                  "unit": "px",
+                  "top": "0",
+                  "right": "0",
+                  "bottom": "12",
+                  "left": "0",
+                  "isLinked": false
+                }
+              },
+              "elements": []
+            },
+            {
+              "id": "5ed8c1e3",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p dir=\"rtl\" style=\"text-align:center;font-size:clamp(.85rem,1.5vw,.95rem);line-height:1.8;color:rgba(245,240,232,.5);overflow-wrap:break-word;\">&#1604;&#1608; &#1581;&#1575;&#1587;&#1587; &#1573;&#1606; &#1588;&#1603;&#1604; &#1575;&#1604;&#1576;&#1585;&#1575;&#1606;&#1583; &#1593;&#1604;&#1609; &#1575;&#1604;&#1587;&#1608;&#1588;&#1610;&#1575;&#1604; &#1571;&#1602;&#1604; &#1605;&#1606; &#1602;&#1610;&#1605;&#1578;&#1607;&#1548; &#1575;&#1576;&#1583;&#1571; &#1605;&#1606; &#1607;&#1606;&#1575;. &#1580;&#1575;&#1608;&#1576; &#1593;&#1604;&#1609; &#1575;&#1604;&#1571;&#1587;&#1574;&#1604;&#1577; &#1575;&#1604;&#1571;&#1587;&#1575;&#1587;&#1610;&#1577;&#1548; &#1608;&#1576;&#1593;&#1583;&#1607;&#1575; &#1606;&#1581;&#1583;&#1583; &#1571;&#1606;&#1587;&#1576; &#1582;&#1591;&#1608;&#1577;.</p>",
+                "align": "center",
+                "text_color": "#F5F0E8",
+                "typography_typography": "custom",
+                "typography_font_family": "Poppins",
+                "typography_font_size": {
+                  "unit": "px",
+                  "size": 16,
+                  "sizes": []
+                },
+                "typography_font_weight": "400",
+                "typography_line_height": {
+                  "unit": "em",
+                  "size": 1.7,
+                  "sizes": []
+                },
+                "_margin": {
+                  "unit": "px",
+                  "top": "0",
+                  "right": "0",
+                  "bottom": "0",
+                  "left": "0",
+                  "isLinked": false
+                }
+              },
+              "elements": []
+            },
+            {
+              "id": "ff3088ed",
+              "elType": "widget",
+              "widgetType": "spacer",
+              "settings": {
+                "space": {
+                  "unit": "px",
+                  "size": 48,
+                  "sizes": []
+                }
+              },
+              "elements": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "17567071",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "layout": "full_width",
+        "background_background": "classic",
+        "background_color": "#1A1A1A",
+        "padding": {
+          "unit": "px",
+          "top": "0",
+          "right": "20",
+          "bottom": "40",
+          "left": "20",
+          "isLinked": false
+        },
+        "gap": "default",
+        "css_classes": "hz-bg-base"
+      },
+      "elements": [
+        {
+          "id": "fad10eeb",
+          "elType": "column",
+          "settings": {
+            "_column_size": 100,
+            "_inline_size": null,
+            "content_position": "top",
+            "background_background": "classic",
+            "background_color": "#212121",
+            "border_border": "solid",
+            "border_width": {
+              "unit": "px",
+              "top": "1",
+              "right": "1",
+              "bottom": "1",
+              "left": "1",
+              "isLinked": true
+            },
+            "border_color": "rgba(245,240,232,0.07)",
+            "border_radius": {
+              "unit": "px",
+              "top": "12",
+              "right": "12",
+              "bottom": "12",
+              "left": "12",
+              "isLinked": true
+            },
+            "padding": {
+              "unit": "px",
+              "top": "32",
+              "right": "32",
+              "bottom": "32",
+              "left": "32",
+              "isLinked": false
+            },
+            "css_classes": "hz-card reveal"
+          },
+          "elements": [
+            {
+              "id": "a10c9e67",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "How this works",
+                "header_size": "h3",
+                "align": "left",
+                "title_color": "#F5F0E8",
+                "typography_typography": "custom",
+                "typography_font_family": "Poppins",
+                "typography_font_size": {
+                  "unit": "px",
+                  "size": 17,
+                  "sizes": []
+                },
+                "typography_font_size_tablet": {
+                  "unit": "px",
+                  "size": 13,
+                  "sizes": []
+                },
+                "typography_font_size_mobile": {
+                  "unit": "px",
+                  "size": 11,
+                  "sizes": []
+                },
+                "typography_font_weight": "700",
+                "typography_letter_spacing": {
+                  "unit": "em",
+                  "size": -0.01,
+                  "sizes": []
+                },
+                "typography_line_height": {
+                  "unit": "em",
+                  "size": 1.3,
+                  "sizes": []
+                },
+                "_margin": {
+                  "unit": "px",
+                  "top": "0",
+                  "right": "0",
+                  "bottom": "20",
+                  "left": "0",
+                  "isLinked": false
+                }
+              },
+              "elements": []
+            },
+            {
+              "id": "edba7820",
+              "elType": "widget",
+              "widgetType": "icon-list",
+              "settings": {
+                "icon_list": [
+                  {
+                    "_id": "f760d233",
+                    "text": "This is not a generic contact form. It&rsquo;s a focused brief that helps me understand your brand before suggesting any work.",
+                    "selected_icon": {
+                      "library": "fa-solid",
+                      "value": "fas fa-circle"
+                    },
+                    "link": {
+                      "url": "",
+                      "is_external": false,
+                      "nofollow": false
+                    }
+                  },
+                  {
+                    "_id": "9d806975",
+                    "text": "I read every brief personally. Expect a response within 48 hours.",
+                    "selected_icon": {
+                      "library": "fa-solid",
+                      "value": "fas fa-circle"
+                    },
+                    "link": {
+                      "url": "",
+                      "is_external": false,
+                      "nofollow": false
+                    }
+                  },
+                  {
+                    "_id": "96765ca0",
+                    "text": "If the fit is right, we&rsquo;ll schedule a short call to align on direction.",
+                    "selected_icon": {
+                      "library": "fa-solid",
+                      "value": "fas fa-circle"
+                    },
+                    "link": {
+                      "url": "",
+                      "is_external": false,
+                      "nofollow": false
+                    }
+                  }
+                ],
+                "space_between": {
+                  "unit": "px",
+                  "size": 12,
+                  "sizes": []
+                },
+                "icon_color": {
+                  "color": "#20C997"
+                },
+                "icon_size": {
+                  "unit": "px",
+                  "size": 5,
+                  "sizes": []
+                },
+                "text_color": {
+                  "color": "rgba(245,240,232,.55)"
+                },
+                "text_indent": {
+                  "unit": "px",
+                  "size": 8,
+                  "sizes": []
+                },
+                "text_typography_typography": "custom",
+                "text_typography_font_family": "Poppins",
+                "text_typography_font_size": {
+                  "unit": "px",
+                  "size": 14,
+                  "sizes": []
+                }
+              },
+              "elements": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "146babc6",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "layout": "full_width",
+        "background_background": "classic",
+        "background_color": "#1A1A1A",
+        "padding": {
+          "unit": "px",
+          "top": "0",
+          "right": "20",
+          "bottom": "60",
+          "left": "20",
+          "isLinked": false
+        },
+        "gap": "default",
+        "css_classes": "hz-bg-base"
+      },
+      "elements": [
+        {
+          "id": "e1622cc2",
+          "elType": "column",
+          "settings": {
+            "_column_size": 100,
+            "_inline_size": null,
+            "content_position": "top"
+          },
+          "elements": [
+            {
+              "id": "3c73668b",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<!-- PROJECT BRIEF FORM\nREPLACE with Elementor Pro Form / Fluent Forms / WPForms if available.\nFormspree: set action=\"https://formspree.io/f/YOUR_ID\" method=\"POST\" -->\n<div style=\"max-width:720px;margin:0 auto;\">\n<style>\n.hzf *{box-sizing:border-box;}\n.hzft2{font-family:Poppins,sans-serif;font-size:clamp(1.25rem,3vw,1.5rem);font-weight:700;letter-spacing:-.02em;color:var(--hz-text,#F5F0E8);margin:0 0 .5rem;}\n.hzfs{font-family:Poppins,sans-serif;font-size:.83rem;color:var(--hz-text-s,rgba(245,240,232,.5));margin:0 0 2.5rem;}\n.hzfs em{color:var(--hz-green,#20C997);font-style:normal;}\n.hzfg{margin-bottom:1.75rem;}\n.hzfg-h{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}\n@media(max-width:560px){.hzfg-h{grid-template-columns:1fr;}}\n.hzfl{display:block;font-family:Poppins,sans-serif;font-size:.78rem;font-weight:600;color:var(--hz-text,#F5F0E8);margin-bottom:.5rem;}\n.hzfl em{color:var(--hz-green,#20C997);font-style:normal;margin-left:.1rem;}\n.hzfi,.hzfse,.hzfta{width:100%;background:var(--hz-inp-bg,#212121);border:1px solid var(--hz-border-c,rgba(245,240,232,.1));border-radius:8px;padding:.8rem 1rem;font-family:Poppins,sans-serif;font-size:.86rem;color:var(--hz-text,#F5F0E8);outline:none;transition:border-color .25s,background .25s,color .25s;}\n.hzfi::placeholder,.hzfta::placeholder{color:var(--hz-text-t,rgba(245,240,232,.25));}\n.hzfi:focus,.hzfse:focus,.hzfta:focus{border-color:var(--hz-green,#20C997);}\n.hzfse{appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23F5F0E8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C%2Fsvg%3E\");background-repeat:no-repeat;background-position:right 1rem center;padding-right:2.5rem;cursor:pointer;}\n.hzfse option{background:var(--hz-bg,#1A1A1A);color:var(--hz-text,#F5F0E8);}\n.hzfta{min-height:108px;resize:vertical;line-height:1.6;}\n.hzfh{font-family:Poppins,sans-serif;font-size:.7rem;color:var(--hz-text-t,rgba(245,240,232,.25));margin-top:.3rem;}\n.hzfrg{display:flex;flex-wrap:wrap;gap:.45rem;}\n.hzfro{position:relative;}\n.hzfro input{position:absolute;opacity:0;width:0;height:0;}\n.hzfro label{display:inline-block;padding:.5rem .95rem;font-family:Poppins,sans-serif;font-size:.8rem;font-weight:500;color:var(--hz-text-s,rgba(245,240,232,.5));background:var(--hz-inp-bg,#212121);border:1px solid var(--hz-border-c,rgba(245,240,232,.1));border-radius:6px;cursor:pointer;transition:all .2s;}\n.hzfro input:checked+label{border-color:var(--hz-green,#20C997);color:var(--hz-green,#20C997);background:var(--hz-tag-bg,rgba(32,201,151,.06));}\n.hzfro label:hover{border-color:var(--hz-border,rgba(245,240,232,.22));color:var(--hz-text,#F5F0E8);}\n.hzfsub{display:flex;align-items:center;gap:1rem;margin-top:2.5rem;flex-wrap:wrap;}\n.hzfbtn{display:inline-flex;align-items:center;padding:.9rem 2.25rem;font-family:Poppins,sans-serif;font-size:.88rem;font-weight:600;background:var(--hz-green,#20C997);color:#1A1A1A;border:none;border-radius:6px;cursor:pointer;transition:all .3s;}\n.hzfbtn:hover{filter:brightness(1.1);transform:translateY(-2px);}\n.hzfnote{font-family:Poppins,sans-serif;font-size:.73rem;color:var(--hz-text-t,rgba(245,240,232,.28));}\n.hzfok{display:none;text-align:center;padding:4rem 2rem;background:var(--hz-bg-c,#212121);border:1px solid var(--hz-border,rgba(245,240,232,.06));border-radius:12px;}\n.hzfok.on{display:block;}\n.hzfok h3{font-family:Poppins,sans-serif;font-size:1.2rem;font-weight:700;color:var(--hz-text,#F5F0E8);margin:.75rem 0 .5rem;}\n.hzfok p{font-family:Poppins,sans-serif;font-size:.88rem;color:var(--hz-text-s,rgba(245,240,232,.5));line-height:1.7;margin:0;}\n</style>\n<div class=\"hzf\">\n<h2 class=\"hzft2\">Project Brief</h2>\n<p class=\"hzfs\">Fields marked with <em>*</em> are required.</p>\n<form id=\"hzF\" novalidate>\n<div class=\"hzfg hzfg-h\">\n<div><label class=\"hzfl\">Name <em>*</em></label><input type=\"text\" name=\"name\" class=\"hzfi\" placeholder=\"Your full name\" required/></div>\n<div><label class=\"hzfl\">Email <em>*</em></label><input type=\"email\" name=\"email\" class=\"hzfi\" placeholder=\"you@company.com\" required/></div>\n</div>\n<div class=\"hzfg hzfg-h\">\n<div><label class=\"hzfl\">WhatsApp Number</label><input type=\"tel\" name=\"whatsapp\" class=\"hzfi\" placeholder=\"+20 xxx xxx xxxx\"/></div>\n<div><label class=\"hzfl\">Brand / Business Name <em>*</em></label><input type=\"text\" name=\"brand\" class=\"hzfi\" placeholder=\"Brand name\" required/></div>\n</div>\n<div class=\"hzfg hzfg-h\">\n<div><label class=\"hzfl\">Website or Social Link</label><input type=\"text\" name=\"website\" class=\"hzfi\" placeholder=\"https:// or @handle\"/></div>\n<div><label class=\"hzfl\">Country / Market</label><input type=\"text\" name=\"country\" class=\"hzfi\" placeholder=\"e.g. Egypt, Saudi Arabia\"/></div>\n</div>\n<div class=\"hzfg\"><label class=\"hzfl\">Industry / Sector</label><input type=\"text\" name=\"industry\" class=\"hzfi\" placeholder=\"e.g. F&amp;B, Healthcare, Fashion, Tech\"/></div>\n<div class=\"hzfg\">\n<label class=\"hzfl\">What do you need? <em>*</em></label>\n<div class=\"hzfrg\">\n<div class=\"hzfro\"><input type=\"radio\" name=\"service\" id=\"hzsm\" value=\"Social Media System\" required/><label for=\"hzsm\">Social Media System</label></div>\n<div class=\"hzfro\"><input type=\"radio\" name=\"service\" id=\"hzcv\" value=\"Campaign Visuals\"/><label for=\"hzcv\">Campaign Visuals</label></div>\n<div class=\"hzfro\"><input type=\"radio\" name=\"service\" id=\"hzbi\" value=\"Brand Identity / Refresh\"/><label for=\"hzbi\">Brand Identity / Refresh</label></div>\n<div class=\"hzfro\"><input type=\"radio\" name=\"service\" id=\"hzns\" value=\"Not sure yet\"/><label for=\"hzns\">Not sure yet</label></div>\n</div>\n</div>\n<div class=\"hzfg\"><label class=\"hzfl\">Current problem <em>*</em></label><textarea name=\"problem\" class=\"hzfta\" placeholder=\"What's not working with the brand's current visual presence?\" required></textarea></div>\n<div class=\"hzfg\"><label class=\"hzfl\">What should the brand look / feel like?</label><textarea name=\"desired_look\" class=\"hzfta\" placeholder=\"References, adjectives, brands you admire?\"></textarea></div>\n<div class=\"hzfg\">\n<label class=\"hzfl\">Do you already have a logo / brand identity?</label>\n<div class=\"hzfrg\">\n<div class=\"hzfro\"><input type=\"radio\" name=\"has_identity\" id=\"hziy\" value=\"Yes\"/><label for=\"hziy\">Yes</label></div>\n<div class=\"hzfro\"><input type=\"radio\" name=\"has_identity\" id=\"hzin\" value=\"No\"/><label for=\"hzin\">No</label></div>\n<div class=\"hzfro\"><input type=\"radio\" name=\"has_identity\" id=\"hzip\" value=\"Partially\"/><label for=\"hzip\">Partially</label></div>\n</div>\n</div>\n<div class=\"hzfg\"><label class=\"hzfl\">Existing content or visual references</label><textarea name=\"references\" class=\"hzfta\" placeholder=\"Share links or describe what you have.\"></textarea><p class=\"hzfh\">Paste links or describe existing assets.</p></div>\n<div class=\"hzfg\">\n<label class=\"hzfl\">Timeline</label>\n<div class=\"hzfrg\">\n<div class=\"hzfro\"><input type=\"radio\" name=\"timeline\" id=\"hztas\" value=\"ASAP\"/><label for=\"hztas\">ASAP</label></div>\n<div class=\"hzfro\"><input type=\"radio\" name=\"timeline\" id=\"hztm\" value=\"This month\"/><label for=\"hztm\">This month</label></div>\n<div class=\"hzfro\"><input type=\"radio\" name=\"timeline\" id=\"hzt2\" value=\"1-2 months\"/><label for=\"hzt2\">1&ndash;2 months</label></div>\n<div class=\"hzfro\"><input type=\"radio\" name=\"timeline\" id=\"hztf\" value=\"Flexible\"/><label for=\"hztf\">Flexible</label></div>\n</div>\n</div>\n<div class=\"hzfg\">\n<label class=\"hzfl\">Budget Range</label>\n<select name=\"budget\" class=\"hzfse\">\n<option value=\"\" disabled selected>Select a range</option>\n<option>Under $500</option><option>$500&ndash;$1,000</option><option>$1,000&ndash;$2,500</option><option>$2,500+</option><option>Not sure yet</option>\n</select>\n</div>\n<div class=\"hzfg\"><label class=\"hzfl\">Extra notes</label><textarea name=\"notes\" class=\"hzfta\" placeholder=\"Anything else you'd like to share.\"></textarea></div>\n<div class=\"hzfsub\"><button type=\"submit\" class=\"hzfbtn\">Submit Brief</button><span class=\"hzfnote\">I&rsquo;ll respond within 48 hours.</span></div>\n</form>\n<div class=\"hzfok\" id=\"hzOK\">\n<div style=\"font-size:2.5rem;\">&#10003;</div>\n<h3>Brief received.</h3>\n<p>I&rsquo;ll review your brief and respond within 48 hours.</p>\n<a href=\"/\" style=\"display:inline-flex;align-items:center;gap:.3rem;font-family:Poppins,sans-serif;font-size:.83rem;font-weight:600;color:var(--hz-green,#20C997);text-decoration:none;margin-top:1.5rem;\">&larr; Back to home</a>\n</div>\n</div>\n<script>\n(function(){\nvar f=document.getElementById('hzF'),ok=document.getElementById('hzOK');\nif(!f)return;\nf.addEventListener('submit',function(e){\ne.preventDefault();\nvar v=true;\n['name','email','brand','problem'].forEach(function(n){\nvar el=f.querySelector('[name=\"'+n+'\"]');\nif(!el)return;\nvar val=el.value.trim(),ok2=val.length>0;\nif(n==='email')ok2=ok2&&/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(val);\nel.style.borderColor=ok2?'':'#e74c3c';\nif(!ok2)v=false;\n});\nif(!f.querySelector('[name=\"service\"]:checked'))v=false;\nif(!v){var fe=f.querySelector('[style*=\"e74c3c\"]');if(fe)fe.scrollIntoView({behavior:'smooth',block:'center'});return;}\nvar d={};new FormData(f).forEach(function(val,key){d[key]=val;});\nconsole.log('HAZEM BRIEF',JSON.stringify(d,null,2));\nf.style.display='none';ok.classList.add('on');\nwindow.scrollTo({top:ok.getBoundingClientRect().top+window.scrollY-100,behavior:'smooth'});\n});\n})();\n</script>"
+              },
+              "elements": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6a5e1b0a",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "layout": "full_width",
+        "background_background": "classic",
+        "background_color": "#1A1A1A",
+        "padding": {
+          "unit": "px",
+          "top": "0",
+          "right": "20",
+          "bottom": "80",
+          "left": "20",
+          "isLinked": false
+        },
+        "gap": "default",
+        "css_classes": "hz-bg-base"
+      },
+      "elements": [
+        {
+          "id": "3ca46a60",
+          "elType": "column",
+          "settings": {
+            "_column_size": 100,
+            "_inline_size": null,
+            "content_position": "top",
+            "background_background": "classic",
+            "background_color": "#212121",
+            "border_border": "solid",
+            "border_width": {
+              "unit": "px",
+              "top": "1",
+              "right": "1",
+              "bottom": "1",
+              "left": "1",
+              "isLinked": true
+            },
+            "border_color": "rgba(245,240,232,0.07)",
+            "border_radius": {
+              "unit": "px",
+              "top": "12",
+              "right": "12",
+              "bottom": "12",
+              "left": "12",
+              "isLinked": true
+            },
+            "padding": {
+              "unit": "px",
+              "top": "40",
+              "right": "40",
+              "bottom": "40",
+              "left": "40",
+              "isLinked": false
+            },
+            "css_classes": "hz-card reveal"
+          },
+          "elements": [
+            {
+              "id": "321b4f81",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "&#1575;&#1581;&#1580;&#1586; &#1605;&#1603;&#1575;&#1604;&#1605;&#1577; &#1602;&#1589;&#1610;&#1585;&#1577;",
+                "header_size": "h2",
+                "align": "center",
+                "title_color": "#F5F0E8",
+                "typography_typography": "custom",
+                "typography_font_family": "Poppins",
+                "typography_font_size": {
+                  "unit": "px",
+                  "size": 22,
+                  "sizes": []
+                },
+                "typography_font_size_tablet": {
+                  "unit": "px",
+                  "size": 17,
+                  "sizes": []
+                },
+                "typography_font_size_mobile": {
+                  "unit": "px",
+                  "size": 14,
+                  "sizes": []
+                },
+                "typography_font_weight": "700",
+                "typography_letter_spacing": {
+                  "unit": "em",
+                  "size": -0.01,
+                  "sizes": []
+                },
+                "typography_line_height": {
+                  "unit": "em",
+                  "size": 1.3,
+                  "sizes": []
+                },
+                "_margin": {
+                  "unit": "px",
+                  "top": "0",
+                  "right": "0",
+                  "bottom": "16",
+                  "left": "0",
+                  "isLinked": false
+                }
+              },
+              "elements": []
+            },
+            {
+              "id": "0a3bf3dc",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p dir=\"rtl\" style=\"text-align:center;font-size:.86rem;line-height:1.75;overflow-wrap:break-word;color:rgba(245,240,232,.5);\">&#1576;&#1593;&#1583; &#1605;&#1575; &#1578;&#1576;&#1593;&#1578; &#1575;&#1604;&#1576;&#1585;&#1610;&#1601;&#1548; &#1578;&#1602;&#1583;&#1585; &#1578;&#1581;&#1580;&#1586; &#1605;&#1603;&#1575;&#1604;&#1605;&#1577; &#1634;&#1632;&ndash;&#1635;&#1632; &#1583;&#1602;&#1610;&#1602;&#1577; &#1606;&#1585;&#1575;&#1580;&#1593; &#1601;&#1610;&#1607;&#1575; &#1575;&#1581;&#1578;&#1610;&#1575;&#1580; &#1575;&#1604;&#1576;&#1585;&#1575;&#1606;&#1583; &#1608;&#1606;&#1581;&#1583;&#1583; &#1571;&#1601;&#1590;&#1604; &#1582;&#1591;&#1608;&#1577;.</p>",
+                "align": "center",
+                "text_color": "#F5F0E8",
+                "typography_typography": "custom",
+                "typography_font_family": "Poppins",
+                "typography_font_size": {
+                  "unit": "px",
+                  "size": 16,
+                  "sizes": []
+                },
+                "typography_font_weight": "400",
+                "typography_line_height": {
+                  "unit": "em",
+                  "size": 1.7,
+                  "sizes": []
+                },
+                "_margin": {
+                  "unit": "px",
+                  "top": "0",
+                  "right": "0",
+                  "bottom": "24",
+                  "left": "0",
+                  "isLinked": false
+                }
+              },
+              "elements": []
+            },
+            {
+              "id": "d950ba85",
+              "elType": "widget",
+              "widgetType": "button",
+              "settings": {
+                "text": "&#1575;&#1581;&#1580;&#1586; &#1605;&#1603;&#1575;&#1604;&#1605;&#1577; &#1602;&#1589;&#1610;&#1585;&#1577; &rarr;",
+                "link": {
+                  "url": "https://calendly.com/your-link",
+                  "is_external": false,
+                  "nofollow": false
+                },
+                "align": "center",
+                "button_type": "flat",
+                "background_color": "rgba(0,0,0,0)",
+                "button_text_color": "#F5F0E8",
+                "border_radius": {
+                  "unit": "px",
+                  "top": 6,
+                  "right": 6,
+                  "bottom": 6,
+                  "left": 6,
+                  "isLinked": true
+                },
+                "text_padding": {
+                  "unit": "px",
+                  "top": "13",
+                  "right": "28",
+                  "bottom": "13",
+                  "left": "28",
+                  "isLinked": false
+                },
+                "typography_typography": "custom",
+                "typography_font_family": "Poppins",
+                "typography_font_size": {
+                  "unit": "px",
+                  "size": 15,
+                  "sizes": []
+                },
+                "typography_font_weight": "600",
+                "border_border": "solid",
+                "border_width": {
+                  "unit": "px",
+                  "top": "1",
+                  "right": "1",
+                  "bottom": "1",
+                  "left": "1",
+                  "isLinked": true
+                },
+                "border_color": "rgba(245,240,232,0.18)"
+              },
+              "elements": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8f110431",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "layout": "full_width",
+        "background_background": "classic",
+        "background_color": "#1A1A1A",
+        "padding": {
+          "unit": "px",
+          "top": "0",
+          "right": "0",
+          "bottom": "0",
+          "left": "0",
+          "isLinked": false
+        },
+        "gap": "default",
+        "css_classes": "hz-bg-base"
+      },
+      "elements": [
+        {
+          "id": "3440aeb9",
+          "elType": "column",
+          "settings": {
+            "_column_size": 100,
+            "_inline_size": null,
+            "content_position": "top"
+          },
+          "elements": [
+            {
+              "id": "d303b373",
+              "elType": "widget",
+              "widgetType": "html",
+              "settings": {
+                "html": "<footer class=\"hzft\"><div style=\"max-width:1200px;margin:0 auto;padding:2rem 3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;\"><div><span class=\"hzft__name\" style=\"font-family:Poppins,sans-serif;font-size:.82rem;font-weight:600;display:block;\">Hazem Abdelbaset</span><span class=\"hzft__role\" style=\"font-family:Poppins,sans-serif;font-size:.72rem;display:block;\">Brand-Led Visual Designer</span></div><span class=\"hzft__tag\" style=\"font-family:Poppins,sans-serif;font-size:.72rem;font-style:italic;\">Built for clearer brand presence.</span><div class=\"hzft__links\" style=\"display:flex;gap:1.25rem;\"><a href=\"https://linkedin.com\" target=\"_blank\" rel=\"noopener\" style=\"font-family:Poppins,sans-serif;font-size:.78rem;font-weight:500;text-decoration:none;\">LinkedIn</a><a href=\"https://behance.net\" target=\"_blank\" rel=\"noopener\" style=\"font-family:Poppins,sans-serif;font-size:.78rem;font-weight:500;text-decoration:none;\">Behance</a><a href=\"mailto:hazem@example.com\" style=\"font-family:Poppins,sans-serif;font-size:.78rem;font-weight:500;text-decoration:none;\">Email</a></div></div></footer><style>@media(max-width:640px){.hzft .hzft__in{flex-direction:column;text-align:center;}.hzft__links{justify-content:center;}}</style>"
+              },
+              "elements": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /tmp)",
+      "Bash(mkdir -p hazem-site)",
+      "Bash(unzip -o \"C:/Users/test/Downloads/Hazem Website.zip\" -d /tmp/hazem-site)",
+      "Bash(py /tmp/gen_elementor.py)",
+      "Bash(cygpath -w /tmp/hazem-site/exports/elementor)",
+      "Bash(py -c ' *)",
+      "Bash(cp \"C:/Users/test/AppData/Local/Temp/hazem-site/exports/elementor/hazem-elementor-templates.zip\" \"F:/Ethos-Care-System/.claude/worktrees/relaxed-pike-20723c/exports/elementor/\")",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "mcp__Claude_in_Chrome__navigate",
+      "mcp__Claude_in_Chrome__computer",
+      "mcp__Claude_in_Chrome__javascript_tool",
+      "Skill(update-config)",
+      "Skill(update-config:*)"
+    ]
+  }
+}

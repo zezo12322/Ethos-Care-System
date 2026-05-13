@@ -1,0 +1,64 @@
+_19/code.html:<h1 class="text-lg font-semibold text-emerald-900">نظام إدارة الحالات</h1>
+_19/code.html:<h2 class="text-4xl font-extrabold text-on-surface font-headline tracking-tight">طابور الاستجابة العاجلة</h2>
+_19/code.html:<img alt="صورة الموظف" class="w-6 h-6 rounded-full" data-alt="Staff member avatar for Mariam Ali" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVst0qc8FM_95O-AYy7VcppU1p_qDPCAGvBxp7VH2zSb5V4dC-Pui9N-CDgZCctJN8Vf6ES8kvk3tP9n0KMDWG8XEyD6lx5d7IbeQLwx7nUH7PRAAvQtjidwfnJUGc1gwjkreH3SUr3FqjuqJ4z8VNhj8Ub8OeTKX7SEtSIfWCla9ONuDtCGCOiiM1LYPoZ8Z6yfYPWVYn3vcYrQD9hoHORHAFmf3p5yNOTkt8pYaDO7sg-QVACPL7Gh_SRJ4bHOQytF2VDQdz4oA"/>
+_19/code.html:<img alt="صورة الموظف" class="w-6 h-6 rounded-full" data-alt="Staff member avatar for Youssef Omar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlMkMEDev6AmApmC4wETE6iirY-bdth1ZU3pQQO1l2tfIcBqfBcieOoHdljGnSNFy08gybjIRmX-NBclcvyNVHb1VyokV0I1DjXSvaUA38DzeDghSRkrO_XiS3DZp_BvgUkeBq9AI-oRIBtiumOnWN94AXPLSxGWQwNspcN7y-be3B1r7E9Jjeq9eLlEbkNrRJd0HLi6oHUu7xyzdXiQjtEycgW7yqQXCaFHlwMca79yRjehupS2Y9PKJm3irCXGHYd-Wm_7X39PA"/>
+_21/code.html:<h2 class="text-2xl font-bold text-white tracking-tight">صناع الحياة</h2>
+_21/code.html:<h1 class="text-4xl md:text-5xl font-extrabold font-headline text-on-surface tracking-tight leading-tight">
+_21/code.html:</h1>
+_22/code.html:<h1 class="text-2xl font-headline font-bold text-white tracking-tight">صناع الحياة</h1>
+_22/code.html:<h2 class="text-3xl font-headline font-extrabold text-on-surface tracking-tight">
+_22/code.html:                    </h2>
+_23/code.html:        h1, h2, h3 {
+_23/code.html:<h2 class="text-2xl font-extrabold text-on-surface tracking-tight">إنشاء نوع وثيقة جديد</h2>
+_24/code.html:<h1 class="text-2xl font-bold text-white tracking-tight">صناع الحياة</h1>
+_24/code.html:<h2 class="text-3xl font-extrabold text-on-surface tracking-tight font-headline">طابور بدون رقم قومي</h2>
+_25/code.html:<h1 class="text-2xl font-bold text-white tracking-tight">صناع الحياة</h1>
+_25/code.html:<h2 class="text-lg font-semibold text-emerald-900 font-headline">نظام إدارة الحالات</h2>
+_25/code.html:<h1 class="text-4xl font-extrabold text-on-surface font-headline tracking-tight mb-2">طابور قيد المراجعة</h1>
+_25/code.html:<img alt="Reviewer" class="w-6 h-6 rounded-full object-cover" data-alt="Male reviewer profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjzuSx7YZFrfHZAgO7FCK4vXZjaCccVm8VaX6pZkN36-aq7Ph-BRxOSeoJWoo8PMUWO0-K8zjQMaBn8jPGTcSTIPpXjIR4vUIVzvg432luEjm2uEe1k2ExjEQuHpiWxryBV5uwm_Th2NpZOIyt7G8hxIbrTIa9wvfs9tSkSlVGIGe0tZzBEmzy746rnwZxpze0PYt0WqoGiiOmWsL_1Oaboq_h7Uc6HaTyX-aqjQSezjaradK_rMU-CjzUF_S4IE08yoRQufzAHPU"/>
+_26/code.html:<h2 class="font-bold text-teal-800 leading-tight">جمعية صناع الحياة</h2>
+_26/code.html:<h1 class="text-3xl font-extrabold text-on-background font-headline tracking-tight">إدارة الشركاء</h1>
+_26/code.html:<h2 class="text-xl font-bold font-headline">إضافة جمعية شريكة</h2>
+_27/code.html:<h1 class="text-3xl font-headline font-extrabold text-on-surface mb-2">إدارة الجمعيات الشريكة</h1>
+_27/code.html:<h2 class="text-xl font-headline font-bold text-primary">تعديل جمعية شريكة</h2>
+_28/code.html:<h2 class="font-bold text-teal-800 text-lg">جمعية صناع الحياة</h2>
+_28/code.html:<h1 class="text-3xl font-extrabold font-headline text-on-surface mb-2">إدارة أنواع الدعم</h1>
+_28/code.html:<h2 class="text-2xl font-extrabold font-headline text-primary flex items-center gap-3">
+_28/code.html:                    </h2>
+_29/code.html:<h2 class="font-bold text-teal-800 dark:text-teal-200 text-sm">جمعية صناع الحياة</h2>
+_29/code.html:<h1 class="text-3xl font-extrabold text-on-background font-headline tracking-tight">إدارة المواقع الجغرافية</h1>
+_29/code.html:<h2 class="text-xl font-bold text-on-surface font-headline">إضافة موقع جديد</h2>
+_30/code.html:<img alt="صورة الملف الشخصي للمسؤول" class="w-10 h-10 rounded-full object-cover border-2 border-primary/10" data-alt="Official profile portrait of the system administrator" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGNatPgKmmKSxxoK-rAzIQjH3OeQIP-76aPv3Q_2Er6Sp7wOcUflIgH2lP3uLVaSUD4BzVSpwsrB3Ks5s0ZavfcvavDNA7BPPDhyVd6SW0sLPovulk9jyTcG9TUpA2CbECCWQAuzud9miVdRRafwjoS0W5i652xs33CD6bAMkbH_J9tCoIBauea95M3bx_O_UVEGmJqiFatrqWcp_g9KoQ1MinrVzf3TI1ilQB39lh0enyc6gETzWHM_wyqJzd5iGzg83RBpuNVNY"/>
+_30/code.html:<h2 class="font-bold text-teal-800 text-lg">جمعية صناع الحياة</h2>
+_30/code.html:<h1 class="text-xl font-headline font-bold">تعديل نوع وثيقة</h1>
+_31/code.html:<img class="w-10 h-10 rounded-full border-2 border-primary-container/20 object-cover ml-2" data-alt="صورة الملف الشخصي للمسؤول" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNLkPW7ZKG10NF9BCBdnamys_TprZVWbckPVCu5xv-UsDC72pwr0Wpt2kllp9tRcAj_ILXXDZMDJCfRVe0-_AWJ2eZwjj9wmBAHWwzui18wbls0FtbVnnaZrqSh0nKjI4yr-m34U3177K5Ru0vH6rYTzWLN_C3sVifTugb_95HPaOlO1v9Qo3IlGIW8INuMah25k43JacgkyvR7Y6o98ThQJ4i8-W_EHKxALhc5C6IcE7btvRrPaf13aDfqmgcHxvgG21PoDgv_6M"/>
+_31/code.html:<h2 class="font-bold text-teal-800 text-sm">جمعية صناع الحياة</h2>
+_31/code.html:<h1 class="text-3xl font-extrabold font-headline text-on-surface tracking-tight mb-2">إدارة الحالات</h1>
+_32/code.html:<img alt="صورة الملف الشخصي للمسؤول" class="w-8 h-8 rounded-full border border-primary/20 object-cover ml-2" data-alt="Profile picture of a professional administrator" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdfue3sv17CW7kHuZdG1Vri-8uorWhmNfnXV9j5RIlSamERAscud_-NgZDhXiyhsjM30e77FBjd4lX9aOfMeK32AHkrpGmc1Okja4Jh19InlTZqigeoO0x2gfLzumEitYGC52z8Qyc2wmyRMc4FIdN6gaN3ZgnAdpVW6PO9O6vtWfKEyCNkUGGeN21jShPT8gJo_vnJ5klxIbJPiJ7fIgj_1Csuf32KrC4L368H_Y8jq3Dvfbb9CjgPOxrHy2cNHELVL2jQkLMIEQ"/>
+_32/code.html:<h1 class="text-4xl font-headline font-extrabold text-primary tracking-tight">لوحة تحكم النظام</h1>
+_32/code.html:<h2 class="text-xl font-headline font-bold text-on-surface">تم حفظ البيانات بنجاح</h2>
+_33/code.html:<h1 class="text-white font-bold text-lg">بناء الأمل</h1>
+_33/code.html:<h2 class="text-4xl font-headline font-extrabold text-primary mb-2">إدارة أنواع الخدمات</h2>
+_33/code.html:<h2 class="text-2xl font-headline font-bold text-primary">تعديل نوع الخدمة</h2>
+_34/code.html:<img class="w-full h-full object-cover" data-alt="صورة الملف الشخصي للمشرف" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEuZ7AqT2znpauqBdMSx5E7mfu4tOBo7Rzvp-1FRJSuU9MDBosbkAAoTnYqJ_uFpvpyqRRp7cWB5pYEEFagi1fOVNyjq9FkMiOP34tcssOfrUB4y7Tx_d5SpMj462NG5JdqstHecRISlgrEzv3zXH1ISGbbDL23EQNS5KFKYRB67o1p0Fbt5YVxJREOz4XoimUEYAH2HFmfF8r7jdPnr22oOWd6zO83TafK9yFX15e9EoQWDKhcB1svazL_UlWXkpBUD6gvy6dQ_E"/>
+_34/code.html:<h1 class="text-white font-bold text-lg">بناء الأمل</h1>
+_34/code.html:<h2 class="text-3xl font-headline font-extrabold text-on-surface tracking-tight">إدارة المواقع</h2>
+_34/code.html:<h2 class="text-2xl font-headline font-bold text-on-surface">تعديل الموقع</h2>
+_34/code.html:<img class="w-full h-full object-cover" data-alt="خريطة حي المعادي القاهرة" data-location="Cairo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-BfNgz5O2GyFzu0WdGNJiNDKmIrVda8fJKRhpgyZMdMYzE__6or67rfdIbdNhFenqdPdpoy0CLpSAN5tPeRMeR7npsifgrXFnpuEtcabn5RqbgYMumMvBtLArg3SB71ggoBSbXl-D9eN9aoPFo56r8zZfW65-2iYZGfFafqwv89NmjKC3UcR-3ekyPTs26xOJH2vIUcUKLpO8DlSUGah9fVT6ilf9h0a4Na7cB5vef80JVt1oSuB94vxsTtNp7OqMPeowvRy3h_8"/>
+_35/code.html:<h1 class="text-2xl font-bold text-white tracking-tight">صناع الحياة</h1>
+_35/code.html:<h2 class="text-lg font-semibold text-emerald-900">نظام إدارة الحالات</h2>
+_35/code.html:<h1 class="text-3xl font-extrabold text-on-surface font-headline tracking-tight mb-2">إدارة أنواع الوثائق</h1>
+_36/code.html:<h1 class="text-lg font-semibold text-emerald-900">نظام إدارة الحالات</h1>
+_36/code.html:<h2 class="text-4xl font-extrabold text-on-surface font-headline tracking-tight">طابور الاستجابة العاجلة</h2>
+_36/code.html:<img alt="صورة الموظف" class="w-6 h-6 rounded-full border border-surface-variant" data-alt="Staff member avatar for Mariam Ali" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVst0qc8FM_95O-AYy7VcppU1p_qDPCAGvBxp7VH2zSb5V4dC-Pui9N-CDgZCctJN8Vf6ES8kvk3tP9n0KMDWG8XEyD6lx5d7IbeQLwx7nUH7PRAAvQtjidwfnJUGc1gwjkreH3SUr3FqjuqJ4z8VNhj8Ub8OeTKX7SEtSIfWCla9ONuDtCGCOiiM1LYPoZ8Z6yfYPWVYn3vcYrQD9hoHORHAFmf3p5yNOTkt8pYaDO7sg-QVACPL7Gh_SRJ4bHOQytF2VDQdz4oA"/>
+_36/code.html:<img alt="صورة الموظف" class="w-6 h-6 rounded-full border border-surface-variant" data-alt="Staff member avatar for Youssef Omar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlMkMEDev6AmApmC4wETE6iirY-bdth1ZU3pQQO1l2tfIcBqfBcieOoHdljGnSNFy08gybjIRmX-NBclcvyNVHb1VyokV0I1DjXSvaUA38DzeDghSRkrO_XiS3DZp_BvgUkeBq9AI-oRIBtiumOnWN94AXPLSxGWQwNspcN7y-be3B1r7E9Jjeq9eLlEbkNrRJd0HLi6oHUu7xyzdXiQjtEycgW7yqQXCaFHlwMca79yRjehupS2Y9PKJm3irCXGHYd-Wm_7X39PA"/>
+_37/code.html:<h1 class="text-2xl font-bold text-white tracking-tight">صناع الحياة</h1>
+_37/code.html:<h2 class="text-lg font-semibold text-emerald-900">نظام إدارة الحالات</h2>
+_37/code.html:<h1 class="text-3xl font-extrabold text-on-surface font-headline tracking-tight mb-2">إدارة أنواع الوثائق</h1>
+403_1/code.html:<h1 class="text-4xl md:text-6xl font-extrabold font-headline text-primary leading-tight">
+403_1/code.html:                </h1>
+403_2/code.html:<h1 class="text-4xl md:text-6xl font-extrabold font-headline text-primary leading-tight">
+403_2/code.html:                </h1>
+500/code.html:<h1 class="text-5xl lg:text-7xl font-headline font-extrabold text-primary leading-tight">
+500/code.html:</h1>
+500/code.html:<img alt="Empty room with minimalist broken geometry" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-multiply grayscale" data-alt="Modern minimalist illustration of a technical error" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBx9xK_cqT70kiRnuat93MdeWBc9MBk9oa-5Vk0Cjex_QCU82TLWdH9Pz3LkkFZ8ObSJ5VIpXcbiuHViKFvEHGW8AFjumZxvBUzvfk7YdX8Xgr7Vq-Dokw8x0yDH1Jf8hWbjy6YNU5sX6LjtggRBKPClkZAiBogYccQuV4qPectSvjZuw5lupFw9MUL2TZfaJ196IXTj2il_dlDpkMZgKq-Nwa7Ft4IlZ_HkJfJSNMdnZWAhWDBtzJ5RhYC1HXlUiC4v10iTs2PhLY"/>

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import PublicHeader from "@/components/layout/PublicHeader";
 import PublicFooter from "@/components/layout/PublicFooter";
 import Link from "next/link";
@@ -14,7 +14,7 @@ async function getCmsData(): Promise<{
 }> {
   try {
     const res = await fetch(`${API_URL}/cms/public`, {
-      next: { revalidate: 300 },
+      next: { revalidate: 0 },
     });
     if (!res.ok) throw new Error("failed");
     const data = await res.json();
@@ -40,14 +40,14 @@ export default async function ProjectsPage() {
           <div className="absolute top-0 left-0 w-80 h-80 bg-[#fcb900]/20 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2"></div>
           <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
             <span className="text-sm font-bold bg-white/10 px-4 py-1.5 rounded-full inline-block mb-4 border border-white/20">
-              أعمالنا على الأرض
+              ط£ط¹ظ…ط§ظ„ظ†ط§ ط¹ظ„ظ‰ ط§ظ„ط£ط±ط¶
             </span>
             <h1 className="text-3xl md:text-5xl font-bold font-headline mb-6">
-              الخدمات والمشاريع التنموية
+              ط§ظ„ط®ط¯ظ…ط§طھ ظˆط§ظ„ظ…ط´ط§ط±ظٹط¹ ط§ظ„طھظ†ظ…ظˆظٹط©
             </h1>
             <p className="text-primary-container text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-              جهود مستمرة لتوظيف التبرعات في مكانها الصحيح لبناء الإنسان
-              وتمكينه من العيش بكرامة عبر برامج مستدامة وحملات دورية.
+              ط¬ظ‡ظˆط¯ ظ…ط³طھظ…ط±ط© ظ„طھظˆط¸ظٹظپ ط§ظ„طھط¨ط±ط¹ط§طھ ظپظٹ ظ…ظƒط§ظ†ظ‡ط§ ط§ظ„طµط­ظٹط­ ظ„ط¨ظ†ط§ط، ط§ظ„ط¥ظ†ط³ط§ظ†
+              ظˆطھظ…ظƒظٹظ†ظ‡ ظ…ظ† ط§ظ„ط¹ظٹط´ ط¨ظƒط±ط§ظ…ط© ط¹ط¨ط± ط¨ط±ط§ظ…ط¬ ظ…ط³طھط¯ط§ظ…ط© ظˆط­ظ…ظ„ط§طھ ط¯ظˆط±ظٹط©.
             </p>
           </div>
         </section>
@@ -59,10 +59,10 @@ export default async function ProjectsPage() {
               <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12 border-b border-outline-variant/20 pb-6">
                 <div>
                   <h2 className="text-3xl font-bold font-headline text-on-surface mb-2">
-                    الحملات والمشاريع الجارية
+                    ط§ظ„ط­ظ…ظ„ط§طھ ظˆط§ظ„ظ…ط´ط§ط±ظٹط¹ ط§ظ„ط¬ط§ط±ظٹط©
                   </h2>
                   <p className="text-on-surface-variant">
-                    الفرص المتاحة للمساهمة والتبرع الآن لدعم خطط الفرع القادمة.
+                    ط§ظ„ظپط±طµ ط§ظ„ظ…طھط§ط­ط© ظ„ظ„ظ…ط³ط§ظ‡ظ…ط© ظˆط§ظ„طھط¨ط±ط¹ ط§ظ„ط¢ظ† ظ„ط¯ط¹ظ… ط®ط·ط· ط§ظ„ظپط±ط¹ ط§ظ„ظ‚ط§ط¯ظ…ط©.
                   </p>
                 </div>
               </div>
@@ -104,7 +104,7 @@ export default async function ProjectsPage() {
 
                         <div className="space-y-4">
                           <div className="flex justify-between text-sm mb-1 font-bold">
-                            <span className="text-on-surface-variant">نسبة الإنجاز</span>
+                            <span className="text-on-surface-variant">ظ†ط³ط¨ط© ط§ظ„ط¥ظ†ط¬ط§ط²</span>
                             <span className={textColor} dir="ltr">
                               {percentage}%
                             </span>
@@ -120,13 +120,13 @@ export default async function ProjectsPage() {
                           </div>
                           <div className="flex justify-between text-xs text-on-surface-variant font-bold">
                             <div className="flex flex-col">
-                              <span className="font-normal text-[10px]">الهدف</span>
+                              <span className="font-normal text-[10px]">ط§ظ„ظ‡ط¯ظپ</span>
                               <span dir="ltr">
                                 {campaign.target.toLocaleString()} EGP
                               </span>
                             </div>
                             <div className="flex flex-col text-left">
-                              <span className="font-normal text-[10px]">تم جمعه</span>
+                              <span className="font-normal text-[10px]">طھظ… ط¬ظ…ط¹ظ‡</span>
                               <span dir="ltr">
                                 {campaign.raised.toLocaleString()} EGP
                               </span>
@@ -135,7 +135,7 @@ export default async function ProjectsPage() {
                         </div>
 
                         <button className="w-full mt-6 py-3 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-xl font-bold transition-colors">
-                          تبرع الآن
+                          طھط¨ط±ط¹ ط§ظ„ط¢ظ†
                         </button>
                       </div>
                     </div>
@@ -152,12 +152,12 @@ export default async function ProjectsPage() {
             <div className="max-w-7xl mx-auto px-6">
               <div className="text-center mb-16">
                 <h2 className="text-3xl font-bold font-headline text-on-surface mb-2">
-                  برامجنا الرئيسية
+                  ط¨ط±ط§ظ…ط¬ظ†ط§ ط§ظ„ط±ط¦ظٹط³ظٹط©
                 </h2>
                 <div className="w-20 h-1 bg-[#fcb900] mx-auto rounded-full mt-4 mb-4"></div>
                 <p className="text-on-surface-variant max-w-2xl mx-auto">
-                  نقدم حزمة متكاملة من الخدمات التنموية المصممة لانتشال الأسر من
-                  دائرة الفقر وتوفير احتياجاتهم بحلول علمية مدروسة.
+                  ظ†ظ‚ط¯ظ… ط­ط²ظ…ط© ظ…طھظƒط§ظ…ظ„ط© ظ…ظ† ط§ظ„ط®ط¯ظ…ط§طھ ط§ظ„طھظ†ظ…ظˆظٹط© ط§ظ„ظ…طµظ…ظ…ط© ظ„ط§ظ†طھط´ط§ظ„ ط§ظ„ط£ط³ط± ظ…ظ†
+                  ط¯ط§ط¦ط±ط© ط§ظ„ظپظ‚ط± ظˆطھظˆظپظٹط± ط§ط­طھظٹط§ط¬ط§طھظ‡ظ… ط¨ط­ظ„ظˆظ„ ط¹ظ„ظ…ظٹط© ظ…ط¯ط±ظˆط³ط©.
                 </p>
               </div>
 
@@ -194,12 +194,12 @@ export default async function ProjectsPage() {
           <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-right">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold font-headline mb-2">
-                تحتاج إلى مساعدة أو دعم؟
+                طھط­طھط§ط¬ ط¥ظ„ظ‰ ظ…ط³ط§ط¹ط¯ط© ط£ظˆ ط¯ط¹ظ…طں
               </h2>
               <p className="text-white/70 max-w-xl">
-                إذا كنت أو أي شخص تعرفه في حاجة إلى إحدى الخدمات المذكورة،
-                يمكنك تقديم طلب إلكتروني فوراً ليقوم فريق البحث الميداني
-                بزيارتك وتقييم الحالة.
+                ط¥ط°ط§ ظƒظ†طھ ط£ظˆ ط£ظٹ ط´ط®طµ طھط¹ط±ظپظ‡ ظپظٹ ط­ط§ط¬ط© ط¥ظ„ظ‰ ط¥ط­ط¯ظ‰ ط§ظ„ط®ط¯ظ…ط§طھ ط§ظ„ظ…ط°ظƒظˆط±ط©طŒ
+                ظٹظ…ظƒظ†ظƒ طھظ‚ط¯ظٹظ… ط·ظ„ط¨ ط¥ظ„ظƒطھط±ظˆظ†ظٹ ظپظˆط±ط§ظ‹ ظ„ظٹظ‚ظˆظ… ظپط±ظٹظ‚ ط§ظ„ط¨ط­ط« ط§ظ„ظ…ظٹط¯ط§ظ†ظٹ
+                ط¨ط²ظٹط§ط±طھظƒ ظˆطھظ‚ظٹظٹظ… ط§ظ„ط­ط§ظ„ط©.
               </p>
             </div>
             <Link
@@ -207,7 +207,7 @@ export default async function ProjectsPage() {
               className="px-8 py-4 bg-[#fcb900] text-[#0b2841] hover:bg-[#e5a800] rounded-xl font-bold text-lg transition-colors shadow-lg flex items-center gap-2 flex-shrink-0 whitespace-nowrap"
             >
               <span className="material-symbols-outlined">description</span>
-              تقديم طلب مساعدة
+              طھظ‚ط¯ظٹظ… ط·ظ„ط¨ ظ…ط³ط§ط¹ط¯ط©
             </Link>
           </div>
         </section>
@@ -217,3 +217,4 @@ export default async function ProjectsPage() {
     </div>
   );
 }
+
