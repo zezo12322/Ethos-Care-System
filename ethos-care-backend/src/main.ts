@@ -12,7 +12,6 @@ function getCorsOrigins(): string[] | true {
       'https://lifemakers-bns.com',
       'https://www.lifemakers-bns.com',
       'https://ethos-care-system.vercel.app',
-      'https://ethos-care-system-production.up.railway.app',
     ];
   }
   if (origins === '*') return true;
