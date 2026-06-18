@@ -241,7 +241,7 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
       <Section title="بيانات السكن">
         <DetailGrid
           items={[
-            { label: "وصف حالة السكن", value: formData?.housing.description },
+            { label: "عدد الغرف", value: formData?.housing.roomsCount },
             { label: "طبيعة السكن", value: formData?.housing.residencyType },
             {
               label: "قيمة الإيجار",
@@ -260,7 +260,7 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
             { label: "الثلاجة", value: formData?.housing.fridge },
             { label: "الغسالة", value: formData?.housing.washingMachine },
             { label: "فرن خبيز", value: formData?.housing.oven },
-            { label: "حاسب آلي", value: formData?.housing.computer },
+            { label: "كومبيوتر", value: formData?.housing.computer },
             { label: "إنترنت", value: formData?.housing.internet },
           ]}
         />
@@ -413,6 +413,16 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
                       <div className="text-sm font-bold text-on-surface">
                         {item.name}
                       </div>
+                      {item.connectionType ? (
+                        <div className="mt-2 text-xs text-on-surface-variant">
+                          المقايسة - نوع الوصلة: {item.connectionType}
+                        </div>
+                      ) : null}
+                      {item.courtRuling ? (
+                        <div className="mt-2 text-xs text-on-surface-variant">
+                          يوجد حكم قضائي: {item.courtRuling}
+                        </div>
+                      ) : null}
                       <div className="mt-2 text-xs text-on-surface-variant">
                         الوصف: {item.notes || "لا يوجد"}
                       </div>
@@ -467,7 +477,7 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
         </div>
         {formData?.support.disabilitySupportType ? (
           <div className="mt-4 rounded-2xl border border-outline-variant/30 bg-white px-4 py-3">
-            <div className="text-xs text-on-surface-variant">دعم للإعاقات ذوي الهمم</div>
+            <div className="text-xs text-on-surface-variant">دعم ذوي الإعاقة</div>
             <div className="mt-1 text-sm font-bold text-on-surface">
               {formData.support.disabilitySupportType}
             </div>

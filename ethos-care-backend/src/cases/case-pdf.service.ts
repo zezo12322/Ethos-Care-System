@@ -350,7 +350,7 @@ export class CasePdfService {
         'بيانات السكن',
         `
           <div class="grid-2">
-            ${this.renderDetailCard('وصف حالة السكن', this.valueOf(housing.description))}
+            ${this.renderDetailCard('عدد الغرف', this.valueOf(housing.roomsCount))}
             ${this.renderDetailCard('طبيعة السكن', this.valueOf(housing.residencyType))}
             ${this.renderDetailCard(
               'قيمة الإيجار',
@@ -368,7 +368,7 @@ export class CasePdfService {
             ${this.renderDetailCard('الثلاجة', this.valueOf(housing.fridge))}
             ${this.renderDetailCard('الغسالة', this.valueOf(housing.washingMachine))}
             ${this.renderDetailCard('فرن خبيز', this.valueOf(housing.oven))}
-            ${this.renderDetailCard('حاسب آلي', this.valueOf(housing.computer))}
+            ${this.renderDetailCard('كومبيوتر', this.valueOf(housing.computer))}
             ${this.renderDetailCard('إنترنت', this.valueOf(housing.internet))}
           </div>
           <div class="grid-2" style="margin-top: 12px;">
@@ -455,6 +455,16 @@ export class CasePdfService {
                                 <div class="card">
                                   <small>${this.escapeHtml(this.valueOf(itemRecord.category))}</small>
                                   <strong>${this.escapeHtml(this.valueOf(itemRecord.name))}</strong>
+                                  ${
+                                    this.getString(itemRecord.connectionType)
+                                      ? `<div style="margin-top: 6px;">المقايسة - نوع الوصلة: ${this.escapeHtml(this.valueOf(itemRecord.connectionType))}</div>`
+                                      : ''
+                                  }
+                                  ${
+                                    this.getString(itemRecord.courtRuling)
+                                      ? `<div style="margin-top: 6px;">يوجد حكم قضائي: ${this.escapeHtml(this.valueOf(itemRecord.courtRuling))}</div>`
+                                      : ''
+                                  }
                                   <div style="margin-top: 6px;">الوصف: ${this.escapeHtml(this.valueOf(itemRecord.notes, 'لا يوجد'))}</div>
                                   <div>التكلفة: ${this.escapeHtml(this.valueOf(itemRecord.cost, 'غير محددة'))}</div>
                                 </div>
@@ -491,7 +501,7 @@ export class CasePdfService {
           ${
             this.getString(support.disabilitySupportType)
               ? `<div class="text-box" style="margin-top: 12px;">
-                  <div class="muted">دعم للإعاقات ذوي الهمم</div>
+                  <div class="muted">دعم ذوي الإعاقة</div>
                   <div><strong>${this.escapeHtml(this.valueOf(support.disabilitySupportType))}</strong></div>
                   <div style="margin-top: 6px;">${this.escapeHtml(this.valueOf(support.disabilitySupportDescription, 'لا يوجد وصف'))}</div>
                   <div style="margin-top: 4px;">التكلفة: ${this.escapeHtml(this.valueOf(support.disabilitySupportCost, 'غير محددة'))}</div>

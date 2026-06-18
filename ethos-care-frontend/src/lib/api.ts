@@ -2,7 +2,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://ethos-care-system-production.up.railway.app/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://lifemakers-g4d7gpa6f4g6egas.uaenorth-01.azurewebsites.net/api",
   headers: {
     "Content-Type": "application/json",
   },

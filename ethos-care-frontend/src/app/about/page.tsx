@@ -5,7 +5,7 @@ import Link from "next/link";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  "https://ethos-care-system-production.up.railway.app/api";
+  "https://lifemakers-g4d7gpa6f4g6egas.uaenorth-01.azurewebsites.net/api";
 
 async function getCmsContent(): Promise<Record<string, string>> {
   try {

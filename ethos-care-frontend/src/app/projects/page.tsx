@@ -6,7 +6,7 @@ import type { Campaign, Program } from "@/services/cms.service";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  "https://ethos-care-system-production.up.railway.app/api";
+  "https://lifemakers-g4d7gpa6f4g6egas.uaenorth-01.azurewebsites.net/api";
 
 async function getCmsData(): Promise<{
   campaigns: Campaign[];

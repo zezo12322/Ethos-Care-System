@@ -120,7 +120,7 @@ export default function CasesPage() {
               <option value="الكل">جميع أنواع التدخل</option>
               <option value="تمكين اقتصادي">تمكين اقتصادي</option>
               <option value="تدخل طبي">تدخل طبي</option>
-              <option value="سكن كريم">سكن كريم</option>
+              <option value="سقف">سقف</option>
               <option value="تعليم">تعليم</option>
             </select>
             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="bg-surface-container-lowest border border-outline-variant/50 text-sm rounded-lg px-3 py-2 outline-none focus:border-primary">
