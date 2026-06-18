@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(grep -E \"\\\\.\\(env|json|ts|js\\)$\")",
-      "Bash(git push *)"
-    ]
-  }
-}
