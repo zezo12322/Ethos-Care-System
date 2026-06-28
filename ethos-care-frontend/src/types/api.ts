@@ -66,6 +66,10 @@ export interface CaseIntakeSupportItem {
   selected: boolean;
   notes?: string;
   cost?: string;
+  // نوع وصلة المياه (فردية / خط رئيسي) — يظهر عند اختيار "وصلة مياه"
+  connectionType?: string;
+  // هل يوجد حكم قضائي (نعم / لا) — يظهر عند اختيار "قرض"
+  courtRuling?: string;
 }
 
 export interface CaseIntakeFormData {
@@ -121,6 +125,7 @@ export interface CaseIntakeFormData {
     rentAmount: string;
     transport: string[];
     rooms: CaseIntakeHousingRoom[];
+    roomsCount: string;
     dataComplete: boolean;
   };
   possessions: {

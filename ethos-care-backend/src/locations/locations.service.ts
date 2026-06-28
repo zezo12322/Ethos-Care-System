@@ -18,7 +18,22 @@ export class LocationsService {
   }
 
   async create(data: CreateLocationDto) {
-    return this.prisma.location.create({ data });
+    const name = data.name?.trim() ?? '';
+    const type = data.type?.trim() || 'قرية';
+    const region = (data.region ?? '').trim();
+
+    // منع التكرار: لو فيه موقع بنفس الاسم والنوع والمنطقة، رجّعه بدل إنشاء نسخة جديدة.
+    // ده بيوقف تزايد عدد القرى لو أي مسار حاول يضيف نفس القرية أكتر من مرة.
+    const existing = await this.prisma.location.findFirst({
+      where: { name, type, region },
+    });
+    if (existing) {
+      return existing;
+    }
+
+    return this.prisma.location.create({
+      data: { ...data, name, type, region },
+    });
   }
 
   async update(id: string, data: UpdateLocationDto) {

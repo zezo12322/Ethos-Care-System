@@ -8,7 +8,7 @@ import { FormEvent, useState, useEffect } from "react";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  "https://ethos-care-system-production.up.railway.app/api";
+  "https://lifemakers-g4d7gpa6f4g6egas.uaenorth-01.azurewebsites.net/api";
 
 export default function ContactPage() {
   const [contactInfo, setContactInfo] = useState({

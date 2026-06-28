@@ -8,7 +8,6 @@ import { casesService, CreateCaseDto } from "@/services/cases.service";
 import {
   CaseIntakeFamilyMember,
   CaseIntakeFormData,
-  CaseIntakeHousingRoom,
   CaseIntakePossessionItem,
   CaseIntakeSupportItem,
   CaseRecord,
@@ -29,6 +28,7 @@ type ManagerDecision = "PENDING" | "APPROVE" | "RETURN" | "REJECT";
 
 interface CaseFormDraft {
   caseType: string;
+  caseTypes: string[];
   priority: CasePriority;
   description: string;
   formData: CaseIntakeFormData;
@@ -56,13 +56,27 @@ interface SectionCardProps {
 const CASE_TYPES = [
   "مساعدة مالية",
   "دعم منزلي",
-  "سكن كريم",
+  "سقف",
   "دعم طبي",
   "منح دراسية",
   "تمكين اقتصادي",
   "مواد غذائية",
   "مرافق وخدمات",
+  "تجهيز عرائس",
 ] as const;
+
+// خريطة ربط نوع الدعم/التدخل بأقسام الدعم التي تظهر له (إظهار المرتبط فقط)
+const CASE_TYPE_TO_SUPPORT_CATEGORIES: Record<string, string[]> = {
+  "مساعدة مالية": ["المساعدات المالية"],
+  "دعم منزلي": ["الدعم المنزلي"],
+  سقف: ["الدعم المنزلي"],
+  "دعم طبي": ["دعم طبي"],
+  "منح دراسية": ["المنح الدراسية"],
+  "تمكين اقتصادي": ["المساعدات المالية"],
+  "مواد غذائية": ["دعم موسمي"],
+  "مرافق وخدمات": ["المرافق"],
+  "تجهيز عرائس": ["تجهيز عرائس"],
+};
 
 const RELIGIONS = ["مسلم", "مسيحي"] as const;
 const PRIORITY_OPTIONS: Array<{ label: string; value: CasePriority }> = [
@@ -96,6 +110,7 @@ const RELATION_OPTIONS = [
 ] as const;
 
 const EDUCATION_STATES = [
+  "طفل",
   "غير متعلم",
   "محو أمية",
   "حاصل على الابتدائية",
@@ -135,7 +150,7 @@ const ATTACHMENT_OPTIONS = [
 ] as const;
 
 const RESIDENCY_TYPES = ["خاص", "إيجار", "منزل عائلة"] as const;
-const ROOF_OPTIONS = ["مسلح", "خشب", "صاج", "جريد"] as const;
+const ROOF_OPTIONS = ["لا يوجد", "مسلح", "خشب", "صاج", "جريد"] as const;
 const FLOOR_OPTIONS = ["تراب", "أسمنت", "بلاط", "سيراميك"] as const;
 const ENTRANCE_OPTIONS = ["تراب", "أسمنت", "بلاط", "سيراميك", "رخام"] as const;
 const WALL_OPTIONS = ["طوب أحمر", "بلوك", "محارة", "دهان", "طوب لبن"] as const;
@@ -186,7 +201,7 @@ const CLASSIFICATION_OPTIONS = [
   "تكافل وكرامة",
   "مسجون/غارمين",
   "أمراض مزمنة",
-  "ذوي همم",
+  "ذوي إعاقة",
 ] as const;
 
 const CLASSIFICATION_DEGREES = [
@@ -198,7 +213,7 @@ const CLASSIFICATION_DEGREES = [
 const SUPPORT_CATALOG: Array<{ category: string; items: string[] }> = [
   {
     category: "المساعدات المالية",
-    items: ["مساعدة مالية شهرية", "مساعدة مالية طارئة", "سداد إيجار"],
+    items: ["مساعدة مالية شهرية", "قرض", "سداد إيجار"],
   },
   {
     category: "دعم طبي",
@@ -206,7 +221,7 @@ const SUPPORT_CATALOG: Array<{ category: string; items: string[] }> = [
   },
   {
     category: "المرافق",
-    items: ["توصيل مياه", "توصيل كهرباء"],
+    items: ["وصلة مياه", "توصيل كهرباء"],
   },
   {
     category: "المنح الدراسية",
@@ -225,6 +240,10 @@ const SUPPORT_CATALOG: Array<{ category: string; items: string[] }> = [
   {
     category: "دعم موسمي",
     items: ["سلة غذائية", "لحوم", "كسوة موسمية", "معارض كساء"],
+  },
+  {
+    category: "تجهيز عرائس",
+    items: ["تجهيز عرائس"],
   },
 ];
 
@@ -297,7 +316,29 @@ function normalizeCaseType(value?: string | null) {
   if (value === "تدخل طبي") return "دعم طبي";
   if (value === "تعليم") return "منح دراسية";
   if (value === "أجهزة تعويضية") return "دعم طبي";
+  if (value === "سكن كريم") return "سقف";
   return value || "مساعدة مالية";
+}
+
+// نوع الدعم/التدخل أصبح اختيارًا متعددًا: نخزّنه نصًا مفصولًا ونحوّله لمصفوفة عند العرض
+const CASE_TYPE_SEPARATOR = "، ";
+
+function parseCaseTypes(value?: string | null): string[] {
+  if (!value) {
+    return [];
+  }
+  return Array.from(
+    new Set(
+      value
+        .split(/[،,]/)
+        .map((item) => normalizeCaseType(item.trim()))
+        .filter(Boolean),
+    ),
+  );
+}
+
+function joinCaseTypes(values: string[]): string {
+  return values.filter(Boolean).join(CASE_TYPE_SEPARATOR);
 }
 
 function normalizeEducationState(value?: string | null) {
@@ -444,10 +485,22 @@ function buildInitialFormData(
   const village =
     existing?.person.village ?? caseRecord?.family?.village ?? parsedRegion.village;
 
+  const parsedCaseTypes = parseCaseTypes(caseRecord?.caseType);
+  const normalizedCaseTypes =
+    parsedCaseTypes.length > 0 ? parsedCaseTypes : ["مساعدة مالية"];
+
+  // دمج ملخص الحالة القديم مع ملاحظات الباحث في خانة واحدة دون فقدان أي منهما
+  const baseDescription = caseRecord?.description ?? "";
+  const existingNotes = existing?.support.specialistNotes ?? "";
+  const mergedDescription = Array.from(
+    new Set([baseDescription, existingNotes].map((v) => v.trim()).filter(Boolean)),
+  ).join("\n");
+
   return {
-    caseType: normalizeCaseType(caseRecord?.caseType),
+    caseType: joinCaseTypes(normalizedCaseTypes),
+    caseTypes: normalizedCaseTypes,
     priority: (caseRecord?.priority as CasePriority | undefined) ?? "NORMAL",
-    description: caseRecord?.description ?? "",
+    description: mergedDescription,
     formData: {
       person: {
         fullName:
@@ -530,6 +583,11 @@ function buildInitialFormData(
           "0",
         transport: existing?.housing.transport ?? [],
         rooms: existing?.housing.rooms ?? [],
+        roomsCount:
+          existing?.housing.roomsCount ??
+          (existing?.housing.rooms?.length
+            ? String(existing.housing.rooms.length)
+            : ""),
         dataComplete: existing?.housing.dataComplete ?? false,
       },
       possessions: {
@@ -558,7 +616,7 @@ function buildInitialFormData(
       support: {
         items: mergeSupportItems(existing?.support.items),
         specialistName: existing?.support.specialistName ?? currentUserName,
-        specialistNotes: existing?.support.specialistNotes ?? "",
+        specialistNotes: mergedDescription,
         specialistOpinion:
           existing?.support.specialistOpinion ?? RESEARCHER_OPINIONS[0],
         managerDecision:
@@ -643,7 +701,7 @@ export default function CaseIntakeForm({
     (source: CaseFormDraft): CreateCaseDto => ({
       applicantName: source.formData.person.fullName.trim(),
       nationalId: source.formData.person.nationalId.trim() || undefined,
-      caseType: source.caseType.trim(),
+      caseType: joinCaseTypes(source.caseTypes),
       priority: source.priority,
       description: source.description.trim() || undefined,
       location:
@@ -665,6 +723,8 @@ export default function CaseIntakeForm({
           ...source.formData.support,
           specialistName:
             source.formData.support.specialistName || currentUserName,
+          // ملخص الحالة/الاحتياج مدمج في ملاحظات الباحث (خانة واحدة)
+          specialistNotes: source.description.trim(),
         },
       },
     }),
@@ -695,7 +755,23 @@ export default function CaseIntakeForm({
 
   const [draft, setDraft] = useState<CaseFormDraft>(() => {
     const local = loadDraft();
-    if (local) return local;
+    if (local) {
+      // حماية المسودّات القديمة المحفوظة قبل إضافة الاختيار المتعدد وعدد الغرف
+      return {
+        ...local,
+        caseTypes:
+          local.caseTypes && local.caseTypes.length > 0
+            ? local.caseTypes
+            : parseCaseTypes(local.caseType),
+        formData: {
+          ...local.formData,
+          housing: {
+            ...local.formData.housing,
+            roomsCount: local.formData.housing.roomsCount ?? "",
+          },
+        },
+      };
+    }
     return buildInitialFormData(caseRecord, currentUserName);
   });
   const [sectionsOpen, setSectionsOpen] = useState<Record<string, boolean>>(
@@ -1011,12 +1087,29 @@ export default function CaseIntakeForm({
     locations,
   ]);
 
-  const selectedSupportByCategory = SUPPORT_CATALOG.map((category) => ({
+  // الأقسام التي تظهر تبعًا لأنواع الدعم/التدخل المختارة (إظهار المرتبط فقط)
+  const visibleSupportCategories = useMemo(() => {
+    const set = new Set<string>();
+    draft.caseTypes.forEach((type) => {
+      (CASE_TYPE_TO_SUPPORT_CATEGORIES[type] ?? []).forEach((category) =>
+        set.add(category),
+      );
+    });
+    return set;
+  }, [draft.caseTypes]);
+
+  const selectedSupportByCategory = SUPPORT_CATALOG.filter((category) =>
+    visibleSupportCategories.has(category.category),
+  ).map((category) => ({
     ...category,
     items: draft.formData.support.items.filter(
       (item) => item.category === category.category,
     ),
   }));
+
+  // إظهار قسم دعم ذوي الإعاقة فقط عند تصنيف الحالة كذوي إعاقة
+  const showDisabilitySupport =
+    draft.formData.classification.tags.includes("ذوي إعاقة");
 
   const previousCases =
     caseRecord?.family?.cases?.filter((item) => item.id !== caseRecord.id) ?? [];
@@ -1222,33 +1315,6 @@ export default function CaseIntakeForm({
     );
   };
 
-  const addRoom = () => {
-    updateHousing("rooms", [
-      ...draft.formData.housing.rooms,
-      { id: createLocalId("room"), name: "", condition: "" },
-    ]);
-  };
-
-  const updateRoom = (
-    roomId: string,
-    key: keyof CaseIntakeHousingRoom,
-    value: string,
-  ) => {
-    updateHousing(
-      "rooms",
-      draft.formData.housing.rooms.map((room) =>
-        room.id === roomId ? { ...room, [key]: value } : room,
-      ),
-    );
-  };
-
-  const removeRoom = (roomId: string) => {
-    updateHousing(
-      "rooms",
-      draft.formData.housing.rooms.filter((room) => room.id !== roomId),
-    );
-  };
-
   const updatePossession = (
     itemId: string,
     key: keyof CaseIntakePossessionItem,
@@ -1287,6 +1353,19 @@ export default function CaseIntakeForm({
     );
   };
 
+  const toggleCaseType = (type: string) => {
+    setDraft((current) => {
+      const nextTypes = current.caseTypes.includes(type)
+        ? current.caseTypes.filter((item) => item !== type)
+        : [...current.caseTypes, type];
+      return {
+        ...current,
+        caseTypes: nextTypes,
+        caseType: joinCaseTypes(nextTypes),
+      };
+    });
+  };
+
   const submitForm = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -1300,7 +1379,7 @@ export default function CaseIntakeForm({
       return;
     }
 
-    if (!draft.caseType.trim()) {
+    if (draft.caseTypes.length === 0) {
       toast("يجب اختيار نوع الدعم أو التدخل.", "warning");
       return;
     }
@@ -1619,18 +1698,6 @@ export default function CaseIntakeForm({
             </>
           ) : null}
 
-          <label className="xl:col-span-3">
-            <span className="mb-2 block text-sm font-bold text-on-surface">
-              ملاحظات الدراسة
-            </span>
-            <input
-              value={draft.formData.person.educationNotes}
-              onChange={(event) => updatePerson("educationNotes", event.target.value)}
-              placeholder="ملاحظات إضافية"
-              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-            />
-          </label>
-
           <label className="xl:col-span-2">
             <span className="mb-2 block text-sm font-bold text-on-surface">
               المركز
@@ -1784,24 +1851,6 @@ export default function CaseIntakeForm({
               className="h-4 w-4 accent-primary"
             />
             الإعفاء من المصروفات
-          </label>
-
-          <label className="xl:col-span-6">
-            <span className="mb-2 block text-sm font-bold text-on-surface">
-              ملخص الحالة / الاحتياج
-            </span>
-            <textarea
-              rows={4}
-              value={draft.description}
-              onChange={(event) =>
-                setDraft((current) => ({
-                  ...current,
-                  description: event.target.value,
-                }))
-              }
-              placeholder="اكتب وصفًا واضحًا للاحتياج الحالي"
-              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-            />
           </label>
         </div>
       </SectionCard>
@@ -2130,19 +2179,6 @@ export default function CaseIntakeForm({
           </label>
         }
       >
-        <label className="block">
-          <span className="mb-2 block text-sm font-bold text-on-surface">
-            وصف حالة السكن
-          </span>
-          <textarea
-            rows={3}
-            value={draft.formData.housing.description}
-            onChange={(event) => updateHousing("description", event.target.value)}
-            placeholder="وصف حالة السكن"
-            className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-          />
-        </label>
-
         <div className="space-y-6">
           <div>
             <span className="mb-3 block text-sm font-bold text-on-surface">
@@ -2257,7 +2293,7 @@ export default function CaseIntakeForm({
                   fridge: "الثلاجة",
                   washingMachine: "الغسالة",
                   oven: "فرن خبيز",
-                  computer: "حاسب آلي",
+                  computer: "كومبيوتر",
                   internet: "إنترنت",
                 }[key]}
               </span>
@@ -2288,58 +2324,32 @@ export default function CaseIntakeForm({
           ))}
 
           <div className="space-y-4 rounded-3xl border border-outline-variant/20 p-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-bold text-on-surface">الغرف</h3>
-                <p className="text-sm text-on-surface-variant">
-                  أضف عدد الغرف وحالة كل غرفة.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={addRoom}
-                className="rounded-2xl bg-primary/10 px-4 py-2 text-sm font-bold text-primary"
-              >
-                أضف غرفة
-              </button>
+            <div>
+              <h3 className="text-lg font-bold text-on-surface">الغرف</h3>
+              <p className="text-sm text-on-surface-variant">
+                أدخل عدد الغرف فقط.
+              </p>
             </div>
 
-            <div className="space-y-3">
-              {draft.formData.housing.rooms.length === 0 ? (
-                <div className="rounded-2xl bg-surface-container-low px-4 py-4 text-sm text-on-surface-variant">
-                  لا توجد غرف مضافة.
-                </div>
-              ) : (
-                draft.formData.housing.rooms.map((room) => (
-                  <div
-                    key={room.id}
-                    className="grid gap-3 rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4 md:grid-cols-[1fr_1fr_auto]"
-                  >
-                    <input
-                      value={room.name}
-                      onChange={(event) => updateRoom(room.id, "name", event.target.value)}
-                      placeholder="اسم الغرفة"
-                      className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-                    />
-                    <input
-                      value={room.condition ?? ""}
-                      onChange={(event) =>
-                        updateRoom(room.id, "condition", event.target.value)
-                      }
-                      placeholder="الحالة / الملاحظات"
-                      className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeRoom(room.id)}
-                      className="rounded-2xl bg-error/10 px-4 py-3 text-sm font-bold text-error"
-                    >
-                      حذف
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
+            <label className="block max-w-xs">
+              <span className="mb-2 block text-sm font-bold text-on-surface">
+                عدد الغرف
+              </span>
+              <input
+                type="number"
+                min={0}
+                value={draft.formData.housing.roomsCount}
+                onChange={(event) =>
+                  updateHousing("roomsCount", event.target.value)
+                }
+                placeholder="عدد الغرف"
+                className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+              />
+            </label>
+
+            <p className="rounded-2xl bg-surface-container-low px-4 py-3 text-sm font-medium text-on-surface-variant">
+              يرجى وصف الغرف مع ملخص الحالة.
+            </p>
           </div>
         </div>
       </SectionCard>
@@ -2586,27 +2596,37 @@ export default function CaseIntakeForm({
         open={sectionsOpen.support}
         onToggle={toggleSection}
       >
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          <label className="block">
+        <div className="grid gap-5">
+          <div>
             <span className="mb-2 block text-sm font-bold text-on-surface">
-              نوع الدعم / التدخل
+              نوع الدعم / التدخل (اختيار متعدد)
             </span>
-            <select
-              value={draft.caseType}
-              onChange={(event) =>
-                setDraft((current) => ({ ...current, caseType: event.target.value }))
-              }
-              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-            >
+            <p className="mb-3 text-xs text-on-surface-variant">
+              اختر نوعًا أو أكثر، وستظهر الخانات الخاصة بكل نوع فقط بالأسفل.
+            </p>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {CASE_TYPES.map((item) => (
-                <option key={item} value={item}>
+                <label
+                  key={item}
+                  className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium ${
+                    draft.caseTypes.includes(item)
+                      ? "border-primary bg-primary/5 text-on-surface"
+                      : "border-outline-variant/40 bg-surface-container-low text-on-surface"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={draft.caseTypes.includes(item)}
+                    onChange={() => toggleCaseType(item)}
+                    className="h-4 w-4 accent-primary"
+                  />
                   {item}
-                </option>
+                </label>
               ))}
-            </select>
-          </label>
+            </div>
+          </div>
 
-          <div className="xl:col-span-2">
+          <div>
             <span className="mb-2 block text-sm font-bold text-on-surface">
               الأولوية
             </span>
@@ -2635,6 +2655,11 @@ export default function CaseIntakeForm({
         </div>
 
         <div className="space-y-6">
+          {draft.caseTypes.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-outline-variant/40 bg-surface-container-low px-4 py-6 text-center text-sm text-on-surface-variant">
+              اختر نوع الدعم / التدخل بالأعلى لتظهر الخانات الخاصة به.
+            </div>
+          ) : null}
           {selectedSupportByCategory.map((group) => (
             <div
               key={group.category}
@@ -2669,28 +2694,74 @@ export default function CaseIntakeForm({
                       {item.name}
                     </label>
                     {item.selected ? (
-                      <div className="mt-4 grid gap-3 md:grid-cols-2">
-                        <input
-                          value={item.notes ?? ""}
-                          onChange={(event) =>
-                            updateSupportItem(item.id, "notes", event.target.value)
-                          }
-                          placeholder={
-                            group.category === "المساعدات المالية" ||
-                            group.category === "الدعم المنزلي"
-                              ? "الوصف"
-                              : "ملاحظات"
-                          }
-                          className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-                        />
-                        <input
-                          value={item.cost ?? ""}
-                          onChange={(event) =>
-                            updateSupportItem(item.id, "cost", event.target.value)
-                          }
-                          placeholder="التكلفة"
-                          className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-                        />
+                      <div className="mt-4 space-y-3">
+                        {item.name === "وصلة مياه" ? (
+                          <label className="block">
+                            <span className="mb-2 block text-sm font-medium text-on-surface">
+                              المقايسة - نوع الوصلة
+                            </span>
+                            <select
+                              value={item.connectionType ?? ""}
+                              onChange={(event) =>
+                                updateSupportItem(
+                                  item.id,
+                                  "connectionType",
+                                  event.target.value,
+                                )
+                              }
+                              className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                            >
+                              <option value="">اختر نوع الوصلة</option>
+                              <option value="فردية">فردية</option>
+                              <option value="خط رئيسي">خط رئيسي</option>
+                            </select>
+                          </label>
+                        ) : null}
+                        {item.name === "قرض" ? (
+                          <label className="block">
+                            <span className="mb-2 block text-sm font-medium text-on-surface">
+                              هل يوجد حكم قضائي؟
+                            </span>
+                            <select
+                              value={item.courtRuling ?? ""}
+                              onChange={(event) =>
+                                updateSupportItem(
+                                  item.id,
+                                  "courtRuling",
+                                  event.target.value,
+                                )
+                              }
+                              className="w-full rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                            >
+                              <option value="">اختر</option>
+                              <option value="نعم">نعم</option>
+                              <option value="لا">لا</option>
+                            </select>
+                          </label>
+                        ) : null}
+                        <div className="grid gap-3 md:grid-cols-2">
+                          <input
+                            value={item.notes ?? ""}
+                            onChange={(event) =>
+                              updateSupportItem(item.id, "notes", event.target.value)
+                            }
+                            placeholder={
+                              group.category === "المساعدات المالية" ||
+                              group.category === "الدعم المنزلي"
+                                ? "الوصف"
+                                : "ملاحظات"
+                            }
+                            className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                          />
+                          <input
+                            value={item.cost ?? ""}
+                            onChange={(event) =>
+                              updateSupportItem(item.id, "cost", event.target.value)
+                            }
+                            placeholder="التكلفة"
+                            className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+                          />
+                        </div>
                       </div>
                     ) : null}
                   </div>
@@ -2699,9 +2770,10 @@ export default function CaseIntakeForm({
             </div>
           ))}
 
+          {showDisabilitySupport ? (
           <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest/60 p-4">
             <h3 className="mb-4 text-lg font-bold text-on-surface">
-              دعم للإعاقات ذوي الهمم
+              دعم ذوي الإعاقة
             </h3>
             <div className="grid gap-4 md:grid-cols-3">
               <label className="block">
@@ -2751,11 +2823,12 @@ export default function CaseIntakeForm({
               </label>
             </div>
           </div>
+          ) : null}
 
           <div className="grid gap-5 lg:grid-cols-2">
             <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest/60 p-5">
               <h3 className="mb-4 text-lg font-bold text-on-surface">
-                بيانات الباحث
+                ملخص الحالة وملاحظات الباحث
               </h3>
               <div className="grid gap-4">
                 <label className="block">
@@ -2788,14 +2861,25 @@ export default function CaseIntakeForm({
                 </label>
                 <label className="block">
                   <span className="mb-2 block text-sm font-bold text-on-surface">
-                    ملاحظات الباحث
+                    ملخص الحالة / الاحتياج وملاحظات الباحث
                   </span>
                   <textarea
-                    rows={4}
-                    value={draft.formData.support.specialistNotes}
+                    rows={6}
+                    value={draft.description}
                     onChange={(event) =>
-                      updateSupport("specialistNotes", event.target.value)
+                      setDraft((current) => ({
+                        ...current,
+                        description: event.target.value,
+                        formData: {
+                          ...current.formData,
+                          support: {
+                            ...current.formData.support,
+                            specialistNotes: event.target.value,
+                          },
+                        },
+                      }))
                     }
+                    placeholder="اكتب ملخص الحالة والاحتياج وملاحظات الباحث (مثال: وصف الغرف، تفاصيل إضافية...)"
                     className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
                   />
                 </label>
