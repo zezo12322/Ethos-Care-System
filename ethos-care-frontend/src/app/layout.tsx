@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/components/ui/Toast";
+import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -23,6 +24,7 @@ const cairo = Cairo({
 export const metadata: Metadata = {
   title: "أجيال صناع الحياة - نظام إدارة الحالات",
   description: "نظام إدارة الحالات والطلبات لجمعية أجيال صناع الحياة",
+  manifest: "/manifest.json",
   verification: {
     google: "Uk0KZwFWNzFNu8oGZ3ui1tn5HW8lHx_ppXACAHyIG0Y",
   },
@@ -36,6 +38,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className={`${jakarta.variable} ${cairo.variable} ${dinNext.variable}`}>
       <body className="min-h-screen bg-background font-body text-on-surface antialiased flex flex-col">
+        <ServiceWorkerRegistrar />
         <AuthProvider>
           <ToastProvider>{children}</ToastProvider>
         </AuthProvider>
