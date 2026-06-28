@@ -37,7 +37,7 @@ export default function FamilyDetailsPage() {
   }, [familyId]);
 
   if (loading) return <div className="p-8 text-center">جاري تحميل بيانات الأسرة...</div>;
-  if (!family) return <div className="p-8 text-center text-red-500">حدث خطأ أو لم يتم العثور على الأسرة</div>;
+  if (!family) return <div className="p-8 text-center text-error">حدث خطأ أو لم يتم العثور على الأسرة</div>;
 
 
   return (
@@ -50,20 +50,20 @@ export default function FamilyDetailsPage() {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold font-headline text-on-surface">أسرة / {family.headName || "بدون اسم"}</h1>
-              <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold font-body">{family.status || "مستحق"}</span>
+              <span className="px-3 py-1 bg-success/15 text-success rounded-full text-xs font-bold font-body">{family.status || "مستحق"}</span>
             </div>
             <p className="text-sm text-on-surface-variant font-bold tracking-widest" dir="ltr">{family.id || familyId}</p>
           </div>
         </div>
         <div className="flex gap-2">
-           <button className="px-4 py-2 bg-white border border-outline-variant/50 hover:bg-surface-container-lowest rounded-xl font-bold text-sm text-primary flex items-center gap-2 transition-colors">
-             <span className="material-symbols-outlined text-[18px]">edit</span>
+           <Link href={`/dashboard/families?edit=${family.id}`} className="px-4 py-2 bg-white border border-outline-variant/50 hover:bg-surface-container-lowest rounded-xl font-bold text-sm text-primary flex items-center gap-2 transition-colors">
+             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">edit</span>
              تعديل الملف
-           </button>
-           <button className="px-4 py-2 bg-primary text-white hover:bg-primary-container rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-md">
-             <span className="material-symbols-outlined text-[18px]">add</span>
+           </Link>
+           <Link href="/dashboard/cases/new" className="px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-md">
+             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">add</span>
              إضافة حالة (طلب جديد)
-           </button>
+           </Link>
         </div>
       </div>
 
@@ -75,11 +75,11 @@ export default function FamilyDetailsPage() {
           </div>
           <div>
             <p className="text-xs text-on-surface-variant">حجم الأسرة</p>
-            <p className="text-xl font-bold">{family.membersCount || 2} أفراد</p>
+            <p className="text-xl font-bold">{family.membersCount || 1} أفراد</p>
           </div>
         </div>
         <div className="bg-white rounded-2xl border border-outline-variant/30 p-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-tertiary/10 text-tertiary flex items-center justify-center">
             <span className="material-symbols-outlined">payments</span>
           </div>
           <div>
@@ -87,17 +87,17 @@ export default function FamilyDetailsPage() {
             <p className="text-xl font-bold" dir="ltr">{family.income || 0} EGP</p>
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-outline-variant/30 p-4 flex items-center gap-4 border-b-4 border-b-[#fcb900]">
-          <div className="w-12 h-12 rounded-xl bg-[#fcb900]/10 text-[#a37600] flex items-center justify-center">
+        <div className="bg-white rounded-2xl border border-outline-variant/30 p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-warning/10 text-warning flex items-center justify-center">
             <span className="material-symbols-outlined">star</span>
           </div>
           <div>
-            <p className="text-xs text-on-surface-variant">مستوى الحاجة (تقييم النظام)</p>
-            <p className="text-xl font-bold text-[#a37600]">{family.status === 'مستحق' ? 'مرتفع' : 'قيد الدراسة'}</p>
+            <p className="text-xs text-on-surface-variant">عدد الحالات المسجّلة</p>
+            <p className="text-xl font-bold text-warning">{family.cases?.length ?? 0}</p>
           </div>
         </div>
         <div className="bg-white rounded-2xl border border-outline-variant/30 p-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
             <span className="material-symbols-outlined">verified_user</span>
           </div>
           <div>
@@ -228,9 +228,15 @@ export default function FamilyDetailsPage() {
              <p className="text-sm leading-relaxed text-on-surface-variant mb-4 border-r-2 border-primary pr-3">
                الحالة الاجتماعية: {family.socialStatus} — {family.education ? `المؤهل: ${family.education}` : "بدون مؤهل مسجل"} — {family.job ? `الوظيفة: ${family.job}` : "بدون عمل مسجل"} — {family.income ? `الدخل التقريبي: ${family.income} ج.م` : "لا يوجد دخل مسجل"}
              </p>
-             <button className="w-full py-2 bg-white border border-outline-variant/50 hover:bg-surface-container-low rounded-xl font-bold flex items-center justify-center gap-2 text-sm transition-colors text-primary">
-               تنزيل استمارة البحث كاملة <span className="material-symbols-outlined text-[18px]">download</span>
-             </button>
+             {family.cases && family.cases.length > 0 ? (
+               <Link href={`/dashboard/cases/${family.cases[0].id}/print`} className="w-full py-2 bg-white border border-outline-variant/50 hover:bg-surface-container-low rounded-xl font-bold flex items-center justify-center gap-2 text-sm transition-colors text-primary">
+                 تنزيل استمارة البحث كاملة <span className="material-symbols-outlined text-[18px]" aria-hidden="true">download</span>
+               </Link>
+             ) : (
+               <button disabled className="w-full py-2 bg-white border border-outline-variant/50 rounded-xl font-bold flex items-center justify-center gap-2 text-sm text-on-surface-variant opacity-60 cursor-not-allowed">
+                 لا توجد حالة للطباعة <span className="material-symbols-outlined text-[18px]" aria-hidden="true">download</span>
+               </button>
+             )}
           </div>
         </div>
       </div>

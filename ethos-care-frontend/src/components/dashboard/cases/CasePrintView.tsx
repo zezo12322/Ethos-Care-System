@@ -60,10 +60,10 @@ function formatManagerDecision(value?: string) {
 
 export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
   const formData = caseRecord.formData;
-  const familyMembers = formData?.family.members ?? [];
-  const possessionItems = formData?.possessions.items ?? [];
+  const familyMembers = formData?.family?.members ?? [];
+  const possessionItems = formData?.possessions?.items ?? [];
   const selectedSupportItems =
-    formData?.support.items.filter((item) => item.selected) ?? [];
+    formData?.support?.items?.filter((item) => item.selected) ?? [];
   const selectedSupportGroups = Array.from(
     new Set(selectedSupportItems.map((item) => item.category)),
   ).map((category) => ({
@@ -338,7 +338,7 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
               الدخل
             </div>
             <div className="divide-y divide-outline-variant/10 bg-white">
-              {Object.entries(formData?.finance.incomes ?? {}).map(([label, value]) => (
+              {Object.entries(formData?.finance?.incomes ?? {}).map(([label, value]) => (
                 <div key={label} className="flex items-center justify-between px-4 py-3 text-sm">
                   <span>{label}</span>
                   <strong>{value || "0"}</strong>
@@ -351,7 +351,7 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
               المصروفات
             </div>
             <div className="divide-y divide-outline-variant/10 bg-white">
-              {Object.entries(formData?.finance.expenses ?? {}).map(([label, value]) => (
+              {Object.entries(formData?.finance?.expenses ?? {}).map(([label, value]) => (
                 <div key={label} className="flex items-center justify-between px-4 py-3 text-sm">
                   <span>{label}</span>
                   <strong>{value || "0"}</strong>

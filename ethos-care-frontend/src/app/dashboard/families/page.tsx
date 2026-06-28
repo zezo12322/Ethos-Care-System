@@ -10,6 +10,15 @@ import React, {
 import { familiesService } from "@/services/families.service";
 import { useToast } from "@/components/ui/Toast";
 import { FamilyRecord } from "@/types/api";
+import SortableTh from "@/components/ui/SortableTh";
+import {
+  useTableSort,
+  compareText,
+  compareNumber,
+  compareDate,
+  compareByRank,
+  type SortComparator,
+} from "@/hooks/useTableSort";
 
 interface EditingFamilyState {
   id: string;
@@ -37,6 +46,20 @@ const parseIncome = (value?: string | null) => {
   const normalized = String(value).replace(/[^\d.-]/g, "");
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const FAMILY_STATUS_RANK: Record<string, number> = {
+  مستحق: 2,
+  "تحت التقييم": 1,
+  "غير مستحق": 0,
+};
+
+const FAMILY_SORT_COMPARATORS: Record<string, SortComparator<FamilyRecord>> = {
+  name: (a, b) => compareText(a.headName, b.headName),
+  members: (a, b) => compareNumber(a.membersCount, b.membersCount),
+  income: (a, b) => compareNumber(parseIncome(a.income), parseIncome(b.income)),
+  lastVisit: (a, b) => compareDate(a.lastVisit, b.lastVisit),
+  status: (a, b) => compareByRank(FAMILY_STATUS_RANK, a.status, b.status),
 };
 
 export default function FamiliesPage() {
@@ -162,6 +185,11 @@ export default function FamiliesPage() {
         : 0,
   };
 
+  const { sorted: sortedFamilies, sort, toggleSort } = useTableSort(
+    families,
+    FAMILY_SORT_COMPARATORS,
+  );
+
   const handleExport = () => {
     const rows = [
       [
@@ -208,7 +236,7 @@ export default function FamiliesPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
+        <div className="border-r-4 border-secondary pr-4">
           <h1 className="text-3xl font-bold font-headline text-on-surface">
             إدارة ملفات الأسر
           </h1>
@@ -255,24 +283,25 @@ export default function FamiliesPage() {
             label: "إجمالي الأفراد",
             value: formatNumber(summary.totalMembers),
             icon: "groups",
-            tone: "text-teal-700 bg-teal-100",
+            tone: "text-primary bg-primary/10",
           },
           {
             label: "أسر مستحقة",
             value: formatNumber(summary.eligibleFamilies),
             icon: "verified_user",
-            tone: "text-emerald-700 bg-emerald-100",
+            tone: "text-success bg-success/10",
           },
           {
             label: "متوسط الدخل",
             value: `${formatNumber(summary.averageIncome)} ج.م`,
             icon: "payments",
-            tone: "text-amber-700 bg-amber-100",
+            tone: "text-tertiary bg-tertiary/10",
           },
-        ].map((card) => (
+        ].map((card, i) => (
           <div
             key={card.label}
-            className="rounded-3xl border border-outline-variant/30 bg-white p-5 shadow-sm"
+            className="rounded-3xl border border-outline-variant/30 bg-white p-5 shadow-sm animate-stagger"
+            style={{ "--stagger": i } as React.CSSProperties}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -345,106 +374,188 @@ export default function FamiliesPage() {
           <table className="w-full border-collapse text-right">
             <thead className="border-b border-outline-variant/30 bg-surface-container-lowest text-sm text-on-surface-variant">
               <tr>
-                <th className="px-6 py-4 font-bold">اسم العائل / رقم الملف</th>
-                <th className="px-6 py-4 font-bold">أفراد الأسرة</th>
-                <th className="px-6 py-4 font-bold">متوسط الدخل</th>
-                <th className="px-6 py-4 font-bold">العنوان</th>
-                <th className="px-6 py-4 font-bold">الهاتف</th>
-                <th className="px-6 py-4 font-bold">آخر زيارة</th>
-                <th className="px-6 py-4 font-bold">حالة التقييم</th>
-                <th className="px-6 py-4 font-bold text-center">إجراءات</th>
+                <SortableTh
+                  sortKey="name"
+                  activeKey={sort.key}
+                  direction={sort.direction}
+                  onSort={toggleSort}
+                >
+                  اسم العائل / رقم الملف
+                </SortableTh>
+                <SortableTh
+                  sortKey="members"
+                  activeKey={sort.key}
+                  direction={sort.direction}
+                  onSort={toggleSort}
+                  className="hidden sm:table-cell"
+                >
+                  أفراد الأسرة
+                </SortableTh>
+                <SortableTh
+                  sortKey="income"
+                  activeKey={sort.key}
+                  direction={sort.direction}
+                  onSort={toggleSort}
+                  className="hidden lg:table-cell"
+                >
+                  متوسط الدخل
+                </SortableTh>
+                <th scope="col" className="hidden px-6 py-4 font-bold xl:table-cell">العنوان</th>
+                <th scope="col" className="hidden px-6 py-4 font-bold xl:table-cell">الهاتف</th>
+                <SortableTh
+                  sortKey="lastVisit"
+                  activeKey={sort.key}
+                  direction={sort.direction}
+                  onSort={toggleSort}
+                  className="hidden lg:table-cell"
+                >
+                  آخر زيارة
+                </SortableTh>
+                <SortableTh
+                  sortKey="status"
+                  activeKey={sort.key}
+                  direction={sort.direction}
+                  onSort={toggleSort}
+                >
+                  حالة التقييم
+                </SortableTh>
+                <th scope="col" className="px-6 py-4 text-center font-bold">إجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/20 text-sm font-medium">
               {loading ? (
-                <tr>
-                  <td colSpan={8} className="p-8 text-center text-outline">
-                    جارٍ التحميل...
-                  </td>
-                </tr>
+                Array.from({ length: 6 }).map((_, i) => (
+                  <tr key={i}>
+                    <td colSpan={8} className="px-6 py-3">
+                      <div className="h-10 animate-pulse rounded-xl bg-surface-container-low" />
+                    </td>
+                  </tr>
+                ))
               ) : families.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-outline">
-                    لا توجد أسر مطابقة للفلاتر الحالية
+                  <td colSpan={8} className="px-6 py-16 text-center">
+                    <span
+                      className="material-symbols-outlined mb-3 text-5xl text-outline"
+                      aria-hidden="true"
+                    >
+                      {searchInput.trim() || statusFilter !== "ALL"
+                        ? "search_off"
+                        : "groups"}
+                    </span>
+                    {searchInput.trim() || statusFilter !== "ALL" ? (
+                      <>
+                        <p className="mb-1 text-base font-bold text-on-surface">
+                          لا توجد أسر مطابقة
+                        </p>
+                        <p className="text-sm text-on-surface-variant">
+                          جرّب تعديل البحث أو فلتر الاستحقاق.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="mb-1 text-base font-bold text-on-surface">
+                          لا توجد ملفات أسر بعد
+                        </p>
+                        <p className="mb-5 text-sm text-on-surface-variant">
+                          ابدأ بإضافة أول ملف أسرة لإدارته ومتابعته هنا.
+                        </p>
+                        <Link
+                          href="/dashboard/families/new"
+                          className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
+                        >
+                          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                            add
+                          </span>
+                          إضافة ملف أسرة
+                        </Link>
+                      </>
+                    )}
                   </td>
                 </tr>
               ) : (
-                families.map((family) => (
+                sortedFamilies.map((family) => (
                   <tr
                     key={family.id}
-                    className="group transition-colors hover:bg-surface-container-lowest/50"
+                    className="transition-colors hover:bg-surface-container"
                   >
                     <td className="px-6 py-4">
-                      <p className="font-bold text-on-surface">{family.headName}</p>
-                      <p className="mt-1 text-xs font-mono text-on-surface-variant">
-                        {family.id.substring(0, 8)}...
+                      <Link
+                        href={`/dashboard/families/${family.id}`}
+                        className="font-bold text-on-surface hover:text-primary hover:underline"
+                      >
+                        {family.headName}
+                      </Link>
+                      <p className="mt-1 font-mono text-xs text-on-surface-variant">
+                        {family.id.substring(0, 8)}
                         {family.nationalId ? ` • ${family.nationalId}` : ""}
                       </p>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="hidden px-6 py-4 sm:table-cell">
                       <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface-container-high px-3 py-1 text-xs font-bold text-on-surface">
-                        <span className="material-symbols-outlined text-[14px]">
+                        <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
                           groups
                         </span>
                         {family.membersCount} أفراد
                       </span>
                     </td>
                     <td
-                      className="px-6 py-4 text-left text-on-surface-variant"
+                      className="hidden px-6 py-4 text-left text-on-surface-variant lg:table-cell"
                       dir="ltr"
                     >
                       {family.income}
                     </td>
-                    <td className="max-w-[220px] px-6 py-4 text-on-surface-variant">
+                    <td className="hidden max-w-[220px] px-6 py-4 text-on-surface-variant xl:table-cell">
                       <span className="line-clamp-2">
                         {family.address || family.city || "غير محدد"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-on-surface-variant">
+                    <td className="hidden px-6 py-4 text-on-surface-variant xl:table-cell">
                       {family.phone || "غير محدد"}
                     </td>
-                    <td className="px-6 py-4 text-on-surface-variant">
+                    <td className="hidden px-6 py-4 text-on-surface-variant lg:table-cell">
                       {family.lastVisit}
                     </td>
                     <td className="px-6 py-4">
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold ${
                           family.status === "مستحق"
-                            ? "bg-green-100 text-green-800"
+                            ? "bg-success/15 text-success"
                             : family.status === "غير مستحق"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-amber-100 text-amber-800"
+                              ? "bg-error/15 text-error"
+                              : "bg-warning/15 text-warning"
                         }`}
                       >
                         {family.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-1.5">
                         <Link
                           href={`/dashboard/families/${family.id}`}
-                          title="تفاصيل الأسرة"
-                          className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 transition-colors hover:bg-blue-600 hover:text-white"
+                          aria-label={`تفاصيل أسرة ${family.headName}`}
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant transition-colors hover:bg-primary hover:text-on-primary"
                         >
-                          <span className="material-symbols-outlined text-[18px]">
+                          <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
                             visibility
                           </span>
                         </Link>
                         <button
+                          type="button"
                           onClick={() => handleEditClick(family)}
-                          title="تعديل"
-                          className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-white"
+                          aria-label={`تعديل أسرة ${family.headName}`}
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-on-primary"
                         >
-                          <span className="material-symbols-outlined text-[18px]">
+                          <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
                             edit
                           </span>
                         </button>
                         <button
+                          type="button"
                           onClick={() => void handleDeleteClick(family.id)}
-                          title="حذف"
-                          className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-red-600 transition-colors hover:bg-red-600 hover:text-white"
+                          aria-label={`حذف أسرة ${family.headName}`}
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-error/10 text-error transition-colors hover:bg-error hover:text-on-error"
                         >
-                          <span className="material-symbols-outlined text-[18px]">
+                          <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
                             delete
                           </span>
                         </button>
@@ -459,8 +570,8 @@ export default function FamiliesPage() {
       </div>
 
       {isEditModalOpen && editingFamily && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 leading-relaxed shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 leading-relaxed shadow-xl animate-scale-in">
             <div className="mb-6 flex items-center justify-between">
               <h3 className="text-xl font-bold">تعديل بيانات الأسرة</h3>
               <button

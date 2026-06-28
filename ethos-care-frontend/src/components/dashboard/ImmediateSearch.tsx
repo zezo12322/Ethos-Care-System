@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from 'react';
-import { searchService } from '@/services/search.service';
-import { CaseRecord, FamilyRecord } from '@/types/api';
+import React, { useState } from "react";
+import Link from "next/link";
+import { searchService } from "@/services/search.service";
+import { CaseRecord, FamilyRecord } from "@/types/api";
 
 interface ImmediateSearchResult {
   found: boolean;
@@ -26,7 +27,7 @@ export default function ImmediateSearch() {
       setResult({
         found: foundClasses,
         family: data.families?.[0] || null,
-        cases: data.cases || []
+        cases: data.cases || [],
       });
     } catch (err) {
       console.error(err);
@@ -37,103 +38,150 @@ export default function ImmediateSearch() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSearch();
+    if (e.key === "Enter") handleSearch();
   };
 
   return (
-    <>
-      <section className="mb-16 text-center space-y-8">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-fixed/30 text-primary font-bold rounded-full text-xs mb-4">
-          <span className="material-symbols-outlined text-sm">verified_user</span>
-          البحث السريع بالرقم القومي
+    <section className="space-y-6">
+      {/* لوحة بحث هادئة مناسبة لأداة عمل — لا hero ولا توهّج ولا gradient */}
+      <div className="rounded-3xl border border-outline-variant/30 bg-surface-container-lowest p-6 shadow-sm sm:p-7">
+        <div className="mb-1 flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary" aria-hidden="true">
+            person_search
+          </span>
+          <h2 className="text-lg font-bold text-on-surface">بحث سريع عن مستفيد</h2>
         </div>
-        <h1 className="text-4xl md:text-5xl font-extrabold font-headline text-on-surface tracking-tight leading-tight">
-          البحث الفوري عن <span className="text-primary">بيانات الحالة</span>
-        </h1>
-        <p className="text-on-surface-variant text-lg max-w-2xl mx-auto font-body">
-          أدخل الرقم القومي للمستفيد للوصول السريع لملف الأسرة وتحديث بيانات الدعم.
+        <p className="mb-5 text-sm text-on-surface-variant">
+          اكتب الرقم القومي (14 رقمًا) للوصول الفوري لملف الأسرة وحالاتها.
         </p>
 
-        <div className="relative max-w-3xl mx-auto mt-12 group">
-          <div className="absolute inset-0 bg-primary/5 blur-2xl rounded-full transition-all group-focus-within:bg-primary/10"></div>
-          <div className="relative flex items-center bg-surface-container-lowest rounded-2xl shadow-[0px_12px_32px_-4px_rgba(0,40,38,0.08)] border border-outline-variant/20 p-2 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-            <span className="material-symbols-outlined text-outline mr-6 text-3xl">id_card</span>
-            <input
-              className="w-full bg-transparent border-none focus:ring-0 text-2xl font-bold py-6 px-4 outline-none placeholder:text-outline/40 placeholder:font-normal text-right tracking-[0.2em]"
-              maxLength={14}
-              placeholder="أدخل الرقم القومي للبحث الفوري..."
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-            <button 
-              onClick={handleSearch}
-              disabled={loading}
-              className="ml-2 bg-primary text-on-primary px-10 py-5 rounded-xl font-bold flex items-center gap-2 hover:bg-primary-container transition-all active:scale-95 shadow-lg shadow-primary/20 disabled:opacity-50"
+        <label htmlFor="nid-search" className="sr-only">
+          الرقم القومي للمستفيد
+        </label>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="relative flex-1">
+            <span
+              className="material-symbols-outlined pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-outline"
+              aria-hidden="true"
             >
-              {loading ? (
-                <span className="material-symbols-outlined animate-spin">refresh</span>
-              ) : (
-                <span className="material-symbols-outlined">search</span>
-              )}
-              بحث
-            </button>
+              id_card
+            </span>
+            <input
+              id="nid-search"
+              inputMode="numeric"
+              maxLength={14}
+              placeholder="مثال: 28xxxxxxxxxxxx"
+              value={query}
+              onChange={(e) => setQuery(e.target.value.replace(/\D/g, ""))}
+              onKeyDown={handleKeyDown}
+              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3.5 pr-12 pl-4 text-base font-bold tracking-wider outline-none transition-colors focus:border-primary"
+            />
           </div>
+          <button
+            type="button"
+            onClick={handleSearch}
+            disabled={loading || query.length < 5}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-3.5 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <span
+              className={`material-symbols-outlined text-[20px] ${loading ? "animate-spin" : ""}`}
+              aria-hidden="true"
+            >
+              {loading ? "progress_activity" : "search"}
+            </span>
+            بحث
+          </button>
         </div>
-      </section>
+      </div>
 
       {searched && (
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 items-start mb-16 max-w-4xl mx-auto">
-          {result?.found ? (
-            <div className="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-[0px_12px_32px_-4px_rgba(0,40,38,0.04)] border border-outline-variant/10">
-              <div className="h-3 bg-gradient-to-l from-primary to-primary-container"></div>
-              <div className="p-8">
+        <div aria-live="polite">
+          {loading ? (
+            <div className="h-32 animate-pulse rounded-3xl border border-outline-variant/20 bg-surface-container-low" />
+          ) : result?.found ? (
+            <div className="overflow-hidden rounded-3xl border border-outline-variant/20 bg-surface-container-lowest shadow-sm animate-scale-in">
+              <div className="p-6 sm:p-7">
                 {result.family ? (
-                  <div className="mb-6 border-b border-outline-variant/20 pb-6">
-                    <h3 className="text-sm font-bold text-primary mb-2">بيانات الأسرة</h3>
-                    <h2 className="text-2xl font-extrabold font-headline mb-1">{result.family.headName}</h2>
-                    <p className="text-on-surface-variant text-sm mb-4">{result.family.address}</p>
-                    <div className="flex gap-4">
-                      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-lg text-sm font-bold">{result.family.status}</span>
-                      <span className="text-sm font-bold bg-surface-container-high px-3 py-1 rounded-lg">عدد الأفراد: {result.family.membersCount}</span>
+                  <div className="mb-6 flex flex-wrap items-start justify-between gap-4 border-b border-outline-variant/20 pb-6">
+                    <div className="min-w-0">
+                      <p className="mb-1 text-xs font-bold text-on-surface-variant">
+                        بيانات الأسرة
+                      </p>
+                      <h3 className="truncate text-xl font-extrabold text-on-surface">
+                        {result.family.headName}
+                      </h3>
+                      <p className="mt-1 text-sm text-on-surface-variant">
+                        {result.family.address}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-lg bg-primary-container px-3 py-1 text-xs font-bold text-primary">
+                        {result.family.status}
+                      </span>
+                      <span className="rounded-lg bg-surface-container-high px-3 py-1 text-xs font-bold text-on-surface">
+                        عدد الأفراد: {result.family.membersCount}
+                      </span>
                     </div>
                   </div>
                 ) : (
-                   <p className="text-on-surface-variant text-sm font-bold mb-4">لا يوجد ملف أسرة رئيسي مرتبط بهذا الرقم</p>
+                  <p className="mb-4 text-sm font-medium text-on-surface-variant">
+                    لا يوجد ملف أسرة رئيسي مرتبط بهذا الرقم.
+                  </p>
                 )}
 
                 {result.cases?.length > 0 ? (
                   <div>
-                    <h3 className="text-sm font-bold text-primary mb-4">الحالات / الطلبات ({result.cases.length})</h3>
-                    <div className="space-y-4">
+                    <p className="mb-3 text-xs font-bold text-on-surface-variant">
+                      الحالات / الطلبات ({result.cases.length})
+                    </p>
+                    <ul className="space-y-2.5">
                       {result.cases.map((c) => (
-                        <div key={c.id} className="flex justify-between items-center bg-surface-container-high p-4 rounded-xl">
-                          <div>
-                            <p className="font-bold">{c.applicantName}</p>
-                            <p className="text-xs text-on-surface-variant mt-1">{c.caseType}</p>
-                          </div>
-                          <div>
-                            <span className="px-3 py-1 bg-surface-container-highest rounded-full text-xs font-bold">{c.lifecycleStatus}</span>
-                          </div>
-                        </div>
+                        <li key={c.id}>
+                          <Link
+                            href={`/dashboard/cases/${c.id}`}
+                            className="flex items-center justify-between gap-3 rounded-2xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 transition-colors hover:bg-surface-container"
+                          >
+                            <div className="min-w-0">
+                              <p className="truncate font-bold text-on-surface">
+                                {c.applicantName}
+                              </p>
+                              <p className="mt-0.5 text-xs text-on-surface-variant">
+                                {c.caseType}
+                              </p>
+                            </div>
+                            <span className="shrink-0 rounded-full bg-surface-container-highest px-3 py-1 text-xs font-bold text-on-surface-variant">
+                              {c.lifecycleStatus}
+                            </span>
+                          </Link>
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   </div>
                 ) : (
-                  <p className="text-sm text-outline">لا توجد حالات فردية مسجلة</p>
+                  <p className="text-sm text-on-surface-variant">
+                    لا توجد حالات فردية مسجلة.
+                  </p>
                 )}
               </div>
             </div>
           ) : (
-            <div className="bg-surface-container-lowest rounded-3xl p-10 text-center border border-outline-variant/10">
-              <span className="material-symbols-outlined text-5xl text-outline mb-4">search_off</span>
-              <h2 className="text-xl font-bold font-headline mb-2">لم يتم العثور على نتائج</h2>
-              <p className="text-on-surface-variant text-sm">تأكد من إدخال الرقم القومي المكون من 14 رقماً بشكل صحيح.</p>
+            <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-10 text-center animate-fade-in">
+              <span
+                className="material-symbols-outlined mb-3 text-5xl text-outline"
+                aria-hidden="true"
+              >
+                search_off
+              </span>
+              <h3 className="mb-1 text-lg font-bold text-on-surface">
+                لم يتم العثور على نتائج
+              </h3>
+              <p className="text-sm text-on-surface-variant">
+                تأكد من إدخال الرقم القومي المكوّن من 14 رقمًا بشكل صحيح.
+              </p>
             </div>
           )}
         </div>
       )}
-    </>
+    </section>
   );
 }

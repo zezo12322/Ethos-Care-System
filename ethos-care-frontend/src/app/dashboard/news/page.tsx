@@ -198,7 +198,7 @@ export default function NewsPage() {
           className={`rounded-2xl px-4 py-3 text-sm font-bold ${
             error
               ? "border border-error/20 bg-error/5 text-error"
-              : "border border-green-200 bg-green-50 text-green-800"
+              : "border border-success/20 bg-success/10 text-success"
           }`}
         >
           {error || feedback}
@@ -273,8 +273,8 @@ export default function NewsPage() {
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-bold ${
                           item.published
-                            ? "bg-green-100 text-green-800"
-                            : "bg-amber-100 text-amber-800"
+                            ? "bg-success/15 text-success"
+                            : "bg-warning/15 text-warning"
                         }`}
                       >
                         {item.published ? "منشور" : "مسودة"}

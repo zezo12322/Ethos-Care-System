@@ -37,7 +37,7 @@ export default async function ProjectsPage() {
       <main className="flex-1">
         {/* Banner */}
         <section className="bg-primary text-white py-16 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-80 h-80 bg-[#fcb900]/20 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2"></div>
+          <div className="absolute top-0 left-0 w-80 h-80 bg-secondary/20 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2"></div>
           <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
             <span className="text-sm font-bold bg-white/10 px-4 py-1.5 rounded-full inline-block mb-4 border border-white/20">
               أعمالنا على الأرض
@@ -72,7 +72,6 @@ export default async function ProjectsPage() {
                   const percentage = campaign.target
                     ? Math.round((campaign.raised / campaign.target) * 100)
                     : 0;
-                  const textColor = campaign.color.replace("bg-", "text-");
 
                   return (
                     <div
@@ -80,10 +79,11 @@ export default async function ProjectsPage() {
                       className="bg-white rounded-3xl border border-outline-variant/30 overflow-hidden shadow-sm hover:shadow-md transition-shadow group flex flex-col"
                     >
                       <div
-                        className={`${campaign.lightColor} p-8 flex items-center justify-center relative overflow-hidden`}
+                        className="bg-primary/5 p-8 flex items-center justify-center relative overflow-hidden"
                       >
                         <span
-                          className={`material-symbols-outlined text-[80px] ${textColor} opacity-20 transform group-hover:scale-110 transition-transform duration-500`}
+                          className="material-symbols-outlined text-[80px] text-primary opacity-20 transform group-hover:scale-110 transition-transform duration-500"
+                          aria-hidden="true"
                         >
                           {campaign.icon}
                         </span>
@@ -105,7 +105,7 @@ export default async function ProjectsPage() {
                         <div className="space-y-4">
                           <div className="flex justify-between text-sm mb-1 font-bold">
                             <span className="text-on-surface-variant">نسبة الإنجاز</span>
-                            <span className={textColor} dir="ltr">
+                            <span className="text-primary" dir="ltr">
                               {percentage}%
                             </span>
                           </div>
@@ -114,7 +114,7 @@ export default async function ProjectsPage() {
                             dir="ltr"
                           >
                             <div
-                              className={`h-full ${campaign.color} rounded-full`}
+                              className="h-full bg-primary rounded-full"
                               style={{ width: `${percentage}%` }}
                             />
                           </div>
@@ -134,9 +134,9 @@ export default async function ProjectsPage() {
                           </div>
                         </div>
 
-                        <button className="w-full mt-6 py-3 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-xl font-bold transition-colors">
+                        <Link href="/#donate" className="w-full mt-6 py-3 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-xl font-bold transition-colors text-center block">
                           تبرع الآن
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   );
@@ -154,7 +154,7 @@ export default async function ProjectsPage() {
                 <h2 className="text-3xl font-bold font-headline text-on-surface mb-2">
                   برامجنا الرئيسية
                 </h2>
-                <div className="w-20 h-1 bg-[#fcb900] mx-auto rounded-full mt-4 mb-4"></div>
+                <div className="w-20 h-1 bg-secondary mx-auto rounded-full mt-4 mb-4"></div>
                 <p className="text-on-surface-variant max-w-2xl mx-auto">
                   نقدم حزمة متكاملة من الخدمات التنموية المصممة لانتشال الأسر من
                   دائرة الفقر وتوفير احتياجاتهم بحلول علمية مدروسة.
@@ -168,9 +168,9 @@ export default async function ProjectsPage() {
                     className="flex flex-col sm:flex-row gap-6 p-8 rounded-3xl border border-outline-variant/20 bg-surface-container-lowest hover:border-primary/30 transition-colors"
                   >
                     <div
-                      className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 ${prog.bg} ${prog.accent}`}
+                      className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary"
                     >
-                      <span className="material-symbols-outlined text-3xl">
+                      <span className="material-symbols-outlined text-3xl" aria-hidden="true">
                         {prog.icon}
                       </span>
                     </div>
@@ -190,7 +190,7 @@ export default async function ProjectsPage() {
         )}
 
         {/* CTA */}
-        <section className="py-16 bg-[#0b2841] text-white">
+        <section className="py-16 bg-primary text-white">
           <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-right">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold font-headline mb-2">
@@ -204,9 +204,9 @@ export default async function ProjectsPage() {
             </div>
             <Link
               href="/request-aid"
-              className="px-8 py-4 bg-[#fcb900] text-[#0b2841] hover:bg-[#e5a800] rounded-xl font-bold text-lg transition-colors shadow-lg flex items-center gap-2 flex-shrink-0 whitespace-nowrap"
+              className="px-8 py-4 bg-secondary text-on-surface hover:bg-secondary/90 rounded-xl font-bold text-lg transition-colors shadow-lg flex items-center gap-2 flex-shrink-0 whitespace-nowrap"
             >
-              <span className="material-symbols-outlined">description</span>
+              <span className="material-symbols-outlined" aria-hidden="true">description</span>
               تقديم طلب مساعدة
             </Link>
           </div>

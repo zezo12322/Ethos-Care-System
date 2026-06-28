@@ -296,7 +296,7 @@ export default function CmsPage() {
       </div>
 
       {feedback && (
-        <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl text-sm font-bold">
+        <div className="bg-success/10 border border-success/20 text-success px-4 py-3 rounded-xl text-sm font-bold">
           {feedback}
         </div>
       )}
@@ -414,7 +414,7 @@ export default function CmsPage() {
                     <td className="px-4 py-3 text-on-surface-variant" dir="ltr">{c.target.toLocaleString()}</td>
                     <td className="px-4 py-3 text-on-surface-variant" dir="ltr">{c.raised.toLocaleString()}</td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${c.active ? "bg-green-100 text-green-700" : "bg-surface-container text-on-surface-variant"}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${c.active ? "bg-success/15 text-success" : "bg-surface-container text-on-surface-variant"}`}>
                         {c.active ? "نشط" : "مخفي"}
                       </span>
                     </td>
@@ -461,7 +461,7 @@ export default function CmsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-bold text-on-surface">{p.title}</h3>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0 ${p.active ? "bg-green-100 text-green-700" : "bg-surface-container text-on-surface-variant"}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0 ${p.active ? "bg-success/15 text-success" : "bg-surface-container text-on-surface-variant"}`}>
                       {p.active ? "نشط" : "مخفي"}
                     </span>
                   </div>

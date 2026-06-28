@@ -1,0 +1,175 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "شعار صناع الحياة أجيال صناع الحياة ببني سويف" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "شعار صناع الحياة" [ref=e6]
+          - generic [ref=e7]:
+            - generic [ref=e8]: أجيال صناع الحياة
+            - generic [ref=e9]: ببني سويف
+        - link "ابدأ طلب مساعدة" [ref=e11] [cursor=pointer]:
+          - /url: /request-aid
+        - button "فتح القائمة" [ref=e12] [cursor=pointer]:
+          - generic [ref=e13]: menu
+    - main [ref=e14]:
+      - generic [ref=e17]:
+        - generic [ref=e18]: أعمالنا على الأرض
+        - heading "الخدمات والمشاريع التنموية" [level=1] [ref=e19]
+        - paragraph [ref=e20]: جهود مستمرة لتوظيف التبرعات في مكانها الصحيح لبناء الإنسان وتمكينه من العيش بكرامة عبر برامج مستدامة وحملات دورية.
+      - generic [ref=e22]:
+        - generic [ref=e24]:
+          - heading "الحملات والمشاريع الجارية" [level=2] [ref=e25]
+          - paragraph [ref=e26]: الفرص المتاحة للمساهمة والتبرع الآن لدعم خطط الفرع القادمة.
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]:
+              - generic [ref=e30]: ac_unit
+              - generic [ref=e31]: موسمي
+            - generic [ref=e32]:
+              - heading "بطانية الشتاء 2024" [level=3] [ref=e33]
+              - paragraph [ref=e34]: توفير بطاطين وملابس شتوية للأسر الأكثر احتياجاً في قرى بني سويف.
+              - generic [ref=e35]:
+                - generic [ref=e36]:
+                  - generic [ref=e37]: نسبة الإنجاز
+                  - generic [ref=e38]: 70%
+                - generic [ref=e41]:
+                  - generic [ref=e42]:
+                    - generic [ref=e43]: الهدف
+                    - generic [ref=e44]: 500,000 EGP
+                  - generic [ref=e45]:
+                    - generic [ref=e46]: تم جمعه
+                    - generic [ref=e47]: 350,000 EGP
+              - link "تبرع الآن" [ref=e48] [cursor=pointer]:
+                - /url: /#donate
+          - generic [ref=e49]:
+            - generic [ref=e50]:
+              - generic [ref=e51]: family_restroom
+              - generic [ref=e52]: رعاية اجتماعية
+            - generic [ref=e53]:
+              - heading "كفالة الأيتام والأسر المعيلة" [level=3] [ref=e54]
+              - paragraph [ref=e55]: دعم شهري ثابت لتغطية نفقات التعليم والغذاء لعدد 200 أسرة معيلة.
+              - generic [ref=e56]:
+                - generic [ref=e57]:
+                  - generic [ref=e58]: نسبة الإنجاز
+                  - generic [ref=e59]: 60%
+                - generic [ref=e62]:
+                  - generic [ref=e63]:
+                    - generic [ref=e64]: الهدف
+                    - generic [ref=e65]: 200,000 EGP
+                  - generic [ref=e66]:
+                    - generic [ref=e67]: تم جمعه
+                    - generic [ref=e68]: 120,000 EGP
+              - link "تبرع الآن" [ref=e69] [cursor=pointer]:
+                - /url: /#donate
+          - generic [ref=e70]:
+            - generic [ref=e71]:
+              - generic [ref=e72]: medical_services
+              - generic [ref=e73]: صحة
+            - generic [ref=e74]:
+              - heading "قوافل الرعاية الطبية" [level=3] [ref=e75]
+              - paragraph [ref=e76]: تسيير قافلة شهرية للقرى النائية وتوفير كشوفات وصيدلية مجانية وتحويلات للعمليات الجراحية.
+              - generic [ref=e77]:
+                - generic [ref=e78]:
+                  - generic [ref=e79]: نسبة الإنجاز
+                  - generic [ref=e80]: 93%
+                - generic [ref=e83]:
+                  - generic [ref=e84]:
+                    - generic [ref=e85]: الهدف
+                    - generic [ref=e86]: 150,000 EGP
+                  - generic [ref=e87]:
+                    - generic [ref=e88]: تم جمعه
+                    - generic [ref=e89]: 140,000 EGP
+              - link "تبرع الآن" [ref=e90] [cursor=pointer]:
+                - /url: /#donate
+      - generic [ref=e92]:
+        - generic [ref=e93]:
+          - heading "برامجنا الرئيسية" [level=2] [ref=e94]
+          - paragraph [ref=e96]: نقدم حزمة متكاملة من الخدمات التنموية المصممة لانتشال الأسر من دائرة الفقر وتوفير احتياجاتهم بحلول علمية مدروسة.
+        - generic [ref=e97]:
+          - generic [ref=e98]:
+            - generic [ref=e100]: storefront
+            - generic [ref=e101]:
+              - heading "التمكين الاقتصادي (مشروعات صغيرة)" [level=3] [ref=e102]
+              - paragraph [ref=e103]: نستبدل المساعدة المؤقتة بمصدر دخل دائم للأسرة من خلال تمويل مشاريع تجارية وزراعية صغيرة (أكشاك، ماكينات خياطة، تربية طيور).
+          - generic [ref=e104]:
+            - generic [ref=e106]: ecg
+            - generic [ref=e107]:
+              - heading "الرعاية الطبية والعمليات" [level=3] [ref=e108]
+              - paragraph [ref=e109]: التكفل بمصاريف العمليات الجراحية الكبرى وتوفير الأجهزة التعويضية وصرف الروشتات الشهرية لأصحاب الأمراض المزمنة.
+          - generic [ref=e110]:
+            - generic [ref=e112]: kitchen
+            - generic [ref=e113]:
+              - heading "المساعدات العينية والغذائية" [level=3] [ref=e114]
+              - paragraph [ref=e115]: توزيع كراتين المواد الغذائية واللحوم وتوفير الاحتياجات الأساسية للمنازل (تسقيف، وصلات مياه) وتجهيز العرائس.
+          - generic [ref=e116]:
+            - generic [ref=e118]: school
+            - generic [ref=e119]:
+              - heading "الدعم التعليمي" [level=3] [ref=e120]
+              - paragraph [ref=e121]: سداد المصروفات الدراسية للطلبة غير القادرين، وتوفير الشنط والأدوات المدرسية، والمساهمة في فصول محو الأمية للكبار.
+      - generic [ref=e123]:
+        - generic [ref=e124]:
+          - heading "تحتاج إلى مساعدة أو دعم؟" [level=2] [ref=e125]
+          - paragraph [ref=e126]: إذا كنت أو أي شخص تعرفه في حاجة إلى إحدى الخدمات المذكورة، يمكنك تقديم طلب إلكتروني فوراً ليقوم فريق البحث الميداني بزيارتك وتقييم الحالة.
+        - link "تقديم طلب مساعدة" [ref=e127] [cursor=pointer]:
+          - /url: /request-aid
+          - generic [ref=e128]: description
+          - text: تقديم طلب مساعدة
+    - contentinfo [ref=e129]:
+      - generic [ref=e130]:
+        - generic [ref=e131]:
+          - generic [ref=e132]:
+            - img "شعار صناع الحياة" [ref=e133]
+            - generic [ref=e134]:
+              - generic [ref=e135]: أجيال صناع الحياة
+              - generic [ref=e136]: بني سويف
+          - paragraph [ref=e137]: نسعى لبناء مجتمع متكافل ومستدام من خلال تقديم الدعم والمساعدة للفئات الأكثر احتياجاً في مختلف قرى ومراكز بني سويف.
+          - generic [ref=e138]:
+            - link "فيسبوك" [ref=e139] [cursor=pointer]:
+              - /url: https://Facebook.com/sonna3.bns?
+              - img [ref=e140]
+            - link "البريد الإلكتروني" [ref=e142] [cursor=pointer]:
+              - /url: mailto:info@lifemakers-bns.com
+              - generic [ref=e143]: alternate_email
+        - generic [ref=e144]:
+          - heading "روابط سريعة" [level=4] [ref=e145]
+          - list [ref=e146]:
+            - listitem [ref=e147]:
+              - link "الرئيسية" [ref=e148] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=e149]:
+              - link "من نحن" [ref=e150] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e151]:
+              - link "الخدمات والمشاريع" [ref=e152] [cursor=pointer]:
+                - /url: /projects
+            - listitem [ref=e153]:
+              - link "تقديم طلب مساعدة" [ref=e154] [cursor=pointer]:
+                - /url: /request-aid
+        - generic [ref=e155]:
+          - heading "تواصل معنا" [level=4] [ref=e156]
+          - list [ref=e157]:
+            - listitem [ref=e158]:
+              - generic [ref=e159]: location_on
+              - text: حي الزهور الشارع المقابل لمسجد ثروت الدعوري مركز بني سويف محافظة بني سويف
+            - listitem [ref=e160]:
+              - generic [ref=e161]: call
+              - generic [ref=e162]: "01020040935"
+            - listitem [ref=e163]:
+              - generic [ref=e164]: mail
+              - generic [ref=e165]: info@lifemakers-bns.com
+        - generic [ref=e167]:
+          - heading "البوابة الداخلية" [level=4] [ref=e168]:
+            - generic [ref=e169]: lock
+            - text: البوابة الداخلية
+          - paragraph [ref=e170]: منصة لموظفي الفرع والمتطوعين المسجلين فقط لإدارة الحالات والبيانات.
+          - link "دخول فريق العمل" [ref=e171] [cursor=pointer]:
+            - /url: /login
+      - generic [ref=e172]:
+        - generic [ref=e173]:
+          - paragraph [ref=e174]: © 2026 جمعية أجيال صناع الحياة ببني سويف. جميع الحقوق محفوظة.
+          - paragraph [ref=e175]: "رقم القيد: 1880 لسنة 2013 — مديرية التضامن الاجتماعي بني سويف | الموقع: lifemakers-bns.com"
+        - link "البيانات التسجيلية" [ref=e177] [cursor=pointer]:
+          - /url: /about#registration
+  - button "Open Next.js Dev Tools" [ref=e183] [cursor=pointer]:
+    - img [ref=e184]

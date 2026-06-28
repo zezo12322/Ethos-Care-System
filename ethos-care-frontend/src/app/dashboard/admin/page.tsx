@@ -223,7 +223,7 @@ export default function AdminPage() {
           className={`rounded-2xl px-4 py-3 text-sm font-bold ${
             error
               ? "border border-error/20 bg-error/5 text-error"
-              : "border border-green-200 bg-green-50 text-green-800"
+              : "border border-success/20 bg-success/10 text-success"
           }`}
         >
           {error || feedback}

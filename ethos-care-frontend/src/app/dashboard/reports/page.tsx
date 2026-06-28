@@ -7,6 +7,7 @@ import {
   useDeferredValue,
   useEffect,
   useState,
+  type CSSProperties,
 } from "react";
 import { casesService } from "@/services/cases.service";
 import { familiesService } from "@/services/families.service";
@@ -103,9 +104,9 @@ const EXTRACT_PRESETS: ExtractPreset[] = [
     icon: "playlist_add_check_circle",
     badge: "تشغيل يومي",
     tone: {
-      card: "from-blue-50 to-cyan-50 border-blue-200/70",
-      icon: "bg-blue-600 text-white",
-      badge: "bg-blue-100 text-blue-700",
+      card: "border-primary/20 bg-primary/5",
+      icon: "bg-primary text-on-primary",
+      badge: "bg-primary/10 text-primary",
     },
     matchesCase: (item) =>
       ["DRAFT", "REVIEW", "FIELD_VERIFICATION"].includes(
@@ -120,9 +121,9 @@ const EXTRACT_PRESETS: ExtractPreset[] = [
     icon: "emergency",
     badge: "أولوية",
     tone: {
-      card: "from-rose-50 to-orange-50 border-rose-200/70",
-      icon: "bg-rose-600 text-white",
-      badge: "bg-rose-100 text-rose-700",
+      card: "border-error/20 bg-error/5",
+      icon: "bg-error text-on-error",
+      badge: "bg-error/10 text-error",
     },
     matchesCase: (item) => item.priority === "URGENT",
   },
@@ -134,9 +135,9 @@ const EXTRACT_PRESETS: ExtractPreset[] = [
     icon: "task_alt",
     badge: "تنفيذ",
     tone: {
-      card: "from-emerald-50 to-teal-50 border-emerald-200/70",
-      icon: "bg-emerald-600 text-white",
-      badge: "bg-emerald-100 text-emerald-700",
+      card: "border-success/20 bg-success/5",
+      icon: "bg-success text-on-success",
+      badge: "bg-success/10 text-success",
     },
     matchesCase: (item) =>
       ["APPROVED", "EXECUTION"].includes(item.lifecycleStatus),
@@ -149,9 +150,9 @@ const EXTRACT_PRESETS: ExtractPreset[] = [
     icon: "group",
     badge: "استحقاق",
     tone: {
-      card: "from-amber-50 to-yellow-50 border-amber-200/70",
-      icon: "bg-amber-500 text-white",
-      badge: "bg-amber-100 text-amber-800",
+      card: "border-secondary/30 bg-secondary/10",
+      icon: "bg-secondary text-on-secondary",
+      badge: "bg-tertiary/10 text-tertiary",
     },
     matchesFamily: (item) => item.status === "مستحق",
   },
@@ -163,9 +164,9 @@ const EXTRACT_PRESETS: ExtractPreset[] = [
     icon: "volunteer_activism",
     badge: "ميداني",
     tone: {
-      card: "from-violet-50 to-fuchsia-50 border-violet-200/70",
-      icon: "bg-violet-600 text-white",
-      badge: "bg-violet-100 text-violet-700",
+      card: "border-tertiary/20 bg-tertiary/5",
+      icon: "bg-tertiary text-on-tertiary",
+      badge: "bg-tertiary/10 text-tertiary",
     },
     matchesOperation: (item) => item.status !== "مكتمل",
   },
@@ -177,9 +178,9 @@ const EXTRACT_PRESETS: ExtractPreset[] = [
     icon: "inventory",
     badge: "أرشفة",
     tone: {
-      card: "from-slate-50 to-zinc-50 border-slate-200/70",
-      icon: "bg-slate-700 text-white",
-      badge: "bg-slate-200 text-slate-700",
+      card: "border-outline-variant/40 bg-surface-container-low",
+      icon: "bg-surface-container-highest text-on-surface-variant",
+      badge: "bg-surface-container-high text-on-surface-variant",
     },
     matchesOperation: (item) => item.status === "مكتمل",
   },
@@ -311,49 +312,49 @@ const getCaseLifecycleTone = (status: string) => {
   switch (status) {
     case "APPROVED":
     case "COMPLETED":
-      return "bg-emerald-100 text-emerald-700";
+      return "bg-success/15 text-success";
     case "EXECUTION":
-      return "bg-blue-100 text-blue-700";
+      return "bg-primary/15 text-primary";
     case "FIELD_VERIFICATION":
     case "REVIEW":
-      return "bg-amber-100 text-amber-800";
+      return "bg-warning/15 text-warning";
     default:
-      return "bg-slate-100 text-slate-700";
+      return "bg-surface-container text-on-surface-variant";
   }
 };
 
 const getPriorityTone = (priority: string) => {
   switch (priority) {
     case "URGENT":
-      return "text-rose-700 bg-rose-50";
+      return "text-error bg-error/10";
     case "HIGH":
-      return "text-amber-800 bg-amber-50";
+      return "text-warning bg-warning/10";
     default:
-      return "text-sky-700 bg-sky-50";
+      return "text-on-surface-variant bg-surface-container";
   }
 };
 
 const getFamilyStatusTone = (status: string) => {
   switch (status) {
     case "مستحق":
-      return "bg-emerald-100 text-emerald-700";
+      return "bg-success/15 text-success";
     case "غير مستحق":
-      return "bg-rose-100 text-rose-700";
+      return "bg-error/15 text-error";
     default:
-      return "bg-amber-100 text-amber-800";
+      return "bg-warning/15 text-warning";
   }
 };
 
 const getOperationStatusTone = (status: string) => {
   switch (status) {
     case "مكتمل":
-      return "bg-emerald-100 text-emerald-700";
+      return "bg-success/15 text-success";
     case "جاري":
-      return "bg-blue-100 text-blue-700";
+      return "bg-primary/15 text-primary";
     case "تجهيز":
-      return "bg-amber-100 text-amber-800";
+      return "bg-warning/15 text-warning";
     default:
-      return "bg-slate-100 text-slate-700";
+      return "bg-surface-container text-on-surface-variant";
   }
 };
 
@@ -823,7 +824,7 @@ export default function ReportsPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {EXTRACT_PRESETS.map((preset) => {
+          {EXTRACT_PRESETS.map((preset, presetIndex) => {
             const count =
               preset.dataset === "cases"
                 ? cases.filter((item) => preset.matchesCase?.(item)).length
@@ -839,7 +840,8 @@ export default function ReportsPage() {
                 key={preset.id}
                 type="button"
                 onClick={() => handlePresetSelect(preset)}
-                className={`rounded-[1.75rem] border bg-gradient-to-br p-5 text-right transition-all hover:-translate-y-0.5 hover:shadow-lg ${preset.tone.card} ${
+                style={{ "--stagger": presetIndex } as CSSProperties}
+                className={`animate-stagger rounded-[1.75rem] border p-5 text-right transition-all hover:-translate-y-0.5 hover:shadow-lg ${preset.tone.card} ${
                   isActive
                     ? "ring-2 ring-primary/30 shadow-lg shadow-primary/10"
                     : "shadow-sm"
@@ -1214,7 +1216,7 @@ export default function ReportsPage() {
                   filteredCases.map((item) => (
                     <tr
                       key={item.id}
-                      className="transition-colors hover:bg-surface-container-lowest/50"
+                      className="transition-colors hover:bg-surface-container"
                     >
                       <td className="px-5 py-4">
                         <p className="font-bold text-on-surface">
@@ -1317,7 +1319,7 @@ export default function ReportsPage() {
                   filteredFamilies.map((item) => (
                     <tr
                       key={item.id}
-                      className="transition-colors hover:bg-surface-container-lowest/50"
+                      className="transition-colors hover:bg-surface-container"
                     >
                       <td className="px-5 py-4">
                         <p className="font-bold text-on-surface">{item.headName}</p>
@@ -1405,7 +1407,7 @@ export default function ReportsPage() {
                   filteredOperations.map((item) => (
                     <tr
                       key={item.id}
-                      className="transition-colors hover:bg-surface-container-lowest/50"
+                      className="transition-colors hover:bg-surface-container"
                     >
                       <td className="px-5 py-4">
                         <p className="font-bold text-on-surface">{item.name}</p>

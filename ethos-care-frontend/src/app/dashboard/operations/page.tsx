@@ -127,13 +127,13 @@ export default function OperationsPage() {
   const getStatusStyle = (status: string) => {
     switch (status) {
       case "جاري":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-primary/15 text-primary border-primary/20";
       case "مكتمل":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-success/15 text-success border-success/20";
       case "تجهيز":
-        return "bg-amber-100 text-amber-800 border-amber-200";
+        return "bg-warning/15 text-warning border-warning/20";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-surface-container text-on-surface-variant border-outline-variant/30";
     }
   };
 
@@ -270,13 +270,13 @@ export default function OperationsPage() {
             label: "المنجز",
             value: formatNumber(totalAchieved),
             icon: "task_alt",
-            tone: "text-emerald-700 bg-emerald-100",
+            tone: "text-success bg-success/15",
           },
           {
             label: "المتطوعون",
             value: formatNumber(totalVolunteers),
             icon: "groups",
-            tone: "text-amber-700 bg-amber-100",
+            tone: "text-warning bg-warning/15",
           },
         ].map((card) => (
           <div

@@ -1,0 +1,27 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: lock
+      - heading "تسجيل دخول الموظفين" [level=1] [ref=e8]
+      - paragraph [ref=e9]: الرجاء إدخال بيانات الدخول للوصول إلى لوحة التحكم.
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e12]: البريد الإلكتروني
+        - generic [ref=e13]:
+          - generic [ref=e14]: person
+          - textbox "admin@test.com" [ref=e15]
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - generic [ref=e18]: كلمة المرور
+          - link "نسيت كلمة المرور؟" [ref=e19] [cursor=pointer]:
+            - /url: "#"
+        - generic [ref=e20]:
+          - generic [ref=e21]: key
+          - textbox "••••••••" [ref=e22]
+      - button "دخول" [ref=e23] [cursor=pointer]
+    - link "arrow_forward العودة للصفحة الرئيسية" [ref=e25] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e26]: arrow_forward
+      - text: العودة للصفحة الرئيسية
+  - button "Open Next.js Dev Tools" [ref=e32] [cursor=pointer]:
+    - img [ref=e33]

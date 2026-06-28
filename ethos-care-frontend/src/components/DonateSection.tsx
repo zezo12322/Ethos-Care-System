@@ -20,7 +20,7 @@ export default function DonateSection() {
             <span className="material-symbols-outlined text-[14px]">favorite</span>
             ساهم في التغيير
           </span>
-          <h2 className="text-3xl lg:text-4xl font-extrabold font-headline text-on-primary-container mb-4">وسائل التبرع</h2>
+          <h2 className="text-3xl lg:text-4xl font-extrabold font-headline text-primary mb-4">وسائل التبرع</h2>
           <p className="text-on-surface-variant text-lg">تبرعك يصنع فارقاً في حياة الكثيرين، اختر الوسيلة الأنسب لك وكن جزءاً من الأثر الإيجابي.</p>
         </div>
 
@@ -28,7 +28,7 @@ export default function DonateSection() {
           <div className="flex flex-col gap-8">
             <div className="flex items-start gap-4">
               <div className="w-14 h-14 rounded-2xl bg-surface-container-low flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-3xl text-[#E60000]">phone_iphone</span>
+                <span className="material-symbols-outlined text-3xl text-error" aria-hidden="true">phone_iphone</span>
               </div>
               <div>
                 <h3 className="text-xl font-bold text-on-surface mb-1">فودافون كاش</h3>
@@ -39,7 +39,7 @@ export default function DonateSection() {
               </div>
             </div>
 
-            <div className="h-px bg-outline-variant/30 w-full line-dashed"></div>
+            <div className="h-px bg-outline-variant/30 w-full"></div>
 
             <div className="flex items-start gap-4">
               <div className="w-14 h-14 rounded-2xl bg-surface-container-low flex items-center justify-center shrink-0">

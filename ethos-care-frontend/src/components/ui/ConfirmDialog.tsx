@@ -49,12 +49,12 @@ export default function ConfirmDialog({
     <div className="fixed inset-0 z-[9998] flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in"
         onClick={onCancel}
       />
 
       {/* Dialog */}
-      <div className="relative z-10 mx-4 w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl animate-slide-up">
+      <div className="relative z-10 mx-4 w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl animate-scale-in">
         <div className="mb-4 flex items-center gap-3">
           <div className={`flex h-12 w-12 items-center justify-center rounded-full ${style.iconBg}`}>
             <span className="material-symbols-outlined text-2xl">{style.icon}</span>

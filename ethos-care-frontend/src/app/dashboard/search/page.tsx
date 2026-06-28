@@ -71,15 +71,16 @@ export default function SearchPage() {
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[100px] -z-10"></div>
         <div className="max-w-2xl mx-auto text-center space-y-6">
           <div className="relative">
-            <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-primary text-3xl">search</span>
+            <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-primary text-3xl" aria-hidden="true">search</span>
             <input
               type="text"
+              aria-label="بحث شامل في الحالات والأسر"
               placeholder="ابحث بالرقم القومي، اسم المستفيد، أو رقم الحالة..."
               className="w-full bg-surface-container-lowest border-2 border-outline-variant/50 focus:border-primary rounded-2xl py-5 pr-16 pl-4 text-lg font-bold outline-none transition-all shadow-sm"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
             />
-            <button onClick={handleSearchClick} className="absolute left-3 top-1/2 -translate-y-1/2 bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-primary-container transition-colors">
+            <button onClick={handleSearchClick} className="absolute left-3 top-1/2 -translate-y-1/2 bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-primary/90 transition-colors">
               بحث
             </button>
           </div>
@@ -87,7 +88,7 @@ export default function SearchPage() {
       </div>
 
       {searchTerm && (
-        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="space-y-4 animate-slide-up">
           <h3 className="font-bold text-lg border-b border-outline-variant/30 pb-2">نتائج البحث ({searchTerm})</h3>
 
           <div className="bg-white rounded-2xl border border-outline-variant/30 overflow-hidden divide-y divide-outline-variant/20">
@@ -129,8 +130,8 @@ export default function SearchPage() {
                   href={`/dashboard/families/${family.id}`}
                   className="flex items-center gap-4 p-4 hover:bg-surface-container-lowest transition-colors group"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-[#fcb900]/20 text-[#bf8c00] flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <span className="material-symbols-outlined">family_restroom</span>
+                  <div className="w-12 h-12 rounded-xl bg-tertiary/15 text-tertiary flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined" aria-hidden="true">family_restroom</span>
                   </div>
                   <div className="flex-1">
                     <h4 className="font-bold text-lg">

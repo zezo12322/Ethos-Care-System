@@ -37,8 +37,8 @@ function matchesAssociationLocation(
 
 function getStatusTone(status: string) {
   return status === "مفعل"
-    ? "bg-emerald-100 text-emerald-700"
-    : "bg-amber-100 text-amber-800";
+    ? "bg-success/15 text-success"
+    : "bg-warning/15 text-warning";
 }
 
 function getRequestErrorMessage(error: unknown, fallback: string) {
@@ -354,7 +354,7 @@ export default function LocationsPage() {
           className={`rounded-2xl px-4 py-3 text-sm font-bold ${
             error
               ? "border border-error/20 bg-error/5 text-error"
-              : "border border-green-200 bg-green-50 text-green-800"
+              : "border border-success/20 bg-success/10 text-success"
           }`}
         >
           {error || feedback}
@@ -407,7 +407,7 @@ export default function LocationsPage() {
                           {centerNode.record.status}
                         </span>
                       ) : (
-                        <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">
+                        <span className="rounded-full bg-warning/15 px-3 py-1 text-xs font-bold text-warning">
                           مركز مستنتج من البيانات الحالية
                         </span>
                       )}

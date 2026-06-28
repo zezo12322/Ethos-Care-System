@@ -1,0 +1,101 @@
+<title>مراجعة UX/UI — لوحة تحكم صناع الحياة</title>
+<style>
+  :root{
+    --primary:#014976; --secondary:#F8AD44; --ink:#181c1c; --muted:#5b6664;
+    --line:#dbe2e0; --bg:#f7faf8; --card:#fff; --ok:#1c7c54; --warn:#9a6700; --crit:#ba1a1a;
+    --okbg:#e7f5ee; --warnbg:#fdf3e2; --critbg:#fde8e7; --chip:#eef3f1;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Segoe UI",Tahoma,"DIN Next LT Arabic",system-ui,sans-serif;
+    line-height:1.6;direction:rtl}
+  .wrap{max-width:980px;margin:0 auto;padding:28px 18px 64px}
+  header{background:linear-gradient(135deg,#014976,#0a6b8f);color:#fff;border-radius:24px;padding:28px;margin-bottom:22px}
+  header h1{margin:0 0 6px;font-size:clamp(1.5rem,1.1rem+1.6vw,2.1rem)}
+  header p{margin:0;opacity:.85;font-size:.95rem}
+  .summary{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0 26px}
+  .stat{flex:1 1 150px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+  .stat b{display:block;font-size:1.8rem;line-height:1}
+  .stat span{color:var(--muted);font-size:.85rem}
+  h2{font-size:1.15rem;margin:30px 0 12px;padding-right:12px;border-right:4px solid var(--secondary)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:4px 18px;margin-bottom:14px;overflow-x:auto}
+  .row{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+  .row:last-child{border-bottom:0}
+  .tag{flex:none;font-size:.72rem;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap;margin-top:2px}
+  .done{background:var(--okbg);color:var(--ok)}
+  .rec{background:var(--warnbg);color:var(--warn)}
+  .crit{background:var(--critbg);color:var(--crit)}
+  .row .body{flex:1;min-width:0}
+  .row .body b{display:block;margin-bottom:2px}
+  .row .body small{color:var(--muted)}
+  code{background:var(--chip);padding:1px 6px;border-radius:6px;font-size:.85em}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px;font-size:.8rem;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:50%}
+  footer{margin-top:30px;color:var(--muted);font-size:.85rem;text-align:center}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>مراجعة UX / UI — لوحة التحكم</h1>
+    <p>تقييم مبني على معايير الإتاحة (WCAG) و Material 3، مخصّص لواجهة عربية RTL كثيفة البيانات.</p>
+  </header>
+
+  <div class="summary">
+    <div class="stat"><b style="color:var(--ok)">6</b><span>تحسينات طُبّقت الآن</span></div>
+    <div class="stat"><b style="color:var(--warn)">8</b><span>توصيات مقترحة</span></div>
+    <div class="stat"><b style="color:var(--primary)">10</b><span>محاور تمت مراجعتها</span></div>
+    <div class="stat"><b style="color:var(--ok)">جيّد</b><span>الأساس (M3 + خط عربي + RTL)</span></div>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--ok)"></span> طُبّق في هذه الجلسة</span>
+    <span><span class="dot" style="background:var(--warn)"></span> موصى به (خطوة تالية)</span>
+    <span><span class="dot" style="background:var(--crit)"></span> حرج</span>
+  </div>
+
+  <h2>1 — الإتاحة (Accessibility)</h2>
+  <div class="card">
+    <div class="row"><span class="tag done">طُبّق</span><div class="body"><b>مؤشّر تركيز للكيبورد (focus-visible)</b><small>أضِفنا <code>:focus-visible</code> عالمي بلون primary — كان غائباً تماماً، وده كان أهم نقص.</small></div></div>
+    <div class="row"><span class="tag done">طُبّق</span><div class="body"><b>احترام prefers-reduced-motion</b><small>تعطيل/تقليل الأنميشن لمن يطلبه نظامه.</small></div></div>
+    <div class="row"><span class="tag done">طُبّق</span><div class="body"><b>aria-hidden للأيقونات + aria-label للأزرار الأيقونية</b><small>طُبّق في القائمة الجانبية.</small></div></div>
+    <div class="row"><span class="tag rec">موصى به</span><div class="body"><b>تباين الألوان الثانوية</b><small>نص <code>text-white/40</code> و<code>/60</code> على الأزرق، والأصفر <code>#F8AD44</code> كنص — تحقّق من ≥ 3:1.</small></div></div>
+  </div>
+
+  <h2>2 — اللمس والتفاعل</h2>
+  <div class="card">
+    <div class="row"><span class="tag done">طُبّق</span><div class="body"><b>cursor-pointer للأزرار</b><small>Tailwind v4 شال الافتراضي — أعدناه عالمياً للأزرار والعناصر التفاعلية.</small></div></div>
+    <div class="row"><span class="tag rec">موصى به</span><div class="body"><b>مساحات لمس ≥ 44px</b><small>بعض الأزرار الأيقونية كانت <code>h-10 w-10</code> (40px) — رفعنا زر إغلاق القائمة لـ 44px؛ يُراجَع الباقي.</small></div></div>
+  </div>
+
+  <h2>3 — التنقّل (Navigation)</h2>
+  <div class="card">
+    <div class="row"><span class="tag done">طُبّق</span><div class="body"><b>إبراز الصفحة الحالية + aria-current</b><small>كانت كل روابط القائمة بنفس الشكل — دلوقتي الرابط النشط مميّز (<code>bg-white/15</code> + سميك).</small></div></div>
+    <div class="row"><span class="tag done">طُبّق</span><div class="body"><b>فصل الإجراء الخطر (تسجيل خروج)</b><small>بلون تحذيري وحدّ فاصل، وتحسين تباينه.</small></div></div>
+    <div class="row"><span class="tag rec">موصى به</span><div class="body"><b>Breadcrumbs للصفحات العميقة</b><small>مكوّن <code>Breadcrumbs</code> موجود — يُفعّل في صفحات التفاصيل (حالة/أسرة).</small></div></div>
+  </div>
+
+  <h2>4 — الفورمات والتغذية الراجعة</h2>
+  <div class="card">
+    <div class="row"><span class="tag done">طُبّق</span><div class="body"><b>مؤشّر الحقول المطلوبة</b><small>علامة <code>*</code> + <code>aria-required</code> على "الاسم" و"المركز" في شيت الحالة.</small></div></div>
+    <div class="row"><span class="tag rec">موصى به</span><div class="body"><b>أخطاء بجانب الحقل بدل toast فقط</b><small>حالياً التحقق يظهر كـ toast بالأعلى؛ يُفضّل خطأ تحت الحقل + نقل التركيز لأول حقل خاطئ + <code>aria-live</code>.</small></div></div>
+    <div class="row"><span class="tag rec">موصى به</span><div class="body"><b>تأكيد قبل ترك نموذج فيه تعديلات غير محفوظة</b><small>شيت الحالة طويل — حماية من فقد البيانات.</small></div></div>
+  </div>
+
+  <h2>5 — الأداء وحالات التحميل</h2>
+  <div class="card">
+    <div class="row"><span class="tag rec">موصى به</span><div class="body"><b>Skeletons بدل سبينر للتحميل > 300ms</b><small>للقوائم والجداول (الحالات/الأسر).</small></div></div>
+    <div class="row"><span class="tag rec">موصى به</span><div class="body"><b>تخيّل القوائم الطويلة (virtualize)</b><small>عند 50+ صف لتحسين الأداء.</small></div></div>
+  </div>
+
+  <h2>6 — الجداول والبيانات</h2>
+  <div class="card">
+    <div class="row"><span class="tag rec">موصى به</span><div class="body"><b>جداول قابلة للفرز مع <code>aria-sort</code></b><small>وحالة فارغة واضحة، وحاوية تمرير أفقي على الموبايل.</small></div></div>
+    <div class="row"><span class="tag rec">موصى به</span><div class="body"><b>الرسوم البيانية (تقارير/إحصاءات)</b><small>تأكيد وجود legend وtooltips وألوان آمنة لعمى الألوان + ملخص نصّي للقارئ الشاشي.</small></div></div>
+  </div>
+
+  <footer>
+    الأساس التصميمي للمشروع قويّ (Material 3 + DIN Next Arabic + RTL سليم). التحسينات المطبّقة ركّزت على فجوات الإتاحة والتنقّل الأعلى أثراً.<br>
+    المرجع الكامل في <code>design-system/MASTER.md</code>.
+  </footer>
+</div>

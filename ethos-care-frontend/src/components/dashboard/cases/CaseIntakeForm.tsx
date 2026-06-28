@@ -15,6 +15,12 @@ import {
   LocationRecord,
 } from "@/types/api";
 import { useOfflineDraft } from "@/hooks/useOfflineDraft";
+import {
+  readCache,
+  writeCache,
+  LOCATIONS_CACHE_KEY,
+  FAMILIES_CACHE_KEY,
+} from "@/lib/offlineCache";
 import { useToast } from "@/components/ui/Toast";
 import SyncStatusBar from "./SyncStatusBar";
 
@@ -777,11 +783,31 @@ export default function CaseIntakeForm({
   const [sectionsOpen, setSectionsOpen] = useState<Record<string, boolean>>(
     Object.fromEntries(SECTION_IDS.map((id) => [id, true])),
   );
-  const [families, setFamilies] = useState<FamilyRecord[]>([]);
-  const [locations, setLocations] = useState<LocationRecord[]>([]);
+  // نبدأ من الكاش المحلي حتى تظهر المراكز/الأسر فورًا حتى بدون اتصال
+  const [families, setFamilies] = useState<FamilyRecord[]>(
+    () => readCache<FamilyRecord[]>(FAMILIES_CACHE_KEY) ?? [],
+  );
+  const [locations, setLocations] = useState<LocationRecord[]>(
+    () => readCache<LocationRecord[]>(LOCATIONS_CACHE_KEY) ?? [],
+  );
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+
+  // أخطاء التحقق بجانب كل حقل (بدل toast فقط)
+  const [errors, setErrors] = useState<{
+    fullName?: string;
+    center?: string;
+    caseTypes?: string;
+  }>({});
+  const fullNameRef = useRef<HTMLInputElement>(null);
+  const centerRef = useRef<HTMLSelectElement>(null);
+  const caseTypesRef = useRef<HTMLDivElement>(null);
+
+  const clearError = (key: "fullName" | "center" | "caseTypes") =>
+    setErrors((current) =>
+      current[key] ? { ...current, [key]: undefined } : current,
+    );
 
   const hasManagerAccess =
     currentUserRole === "MANAGER" ||
@@ -798,13 +824,7 @@ export default function CaseIntakeForm({
     saveDraftToLocal(draft);
   }, [draft, saveDraftToLocal]);
 
-  // Repopulate from the case record only when it actually changes — never on the
-  // initial mount — so a restored offline draft is not overwritten.
-  const appliedCaseIdRef = useRef<string | null>(caseRecord?.id ?? null);
   useEffect(() => {
-    const currentId = caseRecord?.id ?? null;
-    if (currentId === appliedCaseIdRef.current) return;
-    appliedCaseIdRef.current = currentId;
     setDraft(buildInitialFormData(caseRecord, currentUserName));
   }, [caseRecord, currentUserName]);
 
@@ -821,8 +841,12 @@ export default function CaseIntakeForm({
         if (!cancelled) {
           setFamilies(familyRows);
           setLocations(locationRows);
+          // تحديث الكاش لاستخدامه عند العمل بدون اتصال لاحقًا
+          writeCache(FAMILIES_CACHE_KEY, familyRows);
+          writeCache(LOCATIONS_CACHE_KEY, locationRows);
         }
       } catch (error) {
+        // بدون اتصال أو فشل الطلب — نبقي على القوائم المخزّنة محليًا (المحمّلة من الكاش)
         console.error(error);
       }
     };
@@ -1369,20 +1393,46 @@ export default function CaseIntakeForm({
   const submitForm = async (event: React.FormEvent) => {
     event.preventDefault();
 
+    const nextErrors: typeof errors = {};
     if (!draft.formData.person.fullName.trim()) {
-      toast("يجب إدخال اسم رب الأسرة.", "warning");
-      return;
+      nextErrors.fullName = "يجب إدخال اسم رب الأسرة.";
     }
-
     if (!draft.formData.person.center.trim()) {
-      toast("يجب اختيار المركز.", "warning");
+      nextErrors.center = "يجب اختيار المركز.";
+    }
+    if (draft.caseTypes.length === 0) {
+      nextErrors.caseTypes = "يجب اختيار نوع الدعم أو التدخل.";
+    }
+
+    if (nextErrors.fullName || nextErrors.center || nextErrors.caseTypes) {
+      setErrors(nextErrors);
+      toast("يرجى استكمال الحقول المطلوبة.", "warning");
+
+      // فتح الأقسام المعنية ونقل التركيز لأول حقل خاطئ
+      if (nextErrors.fullName || nextErrors.center) {
+        setSectionsOpen((current) => ({ ...current, case: true }));
+      }
+      if (nextErrors.caseTypes) {
+        setSectionsOpen((current) => ({ ...current, support: true }));
+      }
+
+      window.setTimeout(() => {
+        if (nextErrors.fullName) {
+          fullNameRef.current?.focus();
+        } else if (nextErrors.center) {
+          centerRef.current?.focus();
+        } else if (nextErrors.caseTypes) {
+          caseTypesRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }
+      }, 0);
+
       return;
     }
 
-    if (draft.caseTypes.length === 0) {
-      toast("يجب اختيار نوع الدعم أو التدخل.", "warning");
-      return;
-    }
+    setErrors({});
 
     const payload = buildCasePayload(draft);
 
@@ -1532,14 +1582,35 @@ export default function CaseIntakeForm({
           <label className="xl:col-span-2">
             <span className="mb-2 block text-sm font-bold text-on-surface">
               الاسم كامل
+              <span className="text-error" aria-hidden="true">
+                {" *"}
+              </span>
             </span>
             <input
+              ref={fullNameRef}
               required
+              aria-required="true"
+              aria-invalid={errors.fullName ? true : undefined}
+              aria-describedby={errors.fullName ? "error-fullName" : undefined}
               value={draft.formData.person.fullName}
-              onChange={(event) => updatePerson("fullName", event.target.value)}
+              onChange={(event) => {
+                updatePerson("fullName", event.target.value);
+                clearError("fullName");
+              }}
               placeholder="اسم رب الأسرة"
-              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
+              className={`w-full rounded-2xl border bg-white py-3 px-4 text-sm outline-none focus:border-primary ${
+                errors.fullName ? "border-error" : "border-outline-variant/50"
+              }`}
             />
+            {errors.fullName ? (
+              <span
+                id="error-fullName"
+                role="alert"
+                className="mt-2 block text-xs font-medium text-error"
+              >
+                {errors.fullName}
+              </span>
+            ) : null}
           </label>
           <label className="xl:col-span-2">
             <span className="mb-2 block text-sm font-bold text-on-surface">
@@ -1701,11 +1772,19 @@ export default function CaseIntakeForm({
           <label className="xl:col-span-2">
             <span className="mb-2 block text-sm font-bold text-on-surface">
               المركز
+              <span className="text-error" aria-hidden="true">
+                {" *"}
+              </span>
             </span>
             <select
+              ref={centerRef}
+              aria-required="true"
+              aria-invalid={errors.center ? true : undefined}
+              aria-describedby={errors.center ? "error-center" : undefined}
               value={draft.formData.person.center}
               onChange={(event) => {
                 updatePerson("center", event.target.value);
+                clearError("center");
                 updatePerson("association", "");
                 if (
                   draft.formData.person.village &&
@@ -1728,6 +1807,15 @@ export default function CaseIntakeForm({
                 </option>
               ))}
             </select>
+            {errors.center ? (
+              <span
+                id="error-center"
+                role="alert"
+                className="mt-2 block text-xs font-medium text-error"
+              >
+                {errors.center}
+              </span>
+            ) : null}
           </label>
           <label className="xl:col-span-2">
             <span className="mb-2 block text-sm font-bold text-on-surface">
@@ -2597,13 +2685,25 @@ export default function CaseIntakeForm({
         onToggle={toggleSection}
       >
         <div className="grid gap-5">
-          <div>
+          <div ref={caseTypesRef}>
             <span className="mb-2 block text-sm font-bold text-on-surface">
               نوع الدعم / التدخل (اختيار متعدد)
+              <span className="text-error" aria-hidden="true">
+                {" *"}
+              </span>
             </span>
             <p className="mb-3 text-xs text-on-surface-variant">
               اختر نوعًا أو أكثر، وستظهر الخانات الخاصة بكل نوع فقط بالأسفل.
             </p>
+            {errors.caseTypes ? (
+              <span
+                id="error-caseTypes"
+                role="alert"
+                className="mb-3 block text-xs font-medium text-error"
+              >
+                {errors.caseTypes}
+              </span>
+            ) : null}
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {CASE_TYPES.map((item) => (
                 <label
@@ -2617,7 +2717,10 @@ export default function CaseIntakeForm({
                   <input
                     type="checkbox"
                     checked={draft.caseTypes.includes(item)}
-                    onChange={() => toggleCaseType(item)}
+                    onChange={() => {
+                      toggleCaseType(item);
+                      clearError("caseTypes");
+                    }}
                     className="h-4 w-4 accent-primary"
                   />
                   {item}
@@ -2952,10 +3055,10 @@ export default function CaseIntakeForm({
             <table className="min-w-full divide-y divide-outline-variant/20 text-right text-sm">
               <thead className="bg-surface-container-lowest text-on-surface-variant">
                 <tr>
-                  <th className="px-4 py-3 font-bold">تاريخ الطلب</th>
-                  <th className="px-4 py-3 font-bold">نوع الدعم</th>
-                  <th className="px-4 py-3 font-bold">الحالة</th>
-                  <th className="px-4 py-3 font-bold">القرار</th>
+                  <th scope="col" className="px-4 py-3 font-bold">تاريخ الطلب</th>
+                  <th scope="col" className="px-4 py-3 font-bold">نوع الدعم</th>
+                  <th scope="col" className="px-4 py-3 font-bold">الحالة</th>
+                  <th scope="col" className="px-4 py-3 font-bold">القرار</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/10">

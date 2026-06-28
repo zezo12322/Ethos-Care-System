@@ -1,54 +1,111 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import api from '@/lib/api';
+import React, { useEffect, useState } from "react";
+import api from "@/lib/api";
 
 interface StatsResponse {
-  cases: { total: number; pending: number; };
-  families: { total: number; eligible: number; };
-  operations: { total: number; totalBudget: number; };
+  cases: { total: number; pending: number };
+  families: { total: number; eligible: number };
+  operations: { total: number; totalBudget: number };
 }
+
+const fmt = (n: number) => n.toLocaleString("en-US");
 
 export default function OverviewStats() {
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    api.get('/stats').then(res => {
-      setStats(res.data);
-      setLoading(false);
-    }).catch(err => {
-      console.error(err);
-      setLoading(false);
-    });
+    let active = true;
+    api
+      .get("/stats")
+      .then((res) => {
+        if (active) {
+          setStats(res.data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        if (active) {
+          setError(true);
+          setLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
+  // شريط إحصائي موحّد (لا كروت متطابقة عائمة ولا ألوان قوس قزح)
+  const stripClass =
+    "grid grid-cols-2 gap-px overflow-hidden rounded-3xl border border-outline-variant/30 bg-outline-variant/25 lg:grid-cols-4";
+
   if (loading) {
-    return <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 animate-pulse">
-      {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-surface-container-high rounded-3xl"></div>)}
-    </div>;
+    return (
+      <div className={stripClass} aria-busy="true" aria-label="جاري تحميل الإحصائيات">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="h-[104px] animate-pulse bg-surface-container-low" />
+        ))}
+      </div>
+    );
   }
 
-  if (!stats) return null;
+  if (error || !stats) {
+    return (
+      <div className="rounded-3xl border border-outline-variant/30 bg-surface-container-lowest p-6 text-sm font-medium text-on-surface-variant">
+        تعذّر تحميل الإحصائيات الآن. حدّث الصفحة للمحاولة مرة أخرى.
+      </div>
+    );
+  }
 
-  const statCards = [
-    { title: "إجمالي الحالات", value: stats.cases.total, sub: `${stats.cases.pending} قيد المراجعة`, icon: "folder_shared", color: "text-blue-600", bg: "bg-blue-100" },
-    { title: "الأسر المستفيدة", value: stats.families.total, sub: `${stats.families.eligible} مستحق`, icon: "family_restroom", color: "text-green-600", bg: "bg-green-100" },
-    { title: "العمليات الحالية", value: stats.operations.total, sub: "عمليات وقوافل", icon: "medical_services", color: "text-purple-600", bg: "bg-purple-100" },
-    { title: "الميزانية المصروفة", value: `${stats.operations.totalBudget.toLocaleString()} ج.م`, sub: "إجمالي الميزانيات", icon: "payments", color: "text-amber-600", bg: "bg-amber-100" },
+  const items = [
+    {
+      label: "إجمالي الحالات",
+      value: fmt(stats.cases.total),
+      sub: `${fmt(stats.cases.pending)} قيد المراجعة`,
+      icon: "folder_shared",
+    },
+    {
+      label: "الأسر المستفيدة",
+      value: fmt(stats.families.total),
+      sub: `${fmt(stats.families.eligible)} مستحق`,
+      icon: "family_restroom",
+    },
+    {
+      label: "العمليات الحالية",
+      value: fmt(stats.operations.total),
+      sub: "قوافل وعمليات",
+      icon: "medical_services",
+    },
+    {
+      label: "الميزانية المصروفة",
+      value: `${fmt(stats.operations.totalBudget)} ج.م`,
+      sub: "إجمالي الميزانيات",
+      icon: "payments",
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-      {statCards.map((card, i) => (
-        <div key={i} className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/30 shadow-sm flex items-center gap-4">
-          <div className={`w-14 h-14 rounded-2xl ${card.bg} ${card.color} flex items-center justify-center shrink-0`}>
-            <span className="material-symbols-outlined text-3xl">{card.icon}</span>
-          </div>
-          <div>
-            <p className="text-sm text-on-surface-variant font-bold mb-1">{card.title}</p>
-            <h3 className="text-2xl font-extrabold font-headline text-on-surface leading-none">{card.value}</h3>
-            <p className="text-xs text-on-surface-variant mt-1">{card.sub}</p>
+    <div className={stripClass}>
+      {items.map((it, i) => (
+        <div
+          key={it.label}
+          className="flex items-start gap-3.5 bg-surface-container-lowest p-5 animate-stagger"
+          style={{ "--stagger": i } as React.CSSProperties}
+        >
+          <span className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-container text-primary">
+            <span className="material-symbols-outlined" aria-hidden="true">
+              {it.icon}
+            </span>
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-on-surface-variant">{it.label}</p>
+            <p className="mt-1 truncate text-2xl font-extrabold leading-none text-on-surface tabular-nums">
+              {it.value}
+            </p>
+            <p className="mt-1.5 text-xs text-on-surface-variant">{it.sub}</p>
           </div>
         </div>
       ))}

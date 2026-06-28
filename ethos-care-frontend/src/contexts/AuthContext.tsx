@@ -76,7 +76,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = useCallback((token: string, userData: AppUser) => {
     Cookies.set("access_token", token, { expires: 1 });
-    writeCachedUser(userData);
     setUser(userData);
     setLoading(false);
   }, []);

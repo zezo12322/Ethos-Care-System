@@ -1,0 +1,184 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "شعار صناع الحياة أجيال صناع الحياة ببني سويف" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "شعار صناع الحياة" [ref=e6]
+          - generic [ref=e7]:
+            - generic [ref=e8]: أجيال صناع الحياة
+            - generic [ref=e9]: ببني سويف
+        - link "ابدأ طلب مساعدة" [ref=e11] [cursor=pointer]:
+          - /url: /request-aid
+        - button "فتح القائمة" [ref=e12] [cursor=pointer]:
+          - generic [ref=e13]: menu
+    - main [ref=e14]:
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - generic [ref=e18]: جمعية أجيال صناع الحياة ببني سويف
+          - heading "نصنع الحياة... بالتمكين والتنمية" [level=1] [ref=e20]:
+            - text: نصنع الحياة...
+            - text: بالتمكين والتنمية
+          - paragraph [ref=e21]: نعمل في قلب بني سويف لنبني مجتمعاً متكافئاً، من خلال مشاريع تنموية مستدامة تستهدف الإنسان أولاً وتصنع له مستقبلاً كريماً.
+          - generic [ref=e22]:
+            - link "ابدأ طلب مساعدة arrow_right_alt" [ref=e23] [cursor=pointer]:
+              - /url: /request-aid
+              - text: ابدأ طلب مساعدة
+              - generic [ref=e24]: arrow_right_alt
+            - link "تعرف على مشاريعنا" [ref=e25] [cursor=pointer]:
+              - /url: /projects
+          - generic [ref=e26]:
+            - generic [ref=e27]:
+              - generic [ref=e29]: person
+              - generic [ref=e31]: person
+              - generic [ref=e33]: person
+            - generic [ref=e34]: بإشراف وزارة التضامن الاجتماعي
+        - img "أطفال مجتمعنا" [ref=e36]
+      - generic [ref=e39]:
+        - generic [ref=e40]:
+          - button "التحقق من العضوية" [ref=e41] [cursor=pointer]
+          - button "التحقق من الطلب" [ref=e42] [cursor=pointer]
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - generic [ref=e45]: search
+            - textbox "أدخل الرقم القومي الخاص بك (14 رقم)" [ref=e46]
+          - button "تحقق الآن" [ref=e47] [cursor=pointer]
+        - paragraph [ref=e48]: يمكنك التحقق من حالة عضويتك باستخدام الرقم القومي الخاص بك.
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - heading [level=3] [ref=e52]
+          - paragraph [ref=e54]: أسرة مستفيدة
+          - paragraph [ref=e55]: تم التحقق منها ودعمها
+        - generic [ref=e56]:
+          - heading [level=3] [ref=e57]
+          - paragraph [ref=e59]: قرية نغطيها
+          - paragraph [ref=e60]: في مراكز بني سويف
+        - generic [ref=e61]:
+          - heading [level=3] [ref=e62]
+          - paragraph [ref=e64]: متطوع ميداني
+          - paragraph [ref=e65]: جاهزين للتدخل السريع
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - generic [ref=e69]:
+            - heading "خدماتنا التنموية" [level=2] [ref=e70]
+            - paragraph [ref=e71]: نقدم حزمة متكاملة من التدخلات التي تهدف إلى تحسين جودة الحياة في مجتمعاتنا المحلية ببني سويف، مع التركيز على الاستدامة والتمكين المباشر.
+          - link "عرض كافة الخدمات arrow_forward" [ref=e72] [cursor=pointer]:
+            - /url: /services
+            - text: عرض كافة الخدمات
+            - generic [ref=e73]: arrow_forward
+        - generic [ref=e74]:
+          - generic [ref=e75]:
+            - img "تمكين اقتصادي" [ref=e76]
+            - generic [ref=e78]:
+              - generic [ref=e80]: trending_up
+              - heading "تمكين اقتصادي" [level=3] [ref=e81]
+              - paragraph [ref=e82]: دعم المشروعات الصغيرة ومتناهية الصغر للشباب والنساء المعيلات لضمان مصدر دخل مستدام وتحويل الأسر من الاحتياج إلى الإنتاج.
+          - generic [ref=e83]:
+            - generic [ref=e85]: school
+            - heading "دعم تعليمي" [level=3] [ref=e86]
+            - paragraph [ref=e87]: برامج محو الأمية، وتوفير المستلزمات المدرسية، وكفالة الطلاب المتفوقين دراسياً.
+          - generic [ref=e88]:
+            - generic [ref=e90]: medical_services
+            - heading "تدخلات صحية" [level=3] [ref=e91]
+            - paragraph [ref=e92]: قوافل طبية متخصصة في القرى، وتوفير الأدوية وإجراء العمليات الجراحية العاجلة للمرضى.
+          - generic [ref=e93]:
+            - generic [ref=e95]: home_work
+            - heading "سكن كريم" [level=3] [ref=e96]
+            - paragraph [ref=e97]: ترميم المنازل وتوفير وصلات المياه النظيفة والكهرباء للقرى الأكثر احتياجاً في مراكز المحافظة. المستهدف توفير بيئة معيشية آمنة.
+      - generic [ref=e99]:
+        - generic [ref=e101]:
+          - heading "أخبار الفرع" [level=2] [ref=e102]
+          - paragraph [ref=e103]: تابع أحدث فعاليات وأنشطة أجيال أجيال صناع الحياة في محافظة بني سويف
+        - paragraph [ref=e105]: لا توجد أخبار حالياً
+      - generic [ref=e107]:
+        - generic [ref=e108]:
+          - heading "شركاء النجاح" [level=2] [ref=e109]
+          - paragraph [ref=e110]: نفخر بشراكتنا مع مؤسسات وهيئات تدعم رؤيتنا في تحقيق التنمية المستدامة
+        - paragraph [ref=e112]: لا يوجد شركاء حالياً
+      - generic [ref=e113]:
+        - generic:
+          - img
+        - generic [ref=e114]:
+          - generic [ref=e115]:
+            - generic [ref=e116]:
+              - generic [ref=e117]: favorite
+              - text: ساهم في التغيير
+            - heading "وسائل التبرع" [level=2] [ref=e118]
+            - paragraph [ref=e119]: تبرعك يصنع فارقاً في حياة الكثيرين، اختر الوسيلة الأنسب لك وكن جزءاً من الأثر الإيجابي.
+          - generic [ref=e121]:
+            - generic [ref=e122]:
+              - generic [ref=e124]: phone_iphone
+              - generic [ref=e125]:
+                - heading "فودافون كاش" [level=3] [ref=e126]
+                - paragraph [ref=e127]: "يمكنك التبرع بكل سهولة عبر محفظة فودافون كاش على الرقم التالي:"
+                - generic [ref=e128]: "01026236435"
+            - generic [ref=e130]:
+              - generic [ref=e132]: account_balance
+              - generic [ref=e133]:
+                - heading "التحويل البنكي" [level=3] [ref=e134]
+                - paragraph [ref=e135]: "حسابنا البنكي لاستقبال التبرعات والزكاة والصدقات:"
+                - generic [ref=e136]:
+                  - generic [ref=e137]:
+                    - paragraph [ref=e138]: اسم المستفيد
+                    - paragraph [ref=e139]: جمعية اجيال صناع الحياة
+                  - generic [ref=e140]:
+                    - paragraph [ref=e141]: رقم الحساب الدولي (IBAN)
+                    - paragraph [ref=e142]: "390004603000006204030002652"
+    - contentinfo [ref=e143]:
+      - generic [ref=e144]:
+        - generic [ref=e145]:
+          - generic [ref=e146]:
+            - img "شعار صناع الحياة" [ref=e147]
+            - generic [ref=e148]:
+              - generic [ref=e149]: أجيال صناع الحياة
+              - generic [ref=e150]: بني سويف
+          - paragraph [ref=e151]: نسعى لبناء مجتمع متكافل ومستدام من خلال تقديم الدعم والمساعدة للفئات الأكثر احتياجاً في مختلف قرى ومراكز بني سويف.
+          - generic [ref=e152]:
+            - link "فيسبوك" [ref=e153] [cursor=pointer]:
+              - /url: https://Facebook.com/sonna3.bns?
+              - img [ref=e154]
+            - link "البريد الإلكتروني" [ref=e156] [cursor=pointer]:
+              - /url: mailto:info@lifemakers-bns.com
+              - generic [ref=e157]: alternate_email
+        - generic [ref=e158]:
+          - heading "روابط سريعة" [level=4] [ref=e159]
+          - list [ref=e160]:
+            - listitem [ref=e161]:
+              - link "الرئيسية" [ref=e162] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=e163]:
+              - link "من نحن" [ref=e164] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e165]:
+              - link "الخدمات والمشاريع" [ref=e166] [cursor=pointer]:
+                - /url: /projects
+            - listitem [ref=e167]:
+              - link "تقديم طلب مساعدة" [ref=e168] [cursor=pointer]:
+                - /url: /request-aid
+        - generic [ref=e169]:
+          - heading "تواصل معنا" [level=4] [ref=e170]
+          - list [ref=e171]:
+            - listitem [ref=e172]:
+              - generic [ref=e173]: location_on
+              - text: حي الزهور الشارع المقابل لمسجد ثروت الدعوري مركز بني سويف محافظة بني سويف
+            - listitem [ref=e174]:
+              - generic [ref=e175]: call
+              - generic [ref=e176]: "01020040935"
+            - listitem [ref=e177]:
+              - generic [ref=e178]: mail
+              - generic [ref=e179]: info@lifemakers-bns.com
+        - generic [ref=e181]:
+          - heading "البوابة الداخلية" [level=4] [ref=e182]:
+            - generic [ref=e183]: lock
+            - text: البوابة الداخلية
+          - paragraph [ref=e184]: منصة لموظفي الفرع والمتطوعين المسجلين فقط لإدارة الحالات والبيانات.
+          - link "دخول فريق العمل" [ref=e185] [cursor=pointer]:
+            - /url: /login
+      - generic [ref=e186]:
+        - generic [ref=e187]:
+          - paragraph [ref=e188]: © 2026 جمعية أجيال صناع الحياة ببني سويف. جميع الحقوق محفوظة.
+          - paragraph [ref=e189]: "رقم القيد: 1880 لسنة 2013 — مديرية التضامن الاجتماعي بني سويف | الموقع: lifemakers-bns.com"
+        - link "البيانات التسجيلية" [ref=e191] [cursor=pointer]:
+          - /url: /about#registration
+  - button "Open Next.js Dev Tools" [ref=e197] [cursor=pointer]:
+    - img [ref=e198]

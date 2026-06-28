@@ -24,33 +24,33 @@ const LIFECYCLE_STEPS = [
 ] as const;
 
 const lifecycleMap: Record<string, { label: string; color: string }> = {
-  DRAFT: { label: "مسودة", color: "bg-surface-container text-on-surface" },
-  REVIEW: { label: "مراجعة", color: "bg-warning/20 text-warning" },
-  FIELD_VERIFICATION: { label: "تحقق ميداني", color: "bg-warning/30 text-on-surface" },
-  APPROVED: { label: "موافقة", color: "bg-success/20 text-success" },
-  EXECUTION: { label: "تنفيذ", color: "bg-primary/20 text-primary" },
+  DRAFT: { label: "مسودة", color: "bg-surface-container text-on-surface-variant" },
+  REVIEW: { label: "مراجعة", color: "bg-warning/15 text-warning" },
+  FIELD_VERIFICATION: { label: "تحقق ميداني", color: "bg-warning/15 text-warning" },
+  APPROVED: { label: "موافقة", color: "bg-success/15 text-success" },
+  EXECUTION: { label: "تنفيذ", color: "bg-primary/15 text-primary" },
   COMPLETED: { label: "مكتمل", color: "bg-success text-on-success" },
   // Legacy statuses — render gracefully if they still exist in DB
-  INTAKE_REVIEW: { label: "مراجعة (قديم)", color: "bg-warning/20 text-warning" },
-  COMMITTEE_REVIEW: { label: "مراجعة لجنة (قديم)", color: "bg-tertiary/20 text-tertiary" },
-  IN_PROGRESS: { label: "قيد التنفيذ (قديم)", color: "bg-primary/20 text-primary" },
-  REJECTED: { label: "مرفوض (قديم)", color: "bg-error/20 text-error" },
+  INTAKE_REVIEW: { label: "مراجعة (قديم)", color: "bg-warning/15 text-warning" },
+  COMMITTEE_REVIEW: { label: "مراجعة لجنة (قديم)", color: "bg-warning/15 text-warning" },
+  IN_PROGRESS: { label: "قيد التنفيذ (قديم)", color: "bg-primary/15 text-primary" },
+  REJECTED: { label: "مرفوض (قديم)", color: "bg-error/15 text-error" },
   TECH_REJECTED: { label: "مرفوض فنياً (قديم)", color: "bg-error text-on-error" },
   ON_HOLD: { label: "معلق (قديم)", color: "bg-surface-variant text-on-surface-variant" },
-  ARCHIVED: { label: "مؤرشف (قديم)", color: "bg-outline text-surface" },
+  ARCHIVED: { label: "مؤرشف (قديم)", color: "bg-surface-container text-on-surface-variant" },
 };
 
 const decisionMap: Record<string, { label: string; bg: string }> = {
-  PENDING_DECISION: { label: "قيد القرار", bg: "bg-warning/20 text-warning" },
-  APPROVED: { label: "مقبول", bg: "bg-success/20 text-success" },
-  REJECTED: { label: "مرفوض", bg: "bg-error/20 text-error" },
-  RETURNED_FOR_COMPLETION: { label: "مردود للاستكمال", bg: "bg-tertiary/20 text-tertiary" },
+  PENDING_DECISION: { label: "قيد القرار", bg: "bg-warning/15 text-warning" },
+  APPROVED: { label: "مقبول", bg: "bg-success/15 text-success" },
+  REJECTED: { label: "مرفوض", bg: "bg-error/15 text-error" },
+  RETURNED_FOR_COMPLETION: { label: "مردود للاستكمال", bg: "bg-warning/15 text-warning" },
 };
 
 const completenessMap: Record<string, { label: string; bg: string }> = {
-  COMPLETE: { label: "مكتمل الملفات", bg: "bg-primary/20 text-primary" },
-  MISSING_NATIONAL_ID: { label: "ينقص رقم قومي", bg: "bg-error/20 text-error" },
-  MISSING_DOCUMENTS: { label: "مستندات ناقصة", bg: "bg-warning/20 text-warning" },
+  COMPLETE: { label: "مكتمل الملفات", bg: "bg-success/15 text-success" },
+  MISSING_NATIONAL_ID: { label: "ينقص رقم قومي", bg: "bg-error/15 text-error" },
+  MISSING_DOCUMENTS: { label: "مستندات ناقصة", bg: "bg-warning/15 text-warning" },
 };
 
 function getStepIndex(status: string): number {
@@ -105,7 +105,7 @@ function CaseLifecycleStepper({ currentStatus }: { currentStatus: string }) {
               <span
                 className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
                   isResearcher
-                    ? "bg-warning/10 text-warning"
+                    ? "bg-primary/10 text-primary"
                     : "bg-tertiary/10 text-tertiary"
                 }`}
               >
@@ -209,8 +209,20 @@ export default function CaseDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-surface flex justify-center items-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="mx-auto max-w-[1600px] space-y-6 px-6 py-8" aria-busy="true" aria-label="جاري تحميل تفاصيل الحالة">
+        <div className="h-9 w-64 animate-pulse rounded-2xl bg-surface-container-high" />
+        <div className="h-20 animate-pulse rounded-3xl bg-surface-container-low" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-20 animate-pulse rounded-2xl bg-surface-container-low" />
+              ))}
+            </div>
+            <div className="h-72 animate-pulse rounded-3xl bg-surface-container-low" />
+          </div>
+          <div className="h-80 animate-pulse rounded-3xl bg-surface-container-low" />
+        </div>
       </div>
     );
   }
@@ -257,10 +269,12 @@ export default function CaseDetailsPage() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex gap-4 items-center">
               <button
+                type="button"
                 onClick={() => router.back()}
-                className="w-10 h-10 rounded-full hover:bg-surface-variant flex items-center justify-center transition-colors text-on-surface-variant"
+                aria-label="العودة للصفحة السابقة"
+                className="flex h-11 w-11 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-variant"
               >
-                <span className="material-symbols-outlined rtl:rotate-180">arrow_back</span>
+                <span className="material-symbols-outlined rtl:rotate-180" aria-hidden="true">arrow_back</span>
               </button>
               <div>
                 <div className="flex items-center gap-3 mb-1">
@@ -336,7 +350,7 @@ export default function CaseDetailsPage() {
                 </Link>
               )}
 
-              <button onClick={() => void handleOpenPdf()} disabled={pdfLoading} className="px-5 py-2 bg-success/10 text-success hover:bg-success/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+              <button onClick={() => void handleOpenPdf()} disabled={pdfLoading} className="px-5 py-2 bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
                 <span className="material-symbols-outlined text-lg">print</span>
                 {pdfLoading ? "جاري إنشاء PDF..." : "PDF من السيرفر"}
               </button>
@@ -400,8 +414,8 @@ export default function CaseDetailsPage() {
                 <div>
                   <label className="text-sm text-on-surface-variant mb-1 block">الأولوية</label>
                   <p className={`font-bold inline-flex items-center gap-1 ${caseData.priority === 'URGENT' || caseData.priority === 'عاجل' ? 'text-error' : 'text-on-surface'}`}>
-                    {caseData.priority === 'URGENT' || caseData.priority === 'عاجل' ? <span className="material-symbols-outlined text-base">warning</span> : null}
-                    {caseData.priority === 'URGENT' ? 'عاجل' : (caseData.priority === 'HIGH' ? 'عالي' : (caseData.priority === 'NORMAL' ? 'تلقائي' : caseData.priority))}
+                    {caseData.priority === 'URGENT' || caseData.priority === 'عاجل' ? <span className="material-symbols-outlined text-base" aria-hidden="true">warning</span> : null}
+                    {caseData.priority === 'URGENT' ? 'عاجل' : (caseData.priority === 'HIGH' ? 'عالي' : (caseData.priority === 'NORMAL' ? 'عادي' : caseData.priority))}
                   </p>
                 </div>
                 <div>
@@ -499,8 +513,7 @@ export default function CaseDetailsPage() {
           </div>
 
           <div className="space-y-6">
-            <div className="bg-surface border border-outline-variant/30 rounded-3xl p-6 shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-2 h-full bg-tertiary"></div>
+            <div className="bg-surface border border-outline-variant/30 rounded-3xl p-6 shadow-sm">
               <h2 className="text-lg font-bold text-on-surface mb-6 flex items-center gap-2">
                 <span className="material-symbols-outlined text-tertiary">family_home</span>
                 الأسرة المرتبطة

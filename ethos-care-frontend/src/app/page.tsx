@@ -25,7 +25,7 @@ export default function LandingPage() {
               
               <h1 className="text-5xl lg:text-7xl font-extrabold font-headline leading-[1.1] text-primary">
                 نصنع الحياة... <br />
-                <span className="text-[#fcb900]">بالتمكين والتنمية</span>
+                <span className="text-warning">بالتمكين والتنمية</span>
               </h1>
               
               <p className="text-lg text-on-surface-variant max-w-lg leading-relaxed font-medium">
@@ -49,10 +49,16 @@ export default function LandingPage() {
               </div>
 
               <div className="pt-6 flex items-center gap-4 text-sm text-on-surface-variant font-medium">
-                <div className="flex -space-x-2 rtl:space-x-reverse">
-                  <Image src="https://ui-avatars.com/api/?name=Mo&background=0D8ABC&color=fff" alt="M" width={32} height={32} className="w-8 h-8 rounded-full border-2 border-white" />
-                  <Image src="https://ui-avatars.com/api/?name=Sa&background=fcb900&color=000" alt="S" width={32} height={32} className="w-8 h-8 rounded-full border-2 border-white" />
-                  <Image src="https://ui-avatars.com/api/?name=Ah&background=005c55&color=fff" alt="A" width={32} height={32} className="w-8 h-8 rounded-full border-2 border-white" />
+                <div className="flex -space-x-2 rtl:space-x-reverse" aria-hidden="true">
+                  <span className="flex w-8 h-8 items-center justify-center rounded-full border-2 border-white bg-primary/10 text-primary">
+                    <span className="material-symbols-outlined text-[18px]">person</span>
+                  </span>
+                  <span className="flex w-8 h-8 items-center justify-center rounded-full border-2 border-white bg-secondary/30 text-on-surface">
+                    <span className="material-symbols-outlined text-[18px]">person</span>
+                  </span>
+                  <span className="flex w-8 h-8 items-center justify-center rounded-full border-2 border-white bg-tertiary/15 text-tertiary">
+                    <span className="material-symbols-outlined text-[18px]">person</span>
+                  </span>
                 </div>
                 <span>بإشراف وزارة التضامن الاجتماعي</span>
               </div>
@@ -61,6 +67,7 @@ export default function LandingPage() {
             <div className="relative h-[400px] lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl">
               <Image
                 fill
+                priority
                 src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
                 alt="أطفال مجتمعنا"
                 className="w-full h-full object-cover"
@@ -83,7 +90,7 @@ export default function LandingPage() {
         <section id="services" className="py-20 bg-surface">
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-              <div className="border-r-4 border-[#fcb900] pr-6">
+              <div className="border-r-4 border-secondary pr-6">
                 <h2 className="text-3xl lg:text-4xl font-extrabold font-headline text-primary mb-4">خدماتنا التنموية</h2>
                 <p className="text-on-surface-variant max-w-2xl text-lg leading-relaxed">
                   نقدم حزمة متكاملة من التدخلات التي تهدف إلى تحسين جودة الحياة في مجتمعاتنا المحلية ببني سويف، مع التركيز على الاستدامة والتمكين المباشر.
@@ -105,13 +112,13 @@ export default function LandingPage() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   sizes="(min-width: 1024px) 50vw, 100vw"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#003430] via-[#005c55]/80 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/80 to-transparent"></div>
                 <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-                  <div className="w-12 h-12 bg-[#fcb900] rounded-xl flex items-center justify-center mb-4 text-on-surface">
+                  <div className="w-12 h-12 bg-secondary rounded-xl flex items-center justify-center mb-4 text-on-surface">
                     <span className="material-symbols-outlined">trending_up</span>
                   </div>
                   <h3 className="text-2xl font-bold font-headline mb-2">تمكين اقتصادي</h3>
-                  <p className="text-emerald-50/90 leading-relaxed max-w-md">
+                  <p className="text-white/90 leading-relaxed max-w-md">
                     دعم المشروعات الصغيرة ومتناهية الصغر للشباب والنساء المعيلات لضمان مصدر دخل مستدام وتحويل الأسر من الاحتياج إلى الإنتاج.
                   </p>
                 </div>
