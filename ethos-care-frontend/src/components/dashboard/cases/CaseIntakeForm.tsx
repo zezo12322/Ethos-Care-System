@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { familiesService } from "@/services/families.service";
 import { locationsService } from "@/services/locations.service";
 import { casesService, CreateCaseDto } from "@/services/cases.service";
@@ -18,6 +18,11 @@ import {
 import { useOfflineDraft } from "@/hooks/useOfflineDraft";
 import { useToast } from "@/components/ui/Toast";
 import SyncStatusBar from "./SyncStatusBar";
+
+function isNetworkError(error: unknown): boolean {
+  const candidate = error as { isAxiosError?: boolean; response?: unknown } | null;
+  return Boolean(candidate?.isAxiosError) && !candidate?.response;
+}
 
 type CasePriority = "NORMAL" | "HIGH" | "URGENT";
 type ManagerDecision = "PENDING" | "APPROVE" | "RETURN" | "REJECT";
@@ -632,15 +637,59 @@ export default function CaseIntakeForm({
     ? `case-draft-${caseRecord.id}`
     : "case-draft-new";
 
+  // Build the API payload from a draft. Shared by the online submit path and the
+  // offline sync handler, so a queued submission is sent identically once back online.
+  const buildCasePayload = useCallback(
+    (source: CaseFormDraft): CreateCaseDto => ({
+      applicantName: source.formData.person.fullName.trim(),
+      nationalId: source.formData.person.nationalId.trim() || undefined,
+      caseType: source.caseType.trim(),
+      priority: source.priority,
+      description: source.description.trim() || undefined,
+      location:
+        buildRegionString(
+          source.formData.person.center,
+          source.formData.person.village,
+        ) || "غير محدد",
+      familyId: source.formData.family.linkedFamilyId || undefined,
+      formData: {
+        ...source.formData,
+        person: {
+          ...source.formData.person,
+          region: buildRegionString(
+            source.formData.person.center,
+            source.formData.person.village,
+          ),
+        },
+        support: {
+          ...source.formData.support,
+          specialistName:
+            source.formData.support.specialistName || currentUserName,
+        },
+      },
+    }),
+    [currentUserName],
+  );
+
   const {
     loadDraft,
     saveDraft: saveDraftToLocal,
     clearDraft: clearLocalDraft,
+    queueSubmission,
     syncStatus,
     isOnline,
     lastSavedAt,
     pendingCount,
-  } = useOfflineDraft<CaseFormDraft>({ storageKey: draftKey });
+  } = useOfflineDraft<CaseFormDraft>({
+    storageKey: draftKey,
+    // Only new-case entry is queued for offline sync — the volunteer-in-the-field case.
+    onSync:
+      mode === "create"
+        ? async (queuedDraft) => {
+            await casesService.create(buildCasePayload(queuedDraft));
+          }
+        : undefined,
+  });
 
   const { toast } = useToast();
 
@@ -673,7 +722,13 @@ export default function CaseIntakeForm({
     saveDraftToLocal(draft);
   }, [draft, saveDraftToLocal]);
 
+  // Repopulate from the case record only when it actually changes — never on the
+  // initial mount — so a restored offline draft is not overwritten.
+  const appliedCaseIdRef = useRef<string | null>(caseRecord?.id ?? null);
   useEffect(() => {
+    const currentId = caseRecord?.id ?? null;
+    if (currentId === appliedCaseIdRef.current) return;
+    appliedCaseIdRef.current = currentId;
     setDraft(buildInitialFormData(caseRecord, currentUserName));
   }, [caseRecord, currentUserName]);
 
@@ -1250,36 +1305,38 @@ export default function CaseIntakeForm({
       return;
     }
 
-    const payload: CreateCaseDto = {
-      applicantName: draft.formData.person.fullName.trim(),
-      nationalId: draft.formData.person.nationalId.trim() || undefined,
-      caseType: draft.caseType.trim(),
-      priority: draft.priority,
-      description: draft.description.trim() || undefined,
-      location:
-        buildRegionString(draft.formData.person.center, draft.formData.person.village) ||
-        "غير محدد",
-      familyId: draft.formData.family.linkedFamilyId || undefined,
-      formData: {
-        ...draft.formData,
-        person: {
-          ...draft.formData.person,
-          region: buildRegionString(
-            draft.formData.person.center,
-            draft.formData.person.village,
-          ),
-        },
-        support: {
-          ...draft.formData.support,
-          specialistName: draft.formData.support.specialistName || currentUserName,
-        },
-      },
-    };
+    const payload = buildCasePayload(draft);
+
+    // Offline new-case entry: store locally and let the sync queue submit it
+    // automatically once the connection returns (no data loss in the field).
+    if (mode === "create" && !isOnline) {
+      queueSubmission(draft);
+      clearLocalDraft();
+      setDraft(buildInitialFormData(undefined, currentUserName));
+      toast(
+        "لا يوجد اتصال — تم حفظ الحالة محليًا وسيتم إرسالها تلقائيًا عند عودة الإنترنت.",
+        "success",
+      );
+      return;
+    }
 
     try {
       setSaving(true);
       await onSubmit(payload);
       clearLocalDraft();
+    } catch (error) {
+      // A genuine network failure while nominally "online": queue it instead of losing it.
+      if (mode === "create" && isNetworkError(error)) {
+        queueSubmission(draft);
+        clearLocalDraft();
+        setDraft(buildInitialFormData(undefined, currentUserName));
+        toast(
+          "تعذّر الإرسال الآن — تم حفظ الحالة محليًا وستُرسل تلقائيًا عند عودة الإنترنت.",
+          "warning",
+        );
+      } else {
+        throw error;
+      }
     } finally {
       setSaving(false);
     }
