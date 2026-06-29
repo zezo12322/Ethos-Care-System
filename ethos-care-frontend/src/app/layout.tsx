@@ -22,8 +22,8 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "أجيال صناع الحياة - نظام إدارة الحالات",
-  description: "نظام إدارة الحالات والطلبات لجمعية أجيال صناع الحياة",
+  title: "أجيال صناع الحياة",
+  description: "جمعية أجيال صناع الحياة ببني سويف",
   manifest: "/manifest.json",
   verification: {
     google: "Uk0KZwFWNzFNu8oGZ3ui1tn5HW8lHx_ppXACAHyIG0Y",
