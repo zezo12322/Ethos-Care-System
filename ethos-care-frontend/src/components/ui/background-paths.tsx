@@ -4,8 +4,15 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-function FloatingPaths({ position }: { position: number }) {
+function FloatingPaths({
+  position,
+  className,
+}: {
+  position: number;
+  className?: string;
+}) {
   const paths = useMemo(
     () =>
       Array.from({ length: 36 }, (_, i) => ({
@@ -25,7 +32,7 @@ function FloatingPaths({ position }: { position: number }) {
   return (
     <div className="pointer-events-none absolute inset-0">
       <svg
-        className="h-full w-full text-slate-950 dark:text-white"
+        className={cn("h-full w-full text-slate-950 dark:text-white", className)}
         viewBox="0 0 696 316"
         fill="none"
       >
@@ -51,6 +58,18 @@ function FloatingPaths({ position }: { position: number }) {
           />
         ))}
       </svg>
+    </div>
+  );
+}
+
+export function BackgroundPathsBackdrop({ className }: { className?: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}
+    >
+      <FloatingPaths position={1} className="text-primary" />
+      <FloatingPaths position={-1} className="text-warning" />
     </div>
   );
 }

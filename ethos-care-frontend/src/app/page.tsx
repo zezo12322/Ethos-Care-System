@@ -7,6 +7,7 @@ import DynamicStats from "@/components/DynamicStats";
 import DynamicNews from "@/components/DynamicNews";
 import DynamicPartners from "@/components/DynamicPartners";
 import DonateSection from "@/components/DonateSection";
+import { BackgroundPathsBackdrop } from "@/components/ui/background-paths";
 
 export default function LandingPage() {
   return (
@@ -16,7 +17,8 @@ export default function LandingPage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-gradient-to-b from-white to-surface-container-lowest py-16 lg:py-24">
-          <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <BackgroundPathsBackdrop className="opacity-20" />
+          <div className="relative z-10 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8 z-10">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-surface-container-low text-primary text-xs font-bold rounded-full border border-outline-variant/30">
                 <span className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
