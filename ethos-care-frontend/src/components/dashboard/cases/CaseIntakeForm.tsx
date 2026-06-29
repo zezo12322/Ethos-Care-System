@@ -441,6 +441,15 @@ function buildFamilyMembersFromRecord(family?: FamilyRecord | null): CaseIntakeF
     relation: normalizeRelation(member.relation),
     age: member.age ?? "",
     education: normalizeEducationState(member.education ?? ""),
+    nationalId: member.nationalId ?? "",
+    gender: member.gender ?? "",
+    mobile: member.mobile ?? "",
+    job: member.job ?? "",
+    monthlyIncome: member.monthlyIncome ?? "0",
+    classification: member.classification ?? "",
+    educationType: member.educationType ?? "",
+    educationStage: member.educationStage ?? "",
+    schoolYear: member.schoolYear ?? "",
   }));
 }
 
@@ -1267,10 +1276,17 @@ export default function CaseIntakeForm({
     }));
   };
 
-  const importFamilyData = () => {
-    const family = families.find((item) => item.id === draft.formData.family.linkedFamilyId);
+  // اختيار أسرة = تحميل بياناتها فورًا (الأسرة هي المصدر الوحيد لرب الأسرة وأفرادها)
+  const applyFamily = (familyId: string) => {
+    // "بدون أسرة" — نمسح الربط فقط دون مسح البيانات المُدخلة
+    if (!familyId) {
+      updateFamily("linkedFamilyId", "");
+      return;
+    }
 
+    const family = families.find((item) => item.id === familyId);
     if (!family) {
+      updateFamily("linkedFamilyId", familyId);
       return;
     }
 
@@ -1297,6 +1313,7 @@ export default function CaseIntakeForm({
         },
         family: {
           ...current.formData.family,
+          linkedFamilyId: familyId,
           members: buildFamilyMembersFromRecord(family),
         },
       },
@@ -1968,25 +1985,30 @@ export default function CaseIntakeForm({
             </span>
             <select
               value={draft.formData.family.linkedFamilyId}
-              onChange={(event) => updateFamily("linkedFamilyId", event.target.value)}
+              onChange={(event) => applyFamily(event.target.value)}
               className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
             >
-              <option value="">اختر الأسرة</option>
+              <option value="">بدون ربط — أسرة جديدة من بيانات رب الأسرة</option>
               {families.map((family) => (
                 <option key={family.id} value={family.id}>
                   {family.headName} {family.nationalId ? `- ${family.nationalId}` : ""}
                 </option>
               ))}
             </select>
+            <span className="mt-2 block text-xs font-medium text-on-surface-variant">
+              عند الاختيار تُحمَّل بيانات الأسرة وأفرادها تلقائيًا. لو تركته بدون
+              ربط، يُنشئ النظام أسرة من الرقم القومي لرب الأسرة (أو يربط بالأسرة
+              القائمة بنفس الرقم) تلقائيًا عند الحفظ.
+            </span>
           </label>
           <div className="flex items-end">
             <button
               type="button"
-              onClick={importFamilyData}
+              onClick={() => applyFamily(draft.formData.family.linkedFamilyId)}
               disabled={!draft.formData.family.linkedFamilyId}
               className="w-full rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm font-bold text-primary transition-colors hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              استيراد بيانات الأسرة
+              إعادة تحميل بيانات الأسرة
             </button>
           </div>
         </div>

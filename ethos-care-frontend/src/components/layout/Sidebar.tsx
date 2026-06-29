@@ -37,6 +37,12 @@ const NAV_ITEMS: NavItem[] = [
   },
   { href: "/dashboard/cases", icon: "folder_shared", label: "الحالات", roles: ALL_STAFF },
   { href: "/dashboard/families", icon: "family_restroom", label: "الأسر", roles: ALL_STAFF },
+  {
+    href: "/dashboard/volunteers",
+    icon: "volunteer_activism",
+    label: "المتطوعون",
+    roles: ["ADMIN", "CEO", "MANAGER"],
+  },
   { href: "/dashboard/search", icon: "search", label: "البحث", roles: ALL_STAFF },
   {
     href: "/dashboard/reports",

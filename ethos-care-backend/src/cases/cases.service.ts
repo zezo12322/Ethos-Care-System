@@ -4,6 +4,36 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateCaseDto } from './dto/create-case.dto';
 import { UpdateCaseDto } from './dto/update-case.dto';
 
+/** بيانات رب الأسرة كما تصل من استمارة الحالة (formData.person) */
+interface CaseFormPerson {
+  fullName?: string;
+  nationalId?: string;
+  mobile?: string;
+  job?: string;
+  monthlyIncome?: string;
+  center?: string;
+  village?: string;
+  educationState?: string;
+  detailedAddress?: string;
+}
+
+/** بيانات فرد الأسرة كما تصل من الاستمارة (formData.family.members) */
+interface CaseFormMember {
+  name?: string;
+  relation?: string;
+  age?: string;
+  education?: string;
+  nationalId?: string;
+  gender?: string;
+  mobile?: string;
+  job?: string;
+  monthlyIncome?: string;
+  classification?: string;
+  educationType?: string;
+  educationStage?: string;
+  schoolYear?: string;
+}
+
 @Injectable()
 export class CasesService {
   constructor(private prisma: PrismaService) {}
@@ -34,16 +64,170 @@ export class CasesService {
     };
   }
 
+  /** استخراج بيانات رب الأسرة وأفرادها من formData الخاص بالاستمارة */
+  private extractFamilyForm(formData?: Record<string, unknown>) {
+    const fd = (formData ?? {}) as {
+      person?: CaseFormPerson;
+      family?: { members?: CaseFormMember[] };
+    };
+    const person = fd.person ?? {};
+    // members === null تعني أن الاستمارة لم ترسل قسم الأسرة إطلاقًا (لا نمسح الأفراد)
+    const members =
+      fd.family && Array.isArray(fd.family.members) ? fd.family.members : null;
+    return { person, members };
+  }
+
+  private toMemberData(
+    member: CaseFormMember,
+  ): Omit<Prisma.FamilyMemberCreateManyInput, 'familyId'> {
+    return {
+      name: (member.name ?? '').trim() || 'بدون اسم',
+      relation: member.relation || 'ابن/ة',
+      age: member.age || null,
+      education: member.education || null,
+      nationalId: member.nationalId || null,
+      gender: member.gender || null,
+      mobile: member.mobile || null,
+      job: member.job || null,
+      monthlyIncome: member.monthlyIncome ? String(member.monthlyIncome) : null,
+      classification: member.classification || null,
+      educationType: member.educationType || null,
+      educationStage: member.educationStage || null,
+      schoolYear: member.schoolYear || null,
+    };
+  }
+
+  /**
+   * يضمن ربط كل حالة بأسرة:
+   *  1) ربط صريح بـ familyId إن وُجد،
+   *  2) وإلا البحث بالرقم القومي (منع التكرار)،
+   *  3) وإلا إنشاء أسرة جديدة من بيانات رب الأسرة.
+   */
+  private async resolveFamilyId(
+    tx: Prisma.TransactionClient,
+    params: {
+      applicantName?: string;
+      nationalId?: string;
+      explicitFamilyId?: string;
+    },
+    person: CaseFormPerson,
+    members: CaseFormMember[] | null,
+  ): Promise<string> {
+    const explicitId = params.explicitFamilyId?.trim();
+    const nationalId =
+      (params.nationalId ?? person.nationalId ?? '').trim() || null;
+
+    if (explicitId) {
+      const existing = await tx.family.findUnique({
+        where: { id: explicitId },
+      });
+      if (existing) {
+        await this.syncFamily(tx, existing.id, person, members);
+        return existing.id;
+      }
+    }
+
+    if (nationalId) {
+      const byNationalId = await tx.family.findUnique({
+        where: { nationalId },
+      });
+      if (byNationalId) {
+        await this.syncFamily(tx, byNationalId.id, person, members);
+        return byNationalId.id;
+      }
+    }
+
+    const validMembers = (members ?? []).filter((m) => (m.name ?? '').trim());
+    const created = await tx.family.create({
+      data: {
+        headName:
+          (params.applicantName ?? person.fullName ?? '').trim() || 'بدون اسم',
+        nationalId,
+        phone: person.mobile || null,
+        job: person.job || null,
+        income: person.monthlyIncome ? String(person.monthlyIncome) : null,
+        city: person.center || undefined,
+        village: person.village || null,
+        education: person.educationState || null,
+        addressDetails: person.detailedAddress || null,
+        address: person.detailedAddress || null,
+        lastVisit: new Date(),
+        membersCount: validMembers.length + 1,
+        familyMembers: validMembers.length
+          ? { create: validMembers.map((m) => this.toMemberData(m)) }
+          : undefined,
+      },
+    });
+    return created.id;
+  }
+
+  /**
+   * تحديث ملف الأسرة من بيانات الاستمارة (الأسرة هي المصدر الوحيد للأفراد).
+   * لا نمسح قيم رأس الأسرة الموجودة بقيم فارغة، ونستبدل الأفراد فقط عند
+   * إرسال قسم الأسرة في الاستمارة.
+   */
+  private async syncFamily(
+    tx: Prisma.TransactionClient,
+    familyId: string,
+    person: CaseFormPerson,
+    members: CaseFormMember[] | null,
+  ): Promise<void> {
+    const headData: Prisma.FamilyUpdateInput = { lastVisit: new Date() };
+    const setIfPresent = (key: string, value?: string | null) => {
+      if (value !== undefined && value !== null && String(value).trim() !== '') {
+        (headData as Record<string, unknown>)[key] = value;
+      }
+    };
+    setIfPresent('phone', person.mobile);
+    setIfPresent('job', person.job);
+    setIfPresent(
+      'income',
+      person.monthlyIncome ? String(person.monthlyIncome) : undefined,
+    );
+    setIfPresent('city', person.center);
+    setIfPresent('village', person.village);
+    setIfPresent('education', person.educationState);
+    setIfPresent('addressDetails', person.detailedAddress);
+
+    if (members !== null) {
+      const validMembers = members.filter((m) => (m.name ?? '').trim());
+      await tx.familyMember.deleteMany({ where: { familyId } });
+      if (validMembers.length) {
+        await tx.familyMember.createMany({
+          data: validMembers.map((m) => ({
+            ...this.toMemberData(m),
+            familyId,
+          })),
+        });
+      }
+      headData.membersCount = validMembers.length + 1;
+    }
+
+    await tx.family.update({ where: { id: familyId }, data: headData });
+  }
+
   async create(createCaseDto: CreateCaseDto) {
     const lifecycleStatus = 'DRAFT';
     const completenessStatus = createCaseDto.nationalId
       ? 'COMPLETE'
       : 'MISSING_NATIONAL_ID';
     const decisionStatus = 'PENDING_DECISION';
-    const familyId = createCaseDto.familyId?.trim() || undefined;
+    const { person, members } = this.extractFamilyForm(createCaseDto.formData);
 
     // Atomic transaction — create case + record history together
     return this.prisma.$transaction(async (tx) => {
+      // كل حالة لازم تكون مرتبطة بأسرة (ربط صريح / بحث بالرقم القومي / إنشاء تلقائي)
+      const familyId = await this.resolveFamilyId(
+        tx,
+        {
+          applicantName: createCaseDto.applicantName,
+          nationalId: createCaseDto.nationalId,
+          explicitFamilyId: createCaseDto.familyId,
+        },
+        person,
+        members,
+      );
+
       const newCase = await tx.case.create({
         data: {
           ...this.buildCreatePayload(createCaseDto),
@@ -53,13 +237,6 @@ export class CasesService {
           decisionStatus,
         },
       });
-
-      if (familyId) {
-        await tx.family.update({
-          where: { id: familyId },
-          data: { lastVisit: new Date() },
-        });
-      }
 
       await tx.caseHistory.create({
         data: {
@@ -156,25 +333,47 @@ export class CasesService {
       throw new NotFoundException('Case not found');
     }
 
-    const nextFamilyId = updateCaseDto.familyId?.trim() || undefined;
+    const { person, members } = this.extractFamilyForm(updateCaseDto.formData);
 
     return this.prisma.$transaction(async (tx) => {
+      // تحديد الأسرة الهدف: ربط صريح جديد، وإلا الأسرة الحالية، وإلا بحث/إنشاء
+      let targetFamilyId: string | null = currentCase.familyId ?? null;
+      if (updateCaseDto.familyId !== undefined) {
+        targetFamilyId = updateCaseDto.familyId.trim() || null;
+      }
+
+      if (targetFamilyId) {
+        const existing = await tx.family.findUnique({
+          where: { id: targetFamilyId },
+        });
+        if (existing) {
+          await this.syncFamily(tx, existing.id, person, members);
+        } else {
+          targetFamilyId = null;
+        }
+      }
+
+      if (!targetFamilyId) {
+        // لا توجد أسرة بعد — نضمن الربط بالبحث بالرقم القومي أو الإنشاء التلقائي
+        targetFamilyId = await this.resolveFamilyId(
+          tx,
+          {
+            applicantName: updateCaseDto.applicantName,
+            nationalId: updateCaseDto.nationalId,
+            explicitFamilyId: undefined,
+          },
+          person,
+          members,
+        );
+      }
+
       const updatedCase = await tx.case.update({
         where: { id },
         data: {
           ...this.buildUpdatePayload(updateCaseDto),
-          ...(updateCaseDto.familyId !== undefined
-            ? { familyId: nextFamilyId }
-            : {}),
+          familyId: targetFamilyId,
         },
       });
-
-      if (nextFamilyId && nextFamilyId !== currentCase.familyId) {
-        await tx.family.update({
-          where: { id: nextFamilyId },
-          data: { lastVisit: new Date() },
-        });
-      }
 
       return updatedCase;
     });

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFamilyDto } from './dto/create-family.dto';
 import { UpdateFamilyDto } from './dto/update-family.dto';
@@ -54,6 +58,19 @@ export class FamiliesService {
   }
 
   async create(data: CreateFamilyDto) {
+    // منع تكرار الأسر بنفس الرقم القومي (الأسرة مصدر واحد لكل عائل)
+    const nationalId = data.nationalId?.trim();
+    if (nationalId) {
+      const existing = await this.prisma.family.findUnique({
+        where: { nationalId },
+      });
+      if (existing) {
+        throw new ConflictException(
+          'يوجد بالفعل أسرة مسجّلة بنفس الرقم القومي. افتح ملف الأسرة القائم وأضف الحالة عليه بدلًا من إنشاء أسرة جديدة.',
+        );
+      }
+    }
+
     const lifecycleStatus = 'DRAFT';
     const decisionStatus = 'PENDING_DECISION';
     const completenessStatus = data.nationalId

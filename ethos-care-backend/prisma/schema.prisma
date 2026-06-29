@@ -66,7 +66,7 @@ model CaseHistory {
 model Family {
   id             String         @id @default(uuid())
   headName       String
-  nationalId     String?
+  nationalId     String?        @unique
   phone          String?
   socialStatus   String         @default("متزوج/ة")
   job            String?
@@ -98,6 +98,39 @@ model Operation {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   cases      Case[]
+  volunteerAssignments VolunteerAssignment[]
+}
+
+model Volunteer {
+  id            String                @id @default(uuid())
+  name          String
+  phone         String?
+  email         String?
+  age           Int?
+  preferredArea String?               // مجال التطوع المفضل
+  skills        String?               // المهارات / الاهتمامات
+  status        String                @default("PENDING") // PENDING | ACTIVE | INACTIVE | REJECTED
+  notes         String?
+  source        String                @default("MANUAL")  // MANUAL | PUBLIC_FORM
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  assignments   VolunteerAssignment[]
+}
+
+model VolunteerAssignment {
+  id          String    @id @default(uuid())
+  volunteerId String
+  operationId String
+  role        String?   // دور المتطوع في النشاط
+  attended    Boolean   @default(false)
+  hours       Int       @default(0)
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  operation   Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+
+  @@unique([volunteerId, operationId])
 }
 
 model Partner {
@@ -137,15 +170,25 @@ model Location {
 }
 
 model FamilyMember {
-  id        String   @id @default(uuid())
-  name      String
-  relation  String   @default("ابن/ة")
-  age       String?
-  education String?  @default("لا يدرس")
-  familyId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  id             String   @id @default(uuid())
+  name           String
+  relation       String   @default("ابن/ة")
+  age            String?
+  education      String?  @default("لا يدرس")
+  // حقول إضافية حتى يصبح ملف الأسرة المصدر الكامل لبيانات الأفراد
+  nationalId     String?
+  gender         String?
+  mobile         String?
+  job            String?
+  monthlyIncome  String?  @default("0")
+  classification String?
+  educationType  String?
+  educationStage String?
+  schoolYear     String?
+  familyId       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  family         Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
 }
 
 // ─── CMS Models ───────────────────────────────────────────────────────────────
