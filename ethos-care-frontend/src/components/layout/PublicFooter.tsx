@@ -2,9 +2,30 @@ import Image from "next/image";
 import React from "react";
 import Link from "next/link";
 
+const OFFICIAL_EMAIL = "info@lifemakers-bns.com";
+const WHATSAPP_NUMBER = "01026236435";
+const WHATSAPP_LINK = "https://wa.me/201026236435";
+
 export default function PublicFooter() {
   return (
     <footer className="bg-primary text-white pt-20 pb-8 mt-auto">
+      <a
+        href={WHATSAPP_LINK}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="تواصل معنا عبر واتساب"
+        className="fixed bottom-5 left-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25d366] text-white shadow-2xl shadow-black/25 ring-4 ring-white/80 transition-transform hover:scale-105 focus-visible:outline-white md:bottom-6 md:left-6"
+      >
+        <svg
+          aria-hidden="true"
+          className="h-7 w-7"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path d="M20.52 3.48A11.8 11.8 0 0 0 12.12 0C5.58 0 .26 5.32.26 11.86c0 2.09.55 4.13 1.6 5.93L.16 24l6.36-1.67a11.8 11.8 0 0 0 5.6 1.43h.01c6.54 0 11.86-5.32 11.86-11.86 0-3.17-1.23-6.15-3.47-8.42ZM12.13 21.76h-.01a9.82 9.82 0 0 1-5.01-1.37l-.36-.22-3.77.99 1.01-3.68-.24-.38a9.83 9.83 0 0 1-1.5-5.23c0-5.43 4.42-9.85 9.86-9.85a9.8 9.8 0 0 1 6.96 2.88 9.8 9.8 0 0 1 2.89 6.97c0 5.43-4.42 9.85-9.84 9.85Zm5.4-7.37c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.15-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.22 3.08.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.09 1.75-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35Z" />
+        </svg>
+      </a>
+
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
         <div className="space-y-6">
           <div className="flex items-center gap-3">
@@ -21,7 +42,7 @@ export default function PublicFooter() {
             <a href="https://Facebook.com/sonna3.bns?" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/20 transition-colors" title="فيسبوك">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M22.675 0h-21.35C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.593 1.323-1.325V1.325C24 .593 23.407 0 22.675 0z"/></svg>
             </a>
-            <a href="mailto:info@lifemakers-bns.com" aria-label="البريد الإلكتروني" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/20 transition-colors">
+            <a href={`mailto:${OFFICIAL_EMAIL}`} aria-label="البريد الإلكتروني" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/20 transition-colors">
               <span className="material-symbols-outlined" aria-hidden="true">alternate_email</span>
             </a>
           </div>
@@ -46,11 +67,25 @@ export default function PublicFooter() {
             </li>
             <li className="flex items-center gap-3">
               <span className="material-symbols-outlined text-primary-fixed">call</span>
-              <span dir="ltr">01020040935</span>
+              <a
+                href={WHATSAPP_LINK}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-white hover:underline"
+                dir="ltr"
+              >
+                {WHATSAPP_NUMBER}
+              </a>
             </li>
             <li className="flex items-center gap-3">
               <span className="material-symbols-outlined text-primary-fixed">mail</span>
-              <span dir="ltr">info@lifemakers-bns.com</span>
+              <a
+                href={`mailto:${OFFICIAL_EMAIL}`}
+                className="hover:text-white hover:underline"
+                dir="ltr"
+              >
+                {OFFICIAL_EMAIL}
+              </a>
             </li>
           </ul>
         </div>
