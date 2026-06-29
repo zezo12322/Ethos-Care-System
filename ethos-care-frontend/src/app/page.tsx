@@ -70,9 +70,9 @@ export default function LandingPage() {
               <Image
                 fill
                 priority
-                src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
-                alt="أطفال مجتمعنا"
-                className="w-full h-full object-cover"
+                src="/hero-life-makers-2026.jpeg"
+                alt="متطوعو صناع الحياة في حملة صناع الحياة للأضحى 2026"
+                className="w-full h-full object-cover object-center"
                 sizes="(min-width: 1024px) 50vw, 100vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/85 via-primary/30 to-secondary/35 mix-blend-multiply"></div>
