@@ -5,10 +5,28 @@ import Link from "next/link";
 const OFFICIAL_EMAIL = "info@lifemakers-bns.com";
 const WHATSAPP_NUMBER = "01026236435";
 const WHATSAPP_LINK = "https://wa.me/201026236435";
+const FACEBOOK_LINK = "https://www.facebook.com/sonna3.bns";
 
 export default function PublicFooter() {
   return (
     <footer className="bg-primary text-white pt-20 pb-8 mt-auto">
+      <a
+        href={FACEBOOK_LINK}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="تابعنا على فيسبوك"
+        className="fixed bottom-24 left-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#1877f2] text-white shadow-2xl shadow-black/25 ring-4 ring-white/80 transition-transform hover:scale-105 focus-visible:outline-white md:left-6"
+      >
+        <svg
+          aria-hidden="true"
+          className="h-7 w-7"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path d="M22.68 0H1.32C.59 0 0 .59 0 1.32v21.36C0 23.41.59 24 1.32 24h11.5v-9.29H9.69v-3.62h3.13V8.41c0-3.1 1.89-4.79 4.66-4.79 1.33 0 2.46.1 2.8.14v3.24h-1.92c-1.5 0-1.8.72-1.8 1.76v2.31h3.59l-.47 3.62h-3.12V24h6.12c.73 0 1.32-.59 1.32-1.32V1.32C24 .59 23.41 0 22.68 0Z" />
+        </svg>
+      </a>
+
       <a
         href={WHATSAPP_LINK}
         target="_blank"
@@ -39,7 +57,7 @@ export default function PublicFooter() {
             نسعى لبناء مجتمع متكافل ومستدام من خلال تقديم الدعم والمساعدة للفئات الأكثر احتياجاً في مختلف قرى ومراكز بني سويف.
           </p>
           <div className="flex gap-4">
-            <a href="https://Facebook.com/sonna3.bns?" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/20 transition-colors" title="فيسبوك">
+            <a href={FACEBOOK_LINK} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/20 transition-colors" title="فيسبوك">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M22.675 0h-21.35C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.593 1.323-1.325V1.325C24 .593 23.407 0 22.675 0z"/></svg>
             </a>
             <a href={`mailto:${OFFICIAL_EMAIL}`} aria-label="البريد الإلكتروني" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/20 transition-colors">

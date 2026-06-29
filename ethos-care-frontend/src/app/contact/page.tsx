@@ -14,7 +14,6 @@ export default function ContactPage() {
   const [contactInfo, setContactInfo] = useState({
     address: "حي الزهور، مقابل مسجد ثروت الدعوري، مركز بني سويف، محافظة بني سويف",
     phone1: "01020040935",
-    phone2: "19222",
     email: "info@lifemakers-bns.org",
   });
 
@@ -26,7 +25,6 @@ export default function ContactPage() {
         setContactInfo((prev) => ({
           address: c.contact_address ?? prev.address,
           phone1: c.contact_phone1 ?? prev.phone1,
-          phone2: c.contact_phone2 ?? prev.phone2,
           email: c.contact_email ?? prev.email,
         }));
       })
@@ -105,7 +103,6 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-bold text-on-surface text-lg mb-1">الهاتف</h3>
                     <p className="text-on-surface-variant text-sm" dir="ltr">{contactInfo.phone1}</p>
-                    <p className="text-on-surface-variant text-sm" dir="ltr">{contactInfo.phone2}</p>
                   </div>
                 </div>
 
