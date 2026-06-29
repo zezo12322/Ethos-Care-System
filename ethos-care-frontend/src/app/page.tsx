@@ -16,12 +16,12 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-white to-surface-container-lowest py-16 lg:py-24">
-          <BackgroundPathsBackdrop className="opacity-20" />
+        <section className="brand-hero-surface relative overflow-hidden py-16 lg:py-24">
+          <BackgroundPathsBackdrop className="opacity-35" />
           <div className="relative z-10 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8 z-10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-surface-container-low text-primary text-xs font-bold rounded-full border border-outline-variant/30">
-                <span className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-secondary-container text-on-secondary-container text-xs font-bold rounded-full border border-secondary/40 shadow-sm shadow-secondary/15">
+                <span className="w-2 h-2 rounded-full bg-secondary"></span>
                 جمعية أجيال صناع الحياة ببني سويف
               </div>
               
@@ -37,14 +37,14 @@ export default function LandingPage() {
               <div className="flex flex-wrap items-center gap-4 pt-4">
                 <Link 
                   href="/request-aid" 
-                  className="px-8 py-4 bg-primary text-white hover:bg-primary-container rounded-2xl font-bold text-lg transition-all shadow-xl shadow-primary/20 flex items-center gap-2"
+                  className="px-8 py-4 bg-primary text-white hover:bg-primary/90 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-primary/25 flex items-center gap-2"
                 >
                   ابدأ طلب مساعدة
                   <span className="material-symbols-outlined rtl:rotate-180">arrow_right_alt</span>
                 </Link>
                 <Link 
                   href="/projects" 
-                  className="px-8 py-4 bg-white text-primary border border-outline-variant/30 hover:bg-surface-container-low rounded-2xl font-bold text-lg transition-all"
+                  className="px-8 py-4 bg-secondary text-on-secondary border border-secondary/60 hover:bg-secondary-fixed-dim rounded-2xl font-bold text-lg transition-all shadow-lg shadow-secondary/20"
                 >
                   تعرف على مشاريعنا
                 </Link>
@@ -55,10 +55,10 @@ export default function LandingPage() {
                   <span className="flex w-8 h-8 items-center justify-center rounded-full border-2 border-white bg-primary/10 text-primary">
                     <span className="material-symbols-outlined text-[18px]">person</span>
                   </span>
-                  <span className="flex w-8 h-8 items-center justify-center rounded-full border-2 border-white bg-secondary/30 text-on-surface">
+                  <span className="flex w-8 h-8 items-center justify-center rounded-full border-2 border-white bg-secondary text-on-secondary">
                     <span className="material-symbols-outlined text-[18px]">person</span>
                   </span>
-                  <span className="flex w-8 h-8 items-center justify-center rounded-full border-2 border-white bg-tertiary/15 text-tertiary">
+                  <span className="flex w-8 h-8 items-center justify-center rounded-full border-2 border-white bg-primary text-white">
                     <span className="material-symbols-outlined text-[18px]">person</span>
                   </span>
                 </div>
@@ -66,7 +66,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="relative h-[400px] lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl">
+            <div className="relative h-[400px] lg:h-[600px] rounded-3xl overflow-hidden border border-secondary/40 shadow-2xl shadow-primary/20">
               <Image
                 fill
                 priority
@@ -75,7 +75,7 @@ export default function LandingPage() {
                 className="w-full h-full object-cover"
                 sizes="(min-width: 1024px) 50vw, 100vw"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent mix-blend-multiply"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/85 via-primary/30 to-secondary/35 mix-blend-multiply"></div>
             </div>
           </div>
         </section>
@@ -89,7 +89,7 @@ export default function LandingPage() {
         <DynamicStats />
 
         {/* Services Section */}
-        <section id="services" className="py-20 bg-surface">
+        <section id="services" className="py-20 bg-gradient-to-b from-surface to-primary-container/45">
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
               <div className="border-r-4 border-secondary pr-6">
@@ -114,9 +114,9 @@ export default function LandingPage() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   sizes="(min-width: 1024px) 50vw, 100vw"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/80 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/80 to-secondary/50"></div>
                 <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-                  <div className="w-12 h-12 bg-secondary rounded-xl flex items-center justify-center mb-4 text-on-surface">
+                  <div className="w-12 h-12 bg-secondary rounded-xl flex items-center justify-center mb-4 text-on-secondary">
                     <span className="material-symbols-outlined">trending_up</span>
                   </div>
                   <h3 className="text-2xl font-bold font-headline mb-2">تمكين اقتصادي</h3>
@@ -128,7 +128,7 @@ export default function LandingPage() {
 
               {/* Service Card 2 */}
               <div className="bg-white p-8 rounded-3xl border border-outline-variant/20 hover:shadow-xl transition-shadow flex flex-col justify-end min-h-[300px]">
-                <div className="w-12 h-12 bg-surface-container-low rounded-xl flex items-center justify-center mb-auto text-primary">
+                <div className="w-12 h-12 bg-primary-container rounded-xl flex items-center justify-center mb-auto text-primary">
                   <span className="material-symbols-outlined">school</span>
                 </div>
                 <h3 className="text-xl font-bold font-headline text-on-surface mb-3 mt-8">دعم تعليمي</h3>
@@ -139,7 +139,7 @@ export default function LandingPage() {
 
               {/* Service Card 3 */}
               <div className="bg-white p-8 rounded-3xl border border-outline-variant/20 hover:shadow-xl transition-shadow flex flex-col justify-end min-h-[300px]">
-                <div className="w-12 h-12 bg-error/10 rounded-xl flex items-center justify-center mb-auto text-error">
+                <div className="w-12 h-12 bg-secondary-container rounded-xl flex items-center justify-center mb-auto text-warning">
                   <span className="material-symbols-outlined">medical_services</span>
                 </div>
                 <h3 className="text-xl font-bold font-headline text-on-surface mb-3 mt-8">تدخلات صحية</h3>
@@ -150,7 +150,7 @@ export default function LandingPage() {
 
               {/* Service Card 4 */}
               <div className="bg-white p-8 rounded-3xl border border-outline-variant/20 hover:shadow-xl transition-shadow flex flex-col justify-end min-h-[300px] lg:col-span-2">
-                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-auto text-primary">
+                 <div className="w-12 h-12 bg-primary-container rounded-xl flex items-center justify-center mb-auto text-primary">
                   <span className="material-symbols-outlined">home_work</span>
                 </div>
                 <h3 className="text-xl font-bold font-headline text-on-surface mb-3 mt-8">سكن كريم</h3>
