@@ -9,48 +9,48 @@
 }
 
 @theme inline {
-  --color-on-tertiary-container: #ffe6cc;
-  --color-on-surface: #181c1c;
-  --color-secondary-container: #6df5e1;
+  --color-on-tertiary-container: #3f2400;
+  --color-on-surface: #172033;
+  --color-secondary-container: #fff1c4;
   --color-error-container: #ffdad6;
   --color-on-tertiary: #ffffff;
-  --color-primary-container: #E6EDF1;
+  --color-primary-container: #e4f2ff;
   --color-on-error: #ffffff;
   --color-on-primary: #ffffff;
-  --color-on-tertiary-fixed: #2a1700;
-  --color-primary-fixed: #9cf2e8;
-  --color-primary: #014976;
-  --color-tertiary-fixed: #ffddb8;
-  --color-inverse-on-surface: #eef1f0;
-  --color-tertiary-container: #945d00;
-  --color-surface-tint: #006a63;
-  --color-on-primary-container: #a3faef;
-  --color-inverse-surface: #2d3130;
-  --color-inverse-primary: #80d5cb;
-  --color-tertiary: #734700;
-  --color-on-primary-fixed: #00201d;
-  --color-secondary: #F8AD44;
-  --color-secondary-fixed-dim: #4fdbc8;
-  --color-on-primary-fixed-variant: #00504a;
-  --color-surface: #f7faf8;
-  --color-surface-container-high: #e5e9e7;
-  --color-surface-bright: #f7faf8;
-  --color-surface-variant: #e0e3e1;
-  --color-on-secondary-container: #006f64;
-  --color-primary-fixed-dim: #80d5cb;
-  --color-on-surface-variant: #3e4947;
-  --color-on-tertiary-fixed-variant: #653e00;
-  --color-surface-dim: #d7dbd9;
-  --color-outline: #6e7977;
-  --color-background: #f7faf8;
-  --color-outline-variant: #bdc9c6;
-  --color-on-background: #181c1c;
-  --color-on-secondary-fixed-variant: #005048;
-  --color-on-secondary: #ffffff;
-  --color-secondary-fixed: #71f8e4;
-  --color-tertiary-fixed-dim: #ffb95f;
-  --color-surface-container-low: #f1f4f3;
-  --color-surface-container-highest: #e0e3e1;
+  --color-on-tertiary-fixed: #3f2400;
+  --color-primary-fixed: #b8ddff;
+  --color-primary: #0057a8;
+  --color-tertiary-fixed: #ffe0a3;
+  --color-inverse-on-surface: #eef6ff;
+  --color-tertiary-container: #ffe0a3;
+  --color-surface-tint: #0057a8;
+  --color-on-primary-container: #00365f;
+  --color-inverse-surface: #263445;
+  --color-inverse-primary: #88c7ff;
+  --color-tertiary: #b86d00;
+  --color-on-primary-fixed: #00294a;
+  --color-secondary: #fcb900;
+  --color-secondary-fixed-dim: #ffc84d;
+  --color-on-primary-fixed-variant: #00457f;
+  --color-surface: #f7fbff;
+  --color-surface-container-high: #e7f0f8;
+  --color-surface-bright: #ffffff;
+  --color-surface-variant: #ddeaf5;
+  --color-on-secondary-container: #4a3000;
+  --color-primary-fixed-dim: #74b7f0;
+  --color-on-surface-variant: #435163;
+  --color-on-tertiary-fixed-variant: #7a4900;
+  --color-surface-dim: #d8e5f0;
+  --color-outline: #6e7f93;
+  --color-background: #f7fbff;
+  --color-outline-variant: #b8c9da;
+  --color-on-background: #172033;
+  --color-on-secondary-fixed-variant: #6b4600;
+  --color-on-secondary: #172033;
+  --color-secondary-fixed: #ffe089;
+  --color-tertiary-fixed-dim: #ffbd57;
+  --color-surface-container-low: #eef6ff;
+  --color-surface-container-highest: #dce9f4;
   --color-on-error-container: #93000a;
   --color-error: #ba1a1a;
   /* حالات دلالية موحّدة (كانت مستخدمة في الكود بدون تعريف) */
@@ -58,13 +58,13 @@
   --color-on-success: #ffffff;
   --color-success-container: #b8f0c8;
   --color-on-success-container: #00210f;
-  --color-warning: #8a5a00;
+  --color-warning: #b86d00;
   --color-on-warning: #ffffff;
-  --color-warning-container: #ffddb0;
-  --color-on-warning-container: #2b1700;
-  --color-surface-container: #ebefed;
+  --color-warning-container: #ffe0a3;
+  --color-on-warning-container: #3f2400;
+  --color-surface-container: #e9f2fb;
   --color-surface-container-lowest: #ffffff;
-  --color-on-secondary-fixed: #00201c;
+  --color-on-secondary-fixed: #2a1b00;
 
   --font-headline: var(--font-din-next-lt-arabic), ui-sans-serif, system-ui;
   --font-body: var(--font-din-next-lt-arabic), ui-sans-serif, system-ui;
@@ -139,6 +139,15 @@
   }
   .tonal-layering-surface-container-low {
     background-color: var(--color-surface-container-low);
+  }
+  .brand-hero-surface {
+    background:
+      radial-gradient(circle at 86% 12%, rgba(252, 185, 0, 0.24), rgba(252, 185, 0, 0) 28rem),
+      radial-gradient(circle at 12% 78%, rgba(0, 87, 168, 0.18), rgba(0, 87, 168, 0) 34rem),
+      linear-gradient(180deg, #ffffff 0%, #f4f9ff 54%, #fff7df 100%);
+  }
+  .brand-gradient {
+    background: linear-gradient(135deg, var(--color-primary), #006bc5 58%, var(--color-secondary));
   }
 }
 

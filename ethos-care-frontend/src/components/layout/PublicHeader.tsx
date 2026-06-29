@@ -16,15 +16,16 @@ export default function PublicHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-outline-variant/20 bg-white">
+    <header className="sticky top-0 z-50 border-b border-primary/10 bg-white/95 shadow-sm shadow-primary/5 backdrop-blur-xl">
+      <div className="h-1 w-full brand-gradient" aria-hidden="true" />
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-        <Link href="/" className="flex min-w-0 items-center gap-2">
+        <Link href="/" className="flex min-w-0 items-center gap-3">
           <Image
             src="/logo.png"
             alt="شعار صناع الحياة"
             width={64}
             height={64}
-            className="mt-1 h-12 w-12 object-contain sm:h-16 sm:w-16"
+            className="mt-1 h-12 w-12 rounded-2xl bg-white object-contain shadow-md shadow-primary/10 ring-1 ring-primary/10 sm:h-16 sm:w-16"
           />
           <div className="flex min-w-0 flex-col">
             <span className="truncate font-headline text-base font-bold leading-none text-primary sm:text-xl">
@@ -41,7 +42,7 @@ export default function PublicHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className="transition-colors hover:text-primary"
+              className="rounded-full px-1 transition-colors hover:text-primary"
             >
               {item.label}
             </Link>
@@ -51,13 +52,13 @@ export default function PublicHeader() {
         <div className="hidden items-center gap-3 sm:flex">
           <Link
             href="/login"
-            className="hidden rounded-xl border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-primary/10 lg:inline-flex"
+            className="hidden rounded-xl border border-primary/20 bg-primary-container px-4 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-primary-fixed/70 lg:inline-flex"
           >
             دخول فريق العمل
           </Link>
           <Link
             href="/request-aid"
-            className="rounded-xl bg-[#fcb900] px-4 py-2.5 text-sm font-bold text-on-surface transition-colors hover:bg-[#e5a800] sm:px-5"
+            className="rounded-xl bg-secondary px-4 py-2.5 text-sm font-bold text-on-secondary shadow-lg shadow-secondary/25 transition-colors hover:bg-secondary-fixed-dim sm:px-5"
           >
             ابدأ طلب مساعدة
           </Link>
@@ -66,7 +67,7 @@ export default function PublicHeader() {
         <button
           type="button"
           onClick={() => setMenuOpen((current) => !current)}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-container-low text-on-surface lg:hidden"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-container text-primary lg:hidden"
           aria-label="فتح القائمة"
         >
           <span className="material-symbols-outlined">
@@ -76,14 +77,14 @@ export default function PublicHeader() {
       </div>
 
       {menuOpen ? (
-        <div className="border-t border-outline-variant/20 bg-white lg:hidden">
+        <div className="border-t border-primary/10 bg-white lg:hidden">
           <div className="mx-auto max-w-7xl space-y-2 px-4 py-4 sm:px-6">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setMenuOpen(false)}
-                className="block rounded-2xl bg-surface-container-low px-4 py-3 text-sm font-bold text-on-surface"
+                className="block rounded-2xl bg-primary-container px-4 py-3 text-sm font-bold text-primary"
               >
                 {item.label}
               </Link>
@@ -92,14 +93,14 @@ export default function PublicHeader() {
               <Link
                 href="/request-aid"
                 onClick={() => setMenuOpen(false)}
-                className="rounded-2xl bg-[#fcb900] px-4 py-3 text-center text-sm font-bold text-on-surface"
+                className="rounded-2xl bg-secondary px-4 py-3 text-center text-sm font-bold text-on-secondary"
               >
                 ابدأ طلب مساعدة
               </Link>
               <Link
                 href="/login"
                 onClick={() => setMenuOpen(false)}
-                className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-center text-sm font-bold text-primary"
+                className="rounded-2xl border border-primary/20 bg-white px-4 py-3 text-center text-sm font-bold text-primary"
               >
                 دخول فريق العمل
               </Link>

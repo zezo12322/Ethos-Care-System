@@ -2,8 +2,8 @@ import React from 'react';
 
 export default function DonateSection() {
   return (
-    <section id="donate" className="py-20 bg-primary-container relative overflow-hidden">
-      <div className="absolute inset-0 opacity-5 pointer-events-none">
+    <section id="donate" className="brand-gradient relative overflow-hidden py-20 text-white">
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="pattern_donate" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -20,15 +20,15 @@ export default function DonateSection() {
             <span className="material-symbols-outlined text-[14px]">favorite</span>
             ساهم في التغيير
           </span>
-          <h2 className="text-3xl lg:text-4xl font-extrabold font-headline text-primary mb-4">وسائل التبرع</h2>
-          <p className="text-on-surface-variant text-lg">تبرعك يصنع فارقاً في حياة الكثيرين، اختر الوسيلة الأنسب لك وكن جزءاً من الأثر الإيجابي.</p>
+          <h2 className="text-3xl lg:text-4xl font-extrabold font-headline text-white mb-4">وسائل التبرع</h2>
+          <p className="text-white/85 text-lg">تبرعك يصنع فارقاً في حياة الكثيرين، اختر الوسيلة الأنسب لك وكن جزءاً من الأثر الإيجابي.</p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-lg p-8 md:p-12">
+        <div className="bg-white rounded-3xl shadow-2xl shadow-primary/25 p-8 md:p-12">
           <div className="flex flex-col gap-8">
             <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-surface-container-low flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-3xl text-error" aria-hidden="true">phone_iphone</span>
+              <div className="w-14 h-14 rounded-2xl bg-secondary-container flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-3xl text-warning" aria-hidden="true">phone_iphone</span>
               </div>
               <div>
                 <h3 className="text-xl font-bold text-on-surface mb-1">فودافون كاش</h3>
@@ -42,7 +42,7 @@ export default function DonateSection() {
             <div className="h-px bg-outline-variant/30 w-full"></div>
 
             <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-surface-container-low flex items-center justify-center shrink-0">
+              <div className="w-14 h-14 rounded-2xl bg-primary-container flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-3xl text-primary">account_balance</span>
               </div>
               <div>
