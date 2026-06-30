@@ -3127,7 +3127,7 @@ export default function CaseIntakeForm({
                   عرض التفاصيل
                 </Link>
               ) : null}
-              {caseRecord ? (
+              {caseRecord && hasManagerAccess ? (
                 <button
                   type="button"
                   onClick={openServerPdf}

@@ -2,17 +2,29 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import CasePrintView from "@/components/dashboard/cases/CasePrintView";
 import { casesService } from "@/services/cases.service";
 import { CaseRecord } from "@/types/api";
 import { useToast } from "@/components/ui/Toast";
+import { useAuth } from "@/contexts/AuthContext";
+
+const CAN_PRINT_ROLES = ["ADMIN", "CEO", "MANAGER"];
 
 export default function CasePrintPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [caseRecord, setCaseRecord] = useState<CaseRecord | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // الطباعة لمسؤول إدارة الحالة والمدير التنفيذي فقط
+  useEffect(() => {
+    if (user && !CAN_PRINT_ROLES.includes(user.role)) {
+      router.replace(`/dashboard/cases/${id}`);
+    }
+  }, [user, id, router]);
 
   useEffect(() => {
     let cancelled = false;

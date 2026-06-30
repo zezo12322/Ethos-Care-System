@@ -19,7 +19,6 @@ import { Roles } from '../auth/roles.decorator';
   'CEO',
   'MANAGER',
   'CASE_WORKER',
-  'DATA_ENTRY',
   'EXECUTION_OFFICER',
 )
 @Controller('operations')

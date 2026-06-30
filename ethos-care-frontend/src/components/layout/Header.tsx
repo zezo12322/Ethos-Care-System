@@ -13,8 +13,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
     ADMIN: "مدير النظام",
     CEO: "المدير التنفيذي",
     MANAGER: "مسؤول إدارة الحالة",
-    CASE_WORKER: "باحث حالة",
-    DATA_ENTRY: "مدخل بيانات",
+    CASE_WORKER: "باحث",
     EXECUTION_OFFICER: "مسؤول التنفيذ",
     CALL_CENTER: "خدمة المستفيدين",
   };

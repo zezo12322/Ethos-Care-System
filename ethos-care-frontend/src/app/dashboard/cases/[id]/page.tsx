@@ -10,7 +10,7 @@ import { useToast } from "@/components/ui/Toast";
 /* ──────────────────────────────────────────────
  *  Lifecycle (6 stages only):
  *    DRAFT → REVIEW → FIELD_VERIFICATION → APPROVED → EXECUTION → COMPLETED
- *  Researcher (CASE_WORKER/DATA_ENTRY) owns first 3
+ *  Researcher (CASE_WORKER) owns first 3
  *  Case Manager (MANAGER/CEO) owns last 3
  * ────────────────────────────────────────────── */
 
@@ -241,7 +241,6 @@ export default function CaseDetailsPage() {
 
   const isResearcher =
     currentRole === "CASE_WORKER" ||
-    currentRole === "DATA_ENTRY" ||
     currentRole === "ADMIN";
   const isCaseManager =
     currentRole === "MANAGER" ||
@@ -343,17 +342,21 @@ export default function CaseDetailsPage() {
                 </button>
               )}
 
-              {currentRole !== "CALL_CENTER" && (
+              {/* التعديل متاح فقط قبل رفع الحالة للمراجعة (مرحلة المسودة) */}
+              {currentRole !== "CALL_CENTER" && caseData.lifecycleStatus === "DRAFT" && (
                 <Link href={`/dashboard/cases/${caseData.id}/edit`} className="px-5 py-2 bg-tertiary/10 text-tertiary hover:bg-tertiary/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
                   <span className="material-symbols-outlined text-lg">edit_square</span>
                   تعديل الكارت
                 </Link>
               )}
 
-              <button onClick={() => void handleOpenPdf()} disabled={pdfLoading} className="px-5 py-2 bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
-                <span className="material-symbols-outlined text-lg">print</span>
-                {pdfLoading ? "جاري إنشاء PDF..." : "PDF من السيرفر"}
-              </button>
+              {/* الطباعة لمسؤول إدارة الحالة والمدير التنفيذي فقط */}
+              {isCaseManager && (
+                <button onClick={() => void handleOpenPdf()} disabled={pdfLoading} className="px-5 py-2 bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                  <span className="material-symbols-outlined text-lg">print</span>
+                  {pdfLoading ? "جاري إنشاء PDF..." : "PDF من السيرفر"}
+                </button>
+              )}
             </div>
           </div>
         </div>

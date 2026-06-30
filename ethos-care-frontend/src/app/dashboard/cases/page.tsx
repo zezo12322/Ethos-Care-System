@@ -3,6 +3,7 @@
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { casesService } from "@/services/cases.service";
+import { useAuth } from "@/contexts/AuthContext";
 import { CaseRecord } from "@/types/api";
 import SortableTh from "@/components/ui/SortableTh";
 import {
@@ -73,6 +74,9 @@ const priorityMap: Record<"URGENT" | "HIGH" | "NORMAL", { label: string; color: 
 };
 
 export default function CasesPage() {
+  const { user } = useAuth();
+  // الكول سنتر: عرض فقط — لا إنشاء/تعديل/حذف
+  const canManage = (user?.role ?? "") !== "CALL_CENTER";
   const [cases, setCases] = useState<CaseRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState("الكل");
@@ -172,15 +176,17 @@ export default function CasesPage() {
             </span>
             تصدير البيانات
           </button>
-          <Link
-            href="/dashboard/cases/new"
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-on-primary shadow-sm transition-colors hover:bg-primary/90"
-          >
-            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-              add
-            </span>
-            تسجيل طلب جديد
-          </Link>
+          {canManage && (
+            <Link
+              href="/dashboard/cases/new"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-on-primary shadow-sm transition-colors hover:bg-primary/90"
+            >
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                add
+              </span>
+              تسجيل طلب جديد
+            </Link>
+          )}
         </div>
       </div>
 
@@ -350,15 +356,17 @@ export default function CasesPage() {
                         <p className="mb-5 text-sm text-on-surface-variant">
                           ابدأ بتسجيل أول حالة دعم لمتابعتها هنا.
                         </p>
-                        <Link
-                          href="/dashboard/cases/new"
-                          className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
-                        >
-                          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-                            add
-                          </span>
-                          تسجيل أول حالة
-                        </Link>
+                        {canManage && (
+                          <Link
+                            href="/dashboard/cases/new"
+                            className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
+                          >
+                            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                              add
+                            </span>
+                            تسجيل أول حالة
+                          </Link>
+                        )}
                       </>
                     ) : (
                       <>
@@ -433,25 +441,29 @@ export default function CasesPage() {
                               visibility
                             </span>
                           </Link>
-                          <Link
-                            href={`/dashboard/cases/${c.id}/edit`}
-                            aria-label={`تعديل حالة ${c.applicantName}`}
-                            className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-on-primary"
-                          >
-                            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
-                              edit
-                            </span>
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteClick(c.id, c.applicantName)}
-                            aria-label={`حذف حالة ${c.applicantName}`}
-                            className="flex h-9 w-9 items-center justify-center rounded-full bg-error/10 text-error transition-colors hover:bg-error hover:text-on-error"
-                          >
-                            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
-                              delete
-                            </span>
-                          </button>
+                          {canManage && c.lifecycleStatus === "DRAFT" && (
+                            <Link
+                              href={`/dashboard/cases/${c.id}/edit`}
+                              aria-label={`تعديل حالة ${c.applicantName}`}
+                              className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-on-primary"
+                            >
+                              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                                edit
+                              </span>
+                            </Link>
+                          )}
+                          {canManage && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteClick(c.id, c.applicantName)}
+                              aria-label={`حذف حالة ${c.applicantName}`}
+                              className="flex h-9 w-9 items-center justify-center rounded-full bg-error/10 text-error transition-colors hover:bg-error hover:text-on-error"
+                            >
+                              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                                delete
+                              </span>
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
