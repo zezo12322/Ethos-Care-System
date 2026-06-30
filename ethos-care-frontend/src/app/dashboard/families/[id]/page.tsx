@@ -11,6 +11,8 @@ export default function FamilyDetailsPage() {
   const { user } = useAuth();
   // الطباعة لمسؤول إدارة الحالة والمدير التنفيذي فقط
   const canPrint = ["ADMIN", "CEO", "MANAGER"].includes(user?.role ?? "");
+  // الكول سنتر: عرض فقط — لا تعديل/إضافة
+  const canManage = (user?.role ?? "") !== "CALL_CENTER";
   const [family, setFamily] = useState<FamilyRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const { id: familyId } = useParams<{ id: string }>();
@@ -59,16 +61,18 @@ export default function FamilyDetailsPage() {
             <p className="text-sm text-on-surface-variant font-bold tracking-widest" dir="ltr">{family.id || familyId}</p>
           </div>
         </div>
-        <div className="flex gap-2">
-           <Link href={`/dashboard/families?edit=${family.id}`} className="px-4 py-2 bg-white border border-outline-variant/50 hover:bg-surface-container-lowest rounded-xl font-bold text-sm text-primary flex items-center gap-2 transition-colors">
-             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">edit</span>
-             تعديل الملف
-           </Link>
-           <Link href="/dashboard/cases/new" className="px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-md">
-             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">add</span>
-             إضافة حالة (طلب جديد)
-           </Link>
-        </div>
+        {canManage && (
+          <div className="flex gap-2">
+             <Link href={`/dashboard/families?edit=${family.id}`} className="px-4 py-2 bg-white border border-outline-variant/50 hover:bg-surface-container-lowest rounded-xl font-bold text-sm text-primary flex items-center gap-2 transition-colors">
+               <span className="material-symbols-outlined text-[18px]" aria-hidden="true">edit</span>
+               تعديل الملف
+             </Link>
+             <Link href="/dashboard/cases/new" className="px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-md">
+               <span className="material-symbols-outlined text-[18px]" aria-hidden="true">add</span>
+               إضافة حالة (طلب جديد)
+             </Link>
+          </div>
+        )}
       </div>
 
       {/* Stats row */}

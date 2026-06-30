@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { familiesService } from "@/services/families.service";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { FamilyRecord } from "@/types/api";
 import SortableTh from "@/components/ui/SortableTh";
@@ -64,6 +65,9 @@ const FAMILY_SORT_COMPARATORS: Record<string, SortComparator<FamilyRecord>> = {
 
 export default function FamiliesPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  // الكول سنتر: عرض فقط — لا إضافة/تعديل/حذف
+  const canManage = (user?.role ?? "") !== "CALL_CENTER";
   const [families, setFamilies] = useState<FamilyRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -261,13 +265,15 @@ export default function FamiliesPage() {
             <span className="material-symbols-outlined text-[20px]">refresh</span>
             تحديث
           </button>
-          <Link
-            href="/dashboard/families/new"
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-bold text-white transition-all hover:bg-primary-container shadow-lg shadow-primary/20"
-          >
-            <span className="material-symbols-outlined">add</span>
-            إضافة ملف أسرة
-          </Link>
+          {canManage && (
+            <Link
+              href="/dashboard/families/new"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-bold text-white transition-all hover:bg-primary-container shadow-lg shadow-primary/20"
+            >
+              <span className="material-symbols-outlined">add</span>
+              إضافة ملف أسرة
+            </Link>
+          )}
         </div>
       </div>
 
@@ -459,15 +465,17 @@ export default function FamiliesPage() {
                         <p className="mb-5 text-sm text-on-surface-variant">
                           ابدأ بإضافة أول ملف أسرة لإدارته ومتابعته هنا.
                         </p>
-                        <Link
-                          href="/dashboard/families/new"
-                          className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
-                        >
-                          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-                            add
-                          </span>
-                          إضافة ملف أسرة
-                        </Link>
+                        {canManage && (
+                          <Link
+                            href="/dashboard/families/new"
+                            className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
+                          >
+                            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                              add
+                            </span>
+                            إضافة ملف أسرة
+                          </Link>
+                        )}
                       </>
                     )}
                   </td>
@@ -539,26 +547,30 @@ export default function FamiliesPage() {
                             visibility
                           </span>
                         </Link>
-                        <button
-                          type="button"
-                          onClick={() => handleEditClick(family)}
-                          aria-label={`تعديل أسرة ${family.headName}`}
-                          className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-on-primary"
-                        >
-                          <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
-                            edit
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void handleDeleteClick(family.id)}
-                          aria-label={`حذف أسرة ${family.headName}`}
-                          className="flex h-9 w-9 items-center justify-center rounded-full bg-error/10 text-error transition-colors hover:bg-error hover:text-on-error"
-                        >
-                          <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
-                            delete
-                          </span>
-                        </button>
+                        {canManage && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleEditClick(family)}
+                              aria-label={`تعديل أسرة ${family.headName}`}
+                              className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-on-primary"
+                            >
+                              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                                edit
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void handleDeleteClick(family.id)}
+                              aria-label={`حذف أسرة ${family.headName}`}
+                              className="flex h-9 w-9 items-center justify-center rounded-full bg-error/10 text-error transition-colors hover:bg-error hover:text-on-error"
+                            >
+                              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                                delete
+                              </span>
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
