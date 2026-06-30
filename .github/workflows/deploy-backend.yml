@@ -61,6 +61,22 @@ jobs:
 
           cd /home/site/wwwroot
 
+          # تثبيت Chromium وخطوط عربية لتوليد ملفات PDF (طباعة الحالة).
+          # App Service لينكس لا يحتوي على متصفح افتراضيًا؛ نثبّته عند الإقلاع.
+          if [ ! -x /usr/bin/chromium ]; then
+            echo "Installing Chromium + Arabic fonts for PDF generation..."
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update -y || true
+            apt-get install -y --no-install-recommends chromium fonts-noto-core fonts-liberation || true
+          fi
+
+          if [ -x /usr/bin/chromium ]; then
+            export CHROME_EXECUTABLE_PATH=/usr/bin/chromium
+            echo "CHROME_EXECUTABLE_PATH=$CHROME_EXECUTABLE_PATH"
+          else
+            echo "WARN: chromium not available; PDF generation may fail."
+          fi
+
           echo "Starting Ethos Care backend..."
           echo "Searching for main.js..."
           find . -maxdepth 5 -type f -name "main.js" -print || true
