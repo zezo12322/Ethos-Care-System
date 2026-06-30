@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import type { CasesService } from './cases.service';
 
 type CaseReportRecord = Awaited<ReturnType<CasesService['findOne']>>;
@@ -9,12 +10,7 @@ type CaseReportRecord = Awaited<ReturnType<CasesService['findOne']>>;
 @Injectable()
 export class CasePdfService {
   async generateCasePdf(caseData: CaseReportRecord): Promise<Buffer> {
-    const browserExecutablePath = this.resolveBrowserExecutablePath();
-    const browser = await puppeteer.launch({
-      executablePath: browserExecutablePath,
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
+    const browser = await this.launchBrowser();
 
     try {
       const page = await browser.newPage();
@@ -38,6 +34,29 @@ export class CasePdfService {
     } finally {
       await browser.close();
     }
+  }
+
+  /**
+   * يُشغّل متصفحًا للطباعة:
+   *  - في التطوير/ويندوز: يستخدم متصفحًا مثبّتًا (Chrome/Edge...) إن وُجد.
+   *  - في الإنتاج/لينكس (Azure) بدون متصفح مثبّت: يستخدم Chromium المدمج
+   *    عبر @sparticuz/chromium. يمكن دائمًا تجاوز ذلك بـ CHROME_EXECUTABLE_PATH.
+   */
+  private async launchBrowser() {
+    const localBrowser = this.tryResolveLocalBrowser();
+    if (localBrowser) {
+      return puppeteer.launch({
+        executablePath: localBrowser,
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
+    }
+
+    return puppeteer.launch({
+      executablePath: await chromium.executablePath(),
+      headless: true,
+      args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+    });
   }
 
   private buildHtml(caseData: CaseReportRecord) {
@@ -603,7 +622,7 @@ export class CasePdfService {
     return this.valueOf(value, '');
   }
 
-  private resolveBrowserExecutablePath() {
+  private tryResolveLocalBrowser(): string | null {
     const envCandidates = [
       process.env.CHROME_EXECUTABLE_PATH,
       process.env.PUPPETEER_EXECUTABLE_PATH,
@@ -638,13 +657,9 @@ export class CasePdfService {
       (candidate) => candidate && existsSync(candidate),
     );
 
-    if (!executablePath) {
-      throw new Error(
-        'تعذر العثور على متصفح مدعوم لتوليد PDF. يدعم النظام المتصفحات المبنية على Chromium مثل Chrome وChromium وEdge وBrave وVivaldi وOpera. يمكن تحديد المسار يدويًا عبر CHROME_EXECUTABLE_PATH.',
-      );
-    }
-
-    return executablePath;
+    // لا نرمي خطأ هنا: في حال عدم وجود متصفح مثبّت نرجع null لنستخدم
+    // Chromium المدمج (@sparticuz/chromium) في launchBrowser.
+    return executablePath ?? null;
   }
 
   private resolveCommand(command: string) {
