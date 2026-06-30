@@ -2,14 +2,11 @@ import React from "react";
 import PublicHeader from "@/components/layout/PublicHeader";
 import PublicFooter from "@/components/layout/PublicFooter";
 import Link from "next/link";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "https://lifemakers-g4d7gpa6f4g6egas.uaenorth-01.azurewebsites.net/api";
+import { API_BASE_URL } from "@/lib/api-url";
 
 async function getCmsContent(): Promise<Record<string, string>> {
   try {
-    const res = await fetch(`${API_URL}/cms/public`, {
+    const res = await fetch(`${API_BASE_URL}/cms/public`, {
       next: { revalidate: 300 },
     });
     if (!res.ok) throw new Error("failed");
@@ -60,7 +57,7 @@ export default async function AboutPage() {
                   </div>
                   <h3 className="font-bold font-headline text-xl mb-2">رؤيتنا</h3>
                   <p className="text-sm text-on-surface-variant leading-relaxed">
-                    {c("about_vision", "أن نكون المؤسسة الرائدة في بناء قدرات الشباب وإحداث أثر إيجابي وتنمية مستدامة في المجتمع المصري.")}
+                    {c("about_vision", "تنمية مجتمعية شاملة خيرها للإنسانية، يقدمها شباب مبشرون بالأمل، فالمصريون صناع حياة. شباب - أمل - نماء.")}
                   </p>
                 </div>
 
@@ -70,7 +67,7 @@ export default async function AboutPage() {
                   </div>
                   <h3 className="font-bold font-headline text-xl mb-2">رسالتنا</h3>
                   <p className="text-sm text-on-surface-variant leading-relaxed">
-                    {c("about_mission", "تحفيز العمل التطوعي، وتمكين الفئات المهمشة من خلال برامج تنموية ومساعدات فعّالة تضمن حياة كريمة ومستقلة.")}
+                    {c("about_mission", "نكتشف ونطوّر إمكانات قادة مجتمعيين متميزين من خلال دعم ودمج وتأهيل في مجالات التنمية، بالتعاون مع شراكات فاعلة في ريف وحضر وصحراء مصر.")}
                   </p>
                 </div>
               </div>

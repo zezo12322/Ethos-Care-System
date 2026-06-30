@@ -12,8 +12,7 @@ const roleLabels: Record<AppRole, string> = {
   ADMIN: "مدير النظام",
   CEO: "المدير التنفيذي",
   MANAGER: "مسؤول إدارة الحالة",
-  CASE_WORKER: "باحث اجتماعي",
-  DATA_ENTRY: "مدخل بيانات",
+  CASE_WORKER: "باحث",
   EXECUTION_OFFICER: "مسؤول التنفيذ",
   CALL_CENTER: "موظف كول سنتر",
 };

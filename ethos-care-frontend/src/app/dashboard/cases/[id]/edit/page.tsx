@@ -23,6 +23,14 @@ export default function EditCasePage() {
     }
   }, [user, id, router]);
 
+  // لا يمكن التعديل بعد رفع الحالة للمراجعة — التعديل متاح في مرحلة المسودة فقط
+  useEffect(() => {
+    if (caseRecord && caseRecord.lifecycleStatus !== "DRAFT") {
+      toast("لا يمكن تعديل الحالة بعد رفعها للمراجعة.", "warning");
+      router.replace(`/dashboard/cases/${id}`);
+    }
+  }, [caseRecord, id, router, toast]);
+
   useEffect(() => {
     let cancelled = false;
 

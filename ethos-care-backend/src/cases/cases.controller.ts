@@ -30,7 +30,6 @@ import { buildCasePdfFilename } from './utils/case-pdf-filename';
   'CEO',
   'MANAGER',
   'CASE_WORKER',
-  'DATA_ENTRY',
   'EXECUTION_OFFICER',
   'CALL_CENTER',
 )
@@ -42,7 +41,7 @@ export class CasesController {
   ) {}
 
   @Post()
-  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'DATA_ENTRY', 'EXECUTION_OFFICER')
+  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'EXECUTION_OFFICER')
   create(@Body() createCaseDto: CreateCaseDto) {
     return this.casesService.create(createCaseDto);
   }
@@ -87,6 +86,7 @@ export class CasesController {
   }
 
   @Get(':id/pdf')
+  @Roles('ADMIN', 'CEO', 'MANAGER')
   async downloadPdf(
     @Param('id') id: string,
     @Res({ passthrough: true }) response: Response,
@@ -108,27 +108,27 @@ export class CasesController {
   }
 
   @Patch(':id')
-  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'DATA_ENTRY', 'EXECUTION_OFFICER')
+  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'EXECUTION_OFFICER')
   update(@Param('id') id: string, @Body() updateCaseDto: UpdateCaseDto) {
     return this.casesService.update(id, updateCaseDto);
   }
 
   @Delete(':id')
-  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'DATA_ENTRY', 'EXECUTION_OFFICER')
+  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'EXECUTION_OFFICER')
   remove(@Param('id') id: string) {
     return this.casesService.remove(id);
   }
 
   /* ──────────────────────────────────────────────
    *  Lifecycle:  DRAFT → REVIEW → FIELD_VERIFICATION → APPROVED → EXECUTION → COMPLETED
-   *  First 3 stages  → Researcher  (CASE_WORKER / DATA_ENTRY)
+   *  First 3 stages  → Researcher  (CASE_WORKER)
    *  Last  3 stages  → Case Manager (MANAGER / CEO)
    *  ADMIN can do everything.
    * ────────────────────────────────────────────── */
 
   // Researcher: DRAFT → REVIEW
   @Post(':id/transitions/review')
-  @Roles('ADMIN', 'CASE_WORKER', 'DATA_ENTRY')
+  @Roles('ADMIN', 'CASE_WORKER')
   transitionReview(
     @Param('id') id: string,
     @Body() body: TransitionCaseDto,
@@ -146,7 +146,7 @@ export class CasesController {
 
   // Researcher: REVIEW → FIELD_VERIFICATION
   @Post(':id/transitions/field_verify')
-  @Roles('ADMIN', 'CASE_WORKER', 'DATA_ENTRY')
+  @Roles('ADMIN', 'CASE_WORKER')
   transitionFieldVerify(
     @Param('id') id: string,
     @Body() body: TransitionCaseDto,

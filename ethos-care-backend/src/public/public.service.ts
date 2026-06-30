@@ -136,6 +136,19 @@ export class PublicService {
   }
 
   async saveVolunteerApplication(data: VolunteerApplicationDto) {
+    // نسجّل طلب التطوع في قاعدة البيانات كمتطوّع "قيد المراجعة" ليظهر للإدارة،
+    // مع الاحتفاظ بنسخة في الملف كنسخة احتياطية.
+    await this.prisma.volunteer.create({
+      data: {
+        name: data.name,
+        phone: data.phone,
+        age: data.age ?? null,
+        preferredArea: data.preferredArea,
+        notes: data.notes || null,
+        status: 'PENDING',
+        source: 'PUBLIC_FORM',
+      },
+    });
     await this.appendSubmission('volunteer-applications.jsonl', data);
     return {
       message: 'تم استلام طلب التطوع وسيتم مراجعته من فريق الجمعية',

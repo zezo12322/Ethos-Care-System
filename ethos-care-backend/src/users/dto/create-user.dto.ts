@@ -5,7 +5,6 @@ export const APP_ROLES = [
   'CEO',
   'MANAGER',
   'CASE_WORKER',
-  'DATA_ENTRY',
   'EXECUTION_OFFICER',
   'CALL_CENTER',
 ] as const;

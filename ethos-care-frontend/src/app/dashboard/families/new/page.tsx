@@ -74,7 +74,19 @@ export default function NewFamilyPage() {
       router.push("/dashboard/families");
     } catch (error) {
       console.error("Error creating family", error);
-      toast("حدث خطأ أثناء تسجيل الأسرة", "error");
+      const response = (
+        error as { response?: { status?: number; data?: { message?: string } } }
+      ).response;
+      if (response?.status === 409) {
+        // أسرة بنفس الرقم القومي موجودة بالفعل — نعرض رسالة الخادم الواضحة
+        toast(
+          response.data?.message ??
+            "يوجد بالفعل أسرة بنفس الرقم القومي. افتح ملفها وأضف الحالة عليه.",
+          "warning",
+        );
+      } else {
+        toast("حدث خطأ أثناء تسجيل الأسرة", "error");
+      }
     } finally {
       setLoading(false);
     }

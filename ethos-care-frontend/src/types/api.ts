@@ -3,7 +3,6 @@ export const APP_ROLES = [
   "CEO",
   "MANAGER",
   "CASE_WORKER",
-  "DATA_ENTRY",
   "EXECUTION_OFFICER",
   "CALL_CENTER",
 ] as const;
@@ -25,6 +24,16 @@ export interface FamilyMemberRecord {
   relation: string;
   age?: string | null;
   education?: string | null;
+  // حقول إضافية يخزّنها ملف الأسرة (المصدر الوحيد لأفراد الأسرة)
+  nationalId?: string | null;
+  gender?: string | null;
+  mobile?: string | null;
+  job?: string | null;
+  monthlyIncome?: string | null;
+  classification?: string | null;
+  educationType?: string | null;
+  educationStage?: string | null;
+  schoolYear?: string | null;
 }
 
 export interface CaseIntakeFamilyMember {
@@ -306,6 +315,41 @@ export interface VerifyMemberResponse {
     caseType: string;
     lifecycleStatus: string;
   }>;
+}
+
+export interface VolunteerAssignmentRecord {
+  id: string;
+  volunteerId: string;
+  operationId: string;
+  role?: string | null;
+  attended: boolean;
+  hours: number;
+  notes?: string | null;
+  operation?: {
+    id: string;
+    name: string;
+    type?: string;
+    date?: string;
+    status?: string;
+  };
+}
+
+export interface VolunteerRecord {
+  id: string;
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  age?: number | null;
+  preferredArea?: string | null;
+  skills?: string | null;
+  status: string;
+  notes?: string | null;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+  assignments: VolunteerAssignmentRecord[];
+  totalHours: number;
+  assignmentsCount: number;
 }
 
 export interface ContactMessagePayload {

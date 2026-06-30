@@ -4,9 +4,13 @@ import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { familiesService } from "@/services/families.service";
+import { useAuth } from "@/contexts/AuthContext";
 import { CaseRecord, FamilyMemberRecord, FamilyRecord } from "@/types/api";
 
 export default function FamilyDetailsPage() {
+  const { user } = useAuth();
+  // الطباعة لمسؤول إدارة الحالة والمدير التنفيذي فقط
+  const canPrint = ["ADMIN", "CEO", "MANAGER"].includes(user?.role ?? "");
   const [family, setFamily] = useState<FamilyRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const { id: familyId } = useParams<{ id: string }>();
@@ -228,15 +232,17 @@ export default function FamilyDetailsPage() {
              <p className="text-sm leading-relaxed text-on-surface-variant mb-4 border-r-2 border-primary pr-3">
                الحالة الاجتماعية: {family.socialStatus} — {family.education ? `المؤهل: ${family.education}` : "بدون مؤهل مسجل"} — {family.job ? `الوظيفة: ${family.job}` : "بدون عمل مسجل"} — {family.income ? `الدخل التقريبي: ${family.income} ج.م` : "لا يوجد دخل مسجل"}
              </p>
-             {family.cases && family.cases.length > 0 ? (
-               <Link href={`/dashboard/cases/${family.cases[0].id}/print`} className="w-full py-2 bg-white border border-outline-variant/50 hover:bg-surface-container-low rounded-xl font-bold flex items-center justify-center gap-2 text-sm transition-colors text-primary">
-                 تنزيل استمارة البحث كاملة <span className="material-symbols-outlined text-[18px]" aria-hidden="true">download</span>
-               </Link>
-             ) : (
-               <button disabled className="w-full py-2 bg-white border border-outline-variant/50 rounded-xl font-bold flex items-center justify-center gap-2 text-sm text-on-surface-variant opacity-60 cursor-not-allowed">
-                 لا توجد حالة للطباعة <span className="material-symbols-outlined text-[18px]" aria-hidden="true">download</span>
-               </button>
-             )}
+             {canPrint ? (
+               family.cases && family.cases.length > 0 ? (
+                 <Link href={`/dashboard/cases/${family.cases[0].id}/print`} className="w-full py-2 bg-white border border-outline-variant/50 hover:bg-surface-container-low rounded-xl font-bold flex items-center justify-center gap-2 text-sm transition-colors text-primary">
+                   تنزيل استمارة البحث كاملة <span className="material-symbols-outlined text-[18px]" aria-hidden="true">download</span>
+                 </Link>
+               ) : (
+                 <button disabled className="w-full py-2 bg-white border border-outline-variant/50 rounded-xl font-bold flex items-center justify-center gap-2 text-sm text-on-surface-variant opacity-60 cursor-not-allowed">
+                   لا توجد حالة للطباعة <span className="material-symbols-outlined text-[18px]" aria-hidden="true">download</span>
+                 </button>
+               )
+             ) : null}
           </div>
         </div>
       </div>
