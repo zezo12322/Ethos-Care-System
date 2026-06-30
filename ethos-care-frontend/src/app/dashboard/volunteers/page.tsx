@@ -35,6 +35,13 @@ interface VolunteerFormState {
   skills: string;
   status: string;
   notes: string;
+  nationalId: string;
+  birthDate: string;
+  education: string;
+  schoolYear: string;
+  center: string;
+  whatsapp: string;
+  address: string;
 }
 
 const emptyForm: VolunteerFormState = {
@@ -46,6 +53,13 @@ const emptyForm: VolunteerFormState = {
   skills: "",
   status: "PENDING",
   notes: "",
+  nationalId: "",
+  birthDate: "",
+  education: "",
+  schoolYear: "",
+  center: "",
+  whatsapp: "",
+  address: "",
 };
 
 interface AssignFormState {
@@ -74,7 +88,16 @@ export default function VolunteersPage() {
   const [operations, setOperations] = useState<OperationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
+
+  // debounce للبحث حتى لا نرسل طلبًا مع كل حرف
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 350);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState<VolunteerFormState>(emptyForm);
@@ -87,7 +110,7 @@ export default function VolunteersPage() {
     setLoading(true);
     try {
       const rows = await volunteersService.getAll({
-        search: search.trim() || undefined,
+        search: debouncedSearch.trim() || undefined,
         status: statusFilter || undefined,
       });
       setVolunteers(rows);
@@ -97,7 +120,7 @@ export default function VolunteersPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, toast]);
+  }, [debouncedSearch, statusFilter, toast]);
 
   useEffect(() => {
     void load();
@@ -109,6 +132,17 @@ export default function VolunteersPage() {
       .then(setOperations)
       .catch((error) => console.error(error));
   }, []);
+
+  // إعادة الترقيم لأول صفحة عند تغيّر الفلاتر
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(volunteers.length / PAGE_SIZE));
+  const pagedVolunteers = volunteers.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE,
+  );
 
   const stats = useMemo(() => {
     const total = volunteers.length;
@@ -134,6 +168,13 @@ export default function VolunteersPage() {
       skills: v.skills ?? "",
       status: v.status,
       notes: v.notes ?? "",
+      nationalId: v.nationalId ?? "",
+      birthDate: v.birthDate ?? "",
+      education: v.education ?? "",
+      schoolYear: v.schoolYear ?? "",
+      center: v.center ?? "",
+      whatsapp: v.whatsapp ?? "",
+      address: v.address ?? "",
     });
     setFormOpen(true);
   };
@@ -152,6 +193,13 @@ export default function VolunteersPage() {
       skills: form.skills.trim() || undefined,
       status: form.status,
       notes: form.notes.trim() || undefined,
+      nationalId: form.nationalId.trim() || undefined,
+      birthDate: form.birthDate || undefined,
+      education: form.education.trim() || undefined,
+      schoolYear: form.schoolYear.trim() || undefined,
+      center: form.center.trim() || undefined,
+      whatsapp: form.whatsapp.trim() || undefined,
+      address: form.address.trim() || undefined,
     };
     try {
       setSaving(true);
@@ -336,7 +384,7 @@ export default function VolunteersPage() {
           </div>
         ) : (
           <div className="divide-y divide-outline-variant/20">
-            {volunteers.map((v) => {
+            {pagedVolunteers.map((v) => {
               const meta = STATUS_META[v.status] ?? {
                 label: v.status,
                 badge: "bg-slate-200 text-slate-600",
@@ -362,7 +410,9 @@ export default function VolunteersPage() {
                       </div>
                       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-on-surface-variant">
                         {v.phone ? <span>📞 {v.phone}</span> : null}
-                        {v.preferredArea ? <span>المجال: {v.preferredArea}</span> : null}
+                        {v.center ? <span>المركز: {v.center}</span> : null}
+                        {v.nationalId ? <span>الرقم القومي: {v.nationalId}</span> : null}
+                        {v.preferredArea ? <span>النشاط: {v.preferredArea}</span> : null}
                         {v.age ? <span>السن: {v.age}</span> : null}
                         <span>ساعات: {v.totalHours}</span>
                         <span>الأنشطة: {v.assignmentsCount}</span>
@@ -485,6 +535,30 @@ export default function VolunteersPage() {
             })}
           </div>
         )}
+
+        {!loading && totalPages > 1 ? (
+          <div className="flex items-center justify-center gap-2 border-t border-outline-variant/20 px-5 py-4 text-sm">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="rounded-lg border border-outline-variant/50 px-3 py-1.5 font-bold text-on-surface transition-colors hover:bg-surface-container disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              السابق
+            </button>
+            <span className="px-2 font-bold text-on-surface-variant">
+              صفحة {page} من {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="rounded-lg border border-outline-variant/50 px-3 py-1.5 font-bold text-on-surface transition-colors hover:bg-surface-container disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              التالي
+            </button>
+          </div>
+        ) : null}
       </div>
 
       {/* Volunteer form modal */}
@@ -538,7 +612,78 @@ export default function VolunteersPage() {
               </label>
               <label>
                 <span className="mb-1 block text-sm font-bold text-on-surface">
-                  مجال التطوع المفضل
+                  الرقم القومي
+                </span>
+                <input
+                  value={form.nationalId}
+                  onChange={(e) => setForm({ ...form, nationalId: e.target.value })}
+                  className={inputClass}
+                />
+              </label>
+              <label>
+                <span className="mb-1 block text-sm font-bold text-on-surface">
+                  تاريخ الميلاد
+                </span>
+                <input
+                  type="date"
+                  value={form.birthDate}
+                  onChange={(e) => setForm({ ...form, birthDate: e.target.value })}
+                  className={inputClass}
+                />
+              </label>
+              <label>
+                <span className="mb-1 block text-sm font-bold text-on-surface">
+                  المركز
+                </span>
+                <input
+                  value={form.center}
+                  onChange={(e) => setForm({ ...form, center: e.target.value })}
+                  className={inputClass}
+                />
+              </label>
+              <label>
+                <span className="mb-1 block text-sm font-bold text-on-surface">
+                  رقم الواتساب
+                </span>
+                <input
+                  value={form.whatsapp}
+                  onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+                  className={inputClass}
+                />
+              </label>
+              <label>
+                <span className="mb-1 block text-sm font-bold text-on-surface">
+                  المؤهل الدراسي
+                </span>
+                <input
+                  value={form.education}
+                  onChange={(e) => setForm({ ...form, education: e.target.value })}
+                  className={inputClass}
+                />
+              </label>
+              <label>
+                <span className="mb-1 block text-sm font-bold text-on-surface">
+                  السنة الدراسية
+                </span>
+                <input
+                  value={form.schoolYear}
+                  onChange={(e) => setForm({ ...form, schoolYear: e.target.value })}
+                  className={inputClass}
+                />
+              </label>
+              <label className="sm:col-span-2">
+                <span className="mb-1 block text-sm font-bold text-on-surface">
+                  العنوان بالتفصيل
+                </span>
+                <input
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  className={inputClass}
+                />
+              </label>
+              <label>
+                <span className="mb-1 block text-sm font-bold text-on-surface">
+                  النشاط المفضل
                 </span>
                 <input
                   value={form.preferredArea}
@@ -625,6 +770,7 @@ export default function VolunteersPage() {
                   onChange={(e) =>
                     setAssignForm({ ...assignForm, operationId: e.target.value })
                   }
+                  disabled={operations.length === 0}
                   className={inputClass}
                 >
                   <option value="">اختر النشاط</option>
@@ -634,6 +780,11 @@ export default function VolunteersPage() {
                     </option>
                   ))}
                 </select>
+                {operations.length === 0 ? (
+                  <span className="mt-2 block text-xs font-medium text-amber-700">
+                    لا توجد عمليات/أنشطة مضافة بعد. أنشئ نشاطًا من صفحة العمليات أولًا.
+                  </span>
+                ) : null}
               </label>
               <label className="block">
                 <span className="mb-1 block text-sm font-bold text-on-surface">

@@ -90,6 +90,13 @@ export class VolunteersService {
         skills: data.skills || null,
         status: data.status || 'PENDING',
         notes: data.notes || null,
+        nationalId: data.nationalId || null,
+        birthDate: data.birthDate || null,
+        education: data.education || null,
+        schoolYear: data.schoolYear || null,
+        center: data.center || null,
+        whatsapp: data.whatsapp || null,
+        address: data.address || null,
         source,
       },
       include: assignmentInclude,
@@ -112,6 +119,23 @@ export class VolunteersService {
         ...(data.skills !== undefined ? { skills: data.skills || null } : {}),
         ...(data.status !== undefined ? { status: data.status } : {}),
         ...(data.notes !== undefined ? { notes: data.notes || null } : {}),
+        ...(data.nationalId !== undefined
+          ? { nationalId: data.nationalId || null }
+          : {}),
+        ...(data.birthDate !== undefined
+          ? { birthDate: data.birthDate || null }
+          : {}),
+        ...(data.education !== undefined
+          ? { education: data.education || null }
+          : {}),
+        ...(data.schoolYear !== undefined
+          ? { schoolYear: data.schoolYear || null }
+          : {}),
+        ...(data.center !== undefined ? { center: data.center || null } : {}),
+        ...(data.whatsapp !== undefined
+          ? { whatsapp: data.whatsapp || null }
+          : {}),
+        ...(data.address !== undefined ? { address: data.address || null } : {}),
       },
       include: assignmentInclude,
     });

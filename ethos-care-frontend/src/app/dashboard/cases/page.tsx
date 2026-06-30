@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { casesService } from "@/services/cases.service";
 import { useAuth } from "@/contexts/AuthContext";
 import { CaseRecord } from "@/types/api";
@@ -82,22 +82,43 @@ export default function CasesPage() {
   const [filterType, setFilterType] = useState("الكل");
   const [filterStatus, setFilterStatus] = useState("الكل");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
 
-  const fetchCases = async (showLoader = true) => {
-    if (showLoader) setLoading(true);
-    try {
-      const data = await casesService.getAll();
-      setCases(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // debounce للبحث حتى لا نرسل طلبًا مع كل حرف
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 350);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // البحث والحالة من السيرفر (يدعم كل الحالات لا الصفحة المحمّلة فقط)
+  const fetchCases = useCallback(
+    async (showLoader = true) => {
+      if (showLoader) setLoading(true);
+      try {
+        const data = await casesService.getAll({
+          search: debouncedSearch.trim() || undefined,
+          status: filterStatus !== "الكل" ? filterStatus : undefined,
+        });
+        setCases(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [debouncedSearch, filterStatus],
+  );
 
   useEffect(() => {
     void fetchCases(false);
-  }, []);
+  }, [fetchCases]);
+
+  // إعادة الترقيم لأول صفحة عند تغيّر الفلاتر
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, filterStatus, filterType]);
 
   const handleExport = () => {
     const headers = "رقم الحالة,الاسم,النوع,الحالة,الأولوية,التاريخ,المكان\n";
@@ -137,10 +158,9 @@ export default function CasesPage() {
     setSearch("");
   };
 
+  // النوع يُفلتر محليًا (الحالة قد تحمل أنواعًا متعددة)؛ البحث والحالة من السيرفر
   const filteredCases = cases.filter((c) => {
     if (filterType !== "الكل" && !(c.caseType || "").includes(filterType)) return false;
-    if (filterStatus !== "الكل" && c.lifecycleStatus !== filterStatus) return false;
-    if (search && !c.applicantName.includes(search) && !c.id.includes(search)) return false;
     return true;
   });
 
@@ -148,6 +168,9 @@ export default function CasesPage() {
     filteredCases,
     CASE_SORT_COMPARATORS,
   );
+
+  const totalPages = Math.max(1, Math.ceil(sortedCases.length / PAGE_SIZE));
+  const pagedCases = sortedCases.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const selectClass =
     "rounded-lg border border-outline-variant/50 bg-surface-container-lowest px-3 py-2 text-sm outline-none transition-colors focus:border-primary";
@@ -388,7 +411,7 @@ export default function CasesPage() {
                   </td>
                 </tr>
               ) : (
-                sortedCases.map((c) => {
+                pagedCases.map((c) => {
                   const priority =
                     priorityMap[(c.priority as "URGENT" | "HIGH" | "NORMAL") || "NORMAL"] ||
                     priorityMap.NORMAL;
@@ -473,6 +496,30 @@ export default function CasesPage() {
             </tbody>
           </table>
         </div>
+
+        {!loading && totalPages > 1 ? (
+          <div className="flex items-center justify-center gap-2 border-t border-outline-variant/30 px-6 py-4 text-sm">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="rounded-lg border border-outline-variant/50 px-3 py-1.5 font-bold text-on-surface transition-colors hover:bg-surface-container disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              السابق
+            </button>
+            <span className="px-2 font-bold text-on-surface-variant">
+              صفحة {page} من {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="rounded-lg border border-outline-variant/50 px-3 py-1.5 font-bold text-on-surface transition-colors hover:bg-surface-container disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              التالي
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   );
