@@ -1,5 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+
+/** المراحل المسموح الانتقال منها لكل إجراء (حماية تسلسل دورة حياة الحالة) */
+const TRANSITION_SOURCES: Record<string, string[]> = {
+  review: ['DRAFT'],
+  field_verify: ['REVIEW'],
+  approve: ['FIELD_VERIFICATION'],
+  execute: ['APPROVED'],
+  complete: ['EXECUTION'],
+  return_to_draft: ['REVIEW', 'FIELD_VERIFICATION', 'APPROVED', 'EXECUTION'],
+};
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCaseDto } from './dto/create-case.dto';
 import { UpdateCaseDto } from './dto/update-case.dto';
@@ -191,16 +205,18 @@ export class CasesService {
 
     if (members !== null) {
       const validMembers = members.filter((m) => (m.name ?? '').trim());
-      await tx.familyMember.deleteMany({ where: { familyId } });
+      // لا نمسح أفراد الأسرة إلا عند إرسال أفراد فعليين — حتى لا تُمسح القائمة
+      // بالخطأ عند حفظ حالة بلقطة قديمة فارغة من الأفراد.
       if (validMembers.length) {
+        await tx.familyMember.deleteMany({ where: { familyId } });
         await tx.familyMember.createMany({
           data: validMembers.map((m) => ({
             ...this.toMemberData(m),
             familyId,
           })),
         });
+        headData.membersCount = validMembers.length + 1;
       }
-      headData.membersCount = validMembers.length + 1;
     }
 
     await tx.family.update({ where: { id: familyId }, data: headData });
@@ -293,9 +309,10 @@ export class CasesService {
     if (filters.status) where.lifecycleStatus = filters.status;
     if (filters.type) where.caseType = filters.type;
     if (filters.search) {
+      const query = filters.search.trim();
       where.OR = [
-        { applicantName: { contains: filters.search } },
-        { nationalId: { contains: filters.search } },
+        { applicantName: { contains: query, mode: 'insensitive' } },
+        { nationalId: { contains: query, mode: 'insensitive' } },
       ];
     }
     return this.prisma.case.findMany({ where, include: { family: true } });
@@ -367,11 +384,23 @@ export class CasesService {
         );
       }
 
+      // إعادة حساب حالة استيفاء الملف عند تغيّر الرقم القومي (إن لم تُحدَّد صراحةً)
+      const recomputedCompleteness =
+        updateCaseDto.completenessStatus === undefined &&
+        updateCaseDto.nationalId !== undefined
+          ? updateCaseDto.nationalId.trim()
+            ? 'COMPLETE'
+            : 'MISSING_NATIONAL_ID'
+          : undefined;
+
       const updatedCase = await tx.case.update({
         where: { id },
         data: {
           ...this.buildUpdatePayload(updateCaseDto),
           familyId: targetFamilyId,
+          ...(recomputedCompleteness
+            ? { completenessStatus: recomputedCompleteness }
+            : {}),
         },
       });
 
@@ -392,6 +421,14 @@ export class CasesService {
     performedById?: string,
   ) {
     const currentCase = await this.findOne(id);
+
+    // التحقق من صحة الانتقال بحسب المرحلة الحالية
+    const allowedFrom = TRANSITION_SOURCES[action];
+    if (allowedFrom && !allowedFrom.includes(currentCase.lifecycleStatus)) {
+      throw new BadRequestException(
+        'لا يمكن تنفيذ هذا الإجراء من المرحلة الحالية للحالة.',
+      );
+    }
 
     // Atomic transaction — update case + record history together
     const [updatedCase] = await this.prisma.$transaction([

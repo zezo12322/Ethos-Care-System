@@ -52,4 +52,32 @@ export class CreateVolunteerDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @IsString()
+  @IsOptional()
+  nationalId?: string;
+
+  @IsString()
+  @IsOptional()
+  birthDate?: string;
+
+  @IsString()
+  @IsOptional()
+  education?: string;
+
+  @IsString()
+  @IsOptional()
+  schoolYear?: string;
+
+  @IsString()
+  @IsOptional()
+  center?: string;
+
+  @IsString()
+  @IsOptional()
+  whatsapp?: string;
+
+  @IsString()
+  @IsOptional()
+  address?: string;
 }

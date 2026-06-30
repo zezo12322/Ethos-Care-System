@@ -1,12 +1,4 @@
-import {
-  IsInt,
-  IsOptional,
-  IsString,
-  Max,
-  Min,
-  MinLength,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsString, MinLength } from 'class-validator';
 
 export class VolunteerApplicationDto {
   @IsString()
@@ -17,16 +9,41 @@ export class VolunteerApplicationDto {
   @MinLength(7)
   phone!: string;
 
-  @Type(() => Number)
-  @IsInt()
-  @Min(16)
-  @Max(90)
-  @IsOptional()
-  age?: number;
-
   @IsString()
   @MinLength(2)
   preferredArea!: string;
+
+  @IsString()
+  @IsOptional()
+  nationalId?: string;
+
+  @IsString()
+  @IsOptional()
+  birthDate?: string;
+
+  @IsString()
+  @IsOptional()
+  education?: string;
+
+  @IsString()
+  @IsOptional()
+  schoolYear?: string;
+
+  @IsString()
+  @IsOptional()
+  center?: string;
+
+  @IsString()
+  @IsOptional()
+  whatsapp?: string;
+
+  @IsString()
+  @IsOptional()
+  email?: string;
+
+  @IsString()
+  @IsOptional()
+  address?: string;
 
   @IsString()
   @IsOptional()

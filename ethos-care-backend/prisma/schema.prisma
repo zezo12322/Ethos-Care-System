@@ -107,11 +107,19 @@ model Volunteer {
   phone         String?
   email         String?
   age           Int?
-  preferredArea String?               // مجال التطوع المفضل
+  preferredArea String?               // النشاط / مجال التطوع المفضل
   skills        String?               // المهارات / الاهتمامات
   status        String                @default("PENDING") // PENDING | ACTIVE | INACTIVE | REJECTED
   notes         String?
   source        String                @default("MANUAL")  // MANUAL | PUBLIC_FORM
+  // حقول استمارة التطوع الموسّعة
+  nationalId    String?
+  birthDate     String?
+  education     String?               // المؤهل الدراسي
+  schoolYear    String?               // السنة الدراسية
+  center        String?               // المركز
+  whatsapp      String?               // رقم الواتساب
+  address       String?               // العنوان بالتفصيل
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @updatedAt
   assignments   VolunteerAssignment[]

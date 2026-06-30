@@ -7,6 +7,30 @@ import type { CasesService } from './cases.service';
 
 type CaseReportRecord = Awaited<ReturnType<CasesService['findOne']>>;
 
+const LIFECYCLE_LABELS: Record<string, string> = {
+  DRAFT: 'مسودة',
+  REVIEW: 'مراجعة',
+  FIELD_VERIFICATION: 'تحقق ميداني',
+  APPROVED: 'موافقة',
+  EXECUTION: 'تنفيذ',
+  COMPLETED: 'مكتمل',
+};
+
+const DECISION_LABELS: Record<string, string> = {
+  PENDING_DECISION: 'قيد القرار',
+  APPROVED: 'مقبول',
+  REJECTED: 'مرفوض',
+  RETURNED_FOR_COMPLETION: 'مردود للاستكمال',
+};
+
+const COMPLETENESS_LABELS: Record<string, string> = {
+  COMPLETE: 'مكتمل الملفات',
+  MISSING_NATIONAL_ID: 'ينقص رقم قومي',
+  MISSING_DOCUMENTS: 'مستندات ناقصة',
+};
+
+const labelOf = (map: Record<string, string>, key: string) => map[key] ?? key;
+
 @Injectable()
 export class CasePdfService {
   async generateCasePdf(caseData: CaseReportRecord): Promise<Buffer> {
@@ -265,9 +289,9 @@ export class CasePdfService {
           </div>
         </div>
         <div class="hero-stats">
-          ${this.renderHeroStat('الحالة التشغيلية', caseData.lifecycleStatus)}
-          ${this.renderHeroStat('القرار', caseData.decisionStatus)}
-          ${this.renderHeroStat('استيفاء الملف', caseData.completenessStatus)}
+          ${this.renderHeroStat('الحالة التشغيلية', labelOf(LIFECYCLE_LABELS, caseData.lifecycleStatus))}
+          ${this.renderHeroStat('القرار', labelOf(DECISION_LABELS, caseData.decisionStatus))}
+          ${this.renderHeroStat('استيفاء الملف', labelOf(COMPLETENESS_LABELS, caseData.completenessStatus))}
           ${this.renderHeroStat('الموقع', this.valueOf(person.region, caseData.location))}
         </div>
       </section>

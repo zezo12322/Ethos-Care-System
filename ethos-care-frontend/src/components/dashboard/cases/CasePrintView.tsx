@@ -7,6 +7,30 @@ interface CasePrintViewProps {
   caseRecord: CaseRecord;
 }
 
+const LIFECYCLE_LABELS: Record<string, string> = {
+  DRAFT: "مسودة",
+  REVIEW: "مراجعة",
+  FIELD_VERIFICATION: "تحقق ميداني",
+  APPROVED: "موافقة",
+  EXECUTION: "تنفيذ",
+  COMPLETED: "مكتمل",
+};
+
+const DECISION_LABELS: Record<string, string> = {
+  PENDING_DECISION: "قيد القرار",
+  APPROVED: "مقبول",
+  REJECTED: "مرفوض",
+  RETURNED_FOR_COMPLETION: "مردود للاستكمال",
+};
+
+const COMPLETENESS_LABELS: Record<string, string> = {
+  COMPLETE: "مكتمل الملفات",
+  MISSING_NATIONAL_ID: "ينقص رقم قومي",
+  MISSING_DOCUMENTS: "مستندات ناقصة",
+};
+
+const labelOf = (map: Record<string, string>, key: string) => map[key] ?? key;
+
 function DetailGrid({
   items,
 }: {
@@ -99,19 +123,19 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
           <div className="rounded-2xl bg-surface-container-low px-4 py-3">
             <div className="text-xs text-on-surface-variant">الحالة التشغيلية</div>
             <div className="mt-1 text-sm font-bold text-on-surface">
-              {caseRecord.lifecycleStatus}
+              {labelOf(LIFECYCLE_LABELS, caseRecord.lifecycleStatus)}
             </div>
           </div>
           <div className="rounded-2xl bg-surface-container-low px-4 py-3">
             <div className="text-xs text-on-surface-variant">القرار</div>
             <div className="mt-1 text-sm font-bold text-on-surface">
-              {caseRecord.decisionStatus}
+              {labelOf(DECISION_LABELS, caseRecord.decisionStatus)}
             </div>
           </div>
           <div className="rounded-2xl bg-surface-container-low px-4 py-3">
             <div className="text-xs text-on-surface-variant">استيفاء الملف</div>
             <div className="mt-1 text-sm font-bold text-on-surface">
-              {caseRecord.completenessStatus}
+              {labelOf(COMPLETENESS_LABELS, caseRecord.completenessStatus)}
             </div>
           </div>
           <div className="rounded-2xl bg-surface-container-low px-4 py-3">

@@ -15,6 +15,13 @@ export interface CreateVolunteerDto {
   skills?: string;
   status?: string;
   notes?: string;
+  nationalId?: string;
+  birthDate?: string;
+  education?: string;
+  schoolYear?: string;
+  center?: string;
+  whatsapp?: string;
+  address?: string;
 }
 
 export interface AssignVolunteerDto {

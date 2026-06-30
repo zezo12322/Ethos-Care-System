@@ -345,6 +345,13 @@ export interface VolunteerRecord {
   status: string;
   notes?: string | null;
   source: string;
+  nationalId?: string | null;
+  birthDate?: string | null;
+  education?: string | null;
+  schoolYear?: string | null;
+  center?: string | null;
+  whatsapp?: string | null;
+  address?: string | null;
   createdAt: string;
   updatedAt: string;
   assignments: VolunteerAssignmentRecord[];
@@ -363,8 +370,15 @@ export interface ContactMessagePayload {
 export interface VolunteerApplicationPayload {
   name: string;
   phone: string;
-  age?: number;
   preferredArea: string;
+  nationalId?: string;
+  birthDate?: string;
+  education?: string;
+  schoolYear?: string;
+  center?: string;
+  whatsapp?: string;
+  email?: string;
+  address?: string;
   notes?: string;
 }
 

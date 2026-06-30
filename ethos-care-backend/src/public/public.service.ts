@@ -136,22 +136,49 @@ export class PublicService {
   }
 
   async saveVolunteerApplication(data: VolunteerApplicationDto) {
-    // نسجّل طلب التطوع في قاعدة البيانات كمتطوّع "قيد المراجعة" ليظهر للإدارة،
-    // مع الاحتفاظ بنسخة في الملف كنسخة احتياطية.
-    await this.prisma.volunteer.create({
-      data: {
-        name: data.name,
-        phone: data.phone,
-        age: data.age ?? null,
-        preferredArea: data.preferredArea,
-        notes: data.notes || null,
-        status: 'PENDING',
-        source: 'PUBLIC_FORM',
-      },
-    });
+    const nationalId = data.nationalId?.trim() || null;
+    const phone = data.phone?.trim() || null;
+
+    // منع التكرار: لو فيه متطوّع بنفس الرقم القومي أو الهاتف، لا ننشئ سجلًا جديدًا
+    const duplicateConditions = [
+      ...(nationalId ? [{ nationalId }] : []),
+      ...(phone ? [{ phone }] : []),
+    ];
+    const existing = duplicateConditions.length
+      ? await this.prisma.volunteer.findFirst({
+          where: { OR: duplicateConditions },
+        })
+      : null;
+
+    if (!existing) {
+      // نسجّل طلب التطوع في قاعدة البيانات كمتطوّع "قيد المراجعة" ليظهر للإدارة
+      await this.prisma.volunteer.create({
+        data: {
+          name: data.name,
+          phone,
+          nationalId,
+          birthDate: data.birthDate || null,
+          education: data.education || null,
+          schoolYear: data.schoolYear || null,
+          center: data.center || null,
+          whatsapp: data.whatsapp || null,
+          email: data.email || null,
+          address: data.address || null,
+          preferredArea: data.preferredArea || null,
+          notes: data.notes || null,
+          status: 'PENDING',
+          source: 'PUBLIC_FORM',
+        },
+      });
+    }
+
+    // نحتفظ دائمًا بنسخة في الملف كنسخة احتياطية
     await this.appendSubmission('volunteer-applications.jsonl', data);
+
     return {
-      message: 'تم استلام طلب التطوع وسيتم مراجعته من فريق الجمعية',
+      message: existing
+        ? 'طلبك مسجّل لدينا بالفعل وسيتم التواصل معك. شكرًا لاهتمامك بالتطوع.'
+        : 'تم استلام طلب التطوع وسيتم مراجعته من فريق الجمعية',
       submittedAt: new Date().toISOString(),
     };
   }
