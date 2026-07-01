@@ -62,7 +62,7 @@ export default function LandingPage() {
                     <span className="material-symbols-outlined text-[18px]">person</span>
                   </span>
                 </div>
-                <span>بإشراف وزارة التضامن الاجتماعي</span>
+                <span>بإشراف مديرية التضامن الاجتماعي</span>
               </div>
             </div>
 
