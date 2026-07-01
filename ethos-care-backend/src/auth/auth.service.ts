@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { UsersService } from '../users/users.service';
+import { UpdateProfileDto } from '../users/dto/update-profile.dto';
 
 @Injectable()
 export class AuthService {
@@ -72,5 +73,9 @@ export class AuthService {
     }
 
     return this.usersService.sanitizeUser(user);
+  }
+
+  async updateProfile(userId: string, data: UpdateProfileDto) {
+    return this.usersService.updateOwnProfile(userId, data);
   }
 }

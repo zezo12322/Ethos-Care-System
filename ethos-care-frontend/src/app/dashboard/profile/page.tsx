@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { usersService } from "@/services/users.service";
-import { AppUser } from "@/types/api";
+import React, { useState } from "react";
+import { authService } from "@/services/auth.service";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -18,11 +18,10 @@ const inputClass =
   "w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary";
 
 export default function ProfilePage() {
+  const { user, loading } = useAuth();
   const { toast } = useToast();
-  const [me, setMe] = useState<AppUser | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  const [name, setName] = useState("");
+  const [name, setName] = useState(user?.name ?? "");
   const [savingName, setSavingName] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState("");
@@ -30,27 +29,9 @@ export default function ProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    usersService
-      .getMe()
-      .then((data) => {
-        if (active) {
-          setMe(data);
-          setName(data.name);
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        if (active) toast("تعذّر تحميل بيانات الحساب.", "error");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [toast]);
+  const errorMessage = (error: unknown, fallback: string) =>
+    (error as { response?: { data?: { message?: string } } }).response?.data
+      ?.message ?? fallback;
 
   const saveName = async () => {
     if (!name.trim()) {
@@ -59,12 +40,11 @@ export default function ProfilePage() {
     }
     try {
       setSavingName(true);
-      const updated = await usersService.updateProfile({ name: name.trim() });
-      setMe(updated);
+      await authService.updateProfile({ name: name.trim() });
       toast("تم تحديث الاسم. سيظهر بالكامل بعد إعادة تسجيل الدخول.", "success");
     } catch (error) {
       console.error(error);
-      toast("تعذّر تحديث الاسم.", "error");
+      toast(errorMessage(error, "تعذّر تحديث الاسم."), "error");
     } finally {
       setSavingName(false);
     }
@@ -85,16 +65,14 @@ export default function ProfilePage() {
     }
     try {
       setSavingPassword(true);
-      await usersService.updateProfile({ currentPassword, newPassword });
+      await authService.updateProfile({ currentPassword, newPassword });
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
       toast("تم تغيير كلمة المرور بنجاح.", "success");
     } catch (error) {
-      const message = (
-        error as { response?: { data?: { message?: string } } }
-      ).response?.data?.message;
-      toast(message ?? "تعذّر تغيير كلمة المرور.", "error");
+      console.error(error);
+      toast(errorMessage(error, "تعذّر تغيير كلمة المرور."), "error");
     } finally {
       setSavingPassword(false);
     }
@@ -104,6 +82,14 @@ export default function ProfilePage() {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-3xl rounded-3xl border border-outline-variant/30 bg-white p-8 text-center text-on-surface-variant">
+        تعذّر تحميل بيانات الحساب. يرجى إعادة تسجيل الدخول.
       </div>
     );
   }
@@ -120,15 +106,15 @@ export default function ProfilePage() {
       {/* بطاقة الحساب */}
       <div className="flex items-center gap-4 rounded-3xl border border-outline-variant/30 bg-white px-6 py-5 shadow-sm">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">
-          {me?.name?.trim()?.charAt(0) ?? "؟"}
+          {user.name?.trim()?.charAt(0) ?? "؟"}
         </div>
         <div>
-          <p className="text-lg font-bold text-on-surface">{me?.name}</p>
+          <p className="text-lg font-bold text-on-surface">{user.name}</p>
           <p className="text-sm text-on-surface-variant" dir="ltr">
-            {me?.email}
+            {user.email}
           </p>
           <span className="mt-1 inline-block rounded-full bg-surface-container px-3 py-0.5 text-xs font-bold text-on-surface-variant">
-            {ROLE_LABELS[me?.role ?? ""] ?? me?.role}
+            {ROLE_LABELS[user.role] ?? user.role}
           </span>
         </div>
       </div>
@@ -149,7 +135,12 @@ export default function ProfilePage() {
             <span className="mb-1 block text-sm font-bold text-on-surface">
               البريد الإلكتروني
             </span>
-            <input value={me?.email ?? ""} disabled dir="ltr" className={`${inputClass} bg-surface-container-low text-on-surface-variant`} />
+            <input
+              value={user.email}
+              disabled
+              dir="ltr"
+              className={`${inputClass} bg-surface-container-low text-on-surface-variant`}
+            />
           </label>
         </div>
         <div className="mt-4 flex justify-end">
