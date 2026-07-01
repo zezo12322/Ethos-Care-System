@@ -17,3 +17,8 @@ dev.db
 *.sqlite-journal
 .DS_Store
 .claude/
+
+# نماذج عامة تُكتب على القرص وقت التشغيل (بيانات شخصية — يجب ألا تُرفع)
+storage/
+ethos-care-backend/storage/
+.playwright-mcp/

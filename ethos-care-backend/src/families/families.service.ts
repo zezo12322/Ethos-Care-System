@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFamilyDto } from './dto/create-family.dto';
 import { UpdateFamilyDto } from './dto/update-family.dto';
@@ -133,20 +134,27 @@ export class FamiliesService {
   }
 
   async update(id: string, data: UpdateFamilyDto) {
-    return this.prisma.family.update({
-      where: { id },
-      data: {
-        headName: data.headName,
-        membersCount: data.membersCount || 1,
-        income: data.income ? String(data.income) : '0',
-        address: data.address,
-        phone: data.phone,
-        status: data.status,
-        socialStatus: data.socialStatus,
-        job: data.job,
-        education: data.education,
-      },
-    });
+    // نكتب فقط الحقول المُرسَلة فعليًا حتى لا يمحو التعديل الجزئي بيانات قائمة
+    // (مثلاً تعديل الهاتف وحده كان يعيد عدد الأفراد إلى 1 والدخل إلى 0).
+    const updateData: Prisma.FamilyUpdateInput = {};
+    if (data.headName !== undefined) updateData.headName = data.headName;
+    if (data.membersCount !== undefined)
+      updateData.membersCount = data.membersCount;
+    if (data.income !== undefined) updateData.income = String(data.income);
+    if (data.address !== undefined) updateData.address = data.address;
+    if (data.phone !== undefined) updateData.phone = data.phone;
+    if (data.status !== undefined) updateData.status = data.status;
+    if (data.socialStatus !== undefined)
+      updateData.socialStatus = data.socialStatus;
+    if (data.job !== undefined) updateData.job = data.job;
+    if (data.education !== undefined) updateData.education = data.education;
+    if (data.city !== undefined) updateData.city = data.city;
+    if (data.village !== undefined) updateData.village = data.village;
+    if (data.addressDetails !== undefined)
+      updateData.addressDetails = data.addressDetails;
+    if (data.nationalId !== undefined) updateData.nationalId = data.nationalId;
+
+    return this.prisma.family.update({ where: { id }, data: updateData });
   }
 
   async remove(id: string) {

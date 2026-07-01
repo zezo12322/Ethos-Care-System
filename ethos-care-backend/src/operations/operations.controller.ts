@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { OperationsService } from './operations.service';
 import { CreateOperationDto } from './dto/create-operation.dto';
+import { AssignCasesDto } from './dto/assign-cases.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -75,14 +76,13 @@ export class OperationsController {
   }
 
   @Post(':id/assign-cases')
-  async assignCases(
-    @Param('id') id: string,
-    @Body('caseIds') caseIds: string[],
-  ) {
-    return this.operationsService.assignCases(id, caseIds);
+  @Roles('ADMIN', 'CEO', 'MANAGER')
+  async assignCases(@Param('id') id: string, @Body() body: AssignCasesDto) {
+    return this.operationsService.assignCases(id, body.caseIds);
   }
 
   @Post(':id/complete')
+  @Roles('ADMIN', 'CEO', 'MANAGER')
   async completeOperation(@Param('id') id: string) {
     return this.operationsService.completeOperation(id);
   }

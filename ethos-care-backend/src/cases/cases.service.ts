@@ -333,7 +333,7 @@ export class CasesService {
         },
         history: true,
         operation: true,
-        assignedTo: true,
+        assignedTo: { select: { id: true, name: true, role: true } },
       },
     });
     if (!foundCase) throw new NotFoundException('Case not found');
@@ -384,9 +384,8 @@ export class CasesService {
         );
       }
 
-      // إعادة حساب حالة استيفاء الملف عند تغيّر الرقم القومي (إن لم تُحدَّد صراحةً)
+      // إعادة حساب حالة استيفاء الملف عند تغيّر الرقم القومي
       const recomputedCompleteness =
-        updateCaseDto.completenessStatus === undefined &&
         updateCaseDto.nationalId !== undefined
           ? updateCaseDto.nationalId.trim()
             ? 'COMPLETE'

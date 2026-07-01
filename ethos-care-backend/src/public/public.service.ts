@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { RequestAidDto } from './dto/request-aid.dto';
 import { ContactMessageDto } from './dto/contact-message.dto';
@@ -6,68 +11,107 @@ import { VolunteerApplicationDto } from './dto/volunteer-application.dto';
 import { appendFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 
+/** إخفاء وسط رقم الهاتف قبل إرجاعه من نقطة نهاية عامة */
+function maskPhone(phone?: string | null): string | null {
+  if (!phone) return null;
+  const digits = phone.replace(/\s+/g, '');
+  if (digits.length < 5) return '***';
+  return `${digits.slice(0, 3)}****${digits.slice(-2)}`;
+}
+
 @Injectable()
 export class PublicService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createRequestAid(data: RequestAidDto) {
-    const family = await this.prisma.family.create({
-      data: {
-        headName: data.applicantName,
-        nationalId: data.nationalId || null,
-        phone: data.phone,
-        city: data.city,
-        village: data.village || null,
-        addressDetails: data.addressDetails || null,
-        address: data.village ? `${data.village} - ${data.city}` : data.city,
-        status: 'تحت التقييم',
-        socialStatus: 'غير محدد',
-        lastVisit: new Date(),
-        cases: {
-          create: {
-            applicantName: data.applicantName,
-            nationalId: data.nationalId || null,
-            caseType: data.aidType,
-            priority: 'NORMAL',
-            location: data.village
-              ? `${data.village} - ${data.city}`
-              : data.city,
-            description: data.description,
-            lifecycleStatus: 'DRAFT',
-            completenessStatus: data.nationalId
-              ? 'COMPLETE'
-              : 'MISSING_NATIONAL_ID',
-            decisionStatus: 'PENDING_DECISION',
-            history: {
-              create: {
-                toLifecycleStatus: 'DRAFT',
-                toDecisionStatus: 'PENDING_DECISION',
-                action: 'CREATED_PUBLIC_REQUEST',
-              },
-            },
-          },
+    const nationalId = data.nationalId?.trim() || null;
+    const location = data.village ? `${data.village} - ${data.city}` : data.city;
+
+    // بيانات الحالة الجديدة (مشتركة بين مسار الأسرة القائمة والأسرة الجديدة)
+    const caseData: Prisma.CaseCreateWithoutFamilyInput = {
+      applicantName: data.applicantName,
+      nationalId,
+      caseType: data.aidType,
+      priority: 'NORMAL',
+      location,
+      description: data.description,
+      lifecycleStatus: 'DRAFT',
+      completenessStatus: nationalId ? 'COMPLETE' : 'MISSING_NATIONAL_ID',
+      decisionStatus: 'PENDING_DECISION',
+      history: {
+        create: {
+          toLifecycleStatus: 'DRAFT',
+          toDecisionStatus: 'PENDING_DECISION',
+          action: 'CREATED_PUBLIC_REQUEST',
         },
       },
-      include: {
-        cases: {
-          orderBy: { createdAt: 'desc' },
-          take: 1,
-        },
-      },
-    });
-
-    const requestCase = family.cases[0];
-
-    return {
-      requestId: requestCase.id.slice(0, 8).toUpperCase(),
-      fullRequestId: requestCase.id,
-      lifecycleStatus: requestCase.lifecycleStatus,
-      message: 'تم تسجيل طلبك بنجاح وسيتم مراجعته من فريق الجمعية',
     };
+
+    try {
+      const requestCase = await this.prisma.$transaction(async (tx) => {
+        // ربط الطلب بأسرة قائمة بنفس الرقم القومي إن وُجدت (لا ننشئ أسرة مكررة)
+        const existing = nationalId
+          ? await tx.family.findUnique({ where: { nationalId } })
+          : null;
+
+        if (existing) {
+          await tx.family.update({
+            where: { id: existing.id },
+            data: { lastVisit: new Date() },
+          });
+          return tx.case.create({
+            data: { ...caseData, family: { connect: { id: existing.id } } },
+          });
+        }
+
+        const family = await tx.family.create({
+          data: {
+            headName: data.applicantName,
+            nationalId,
+            phone: data.phone,
+            city: data.city,
+            village: data.village || null,
+            addressDetails: data.addressDetails || null,
+            address: location,
+            status: 'تحت التقييم',
+            socialStatus: 'غير محدد',
+            lastVisit: new Date(),
+            cases: { create: caseData },
+          },
+          include: { cases: { orderBy: { createdAt: 'desc' }, take: 1 } },
+        });
+        return family.cases[0];
+      });
+
+      return {
+        requestId: requestCase.id.slice(0, 8).toUpperCase(),
+        fullRequestId: requestCase.id,
+        lifecycleStatus: requestCase.lifecycleStatus,
+        message: 'تم تسجيل طلبك بنجاح وسيتم مراجعته من فريق الجمعية',
+      };
+    } catch (error) {
+      // خط دفاع أخير ضد سباق التكرار على الرقم القومي الفريد للأسرة
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException(
+          'يوجد طلب مسجّل بالفعل بنفس الرقم القومي. سيتواصل معك فريق الجمعية.',
+        );
+      }
+      throw error;
+    }
   }
 
   async verifyRequest(requestId: string) {
     const normalizedId = requestId.trim().toLowerCase();
+
+    // الرقم المرجعي المعروض للمستخدم 8 محارف — نمنع البحث ببادئات قصيرة
+    // (تعداد) بفرض حد أدنى للطول.
+    if (normalizedId.length < 8) {
+      throw new NotFoundException('لم يتم العثور على الطلب');
+    }
+
     const requestCase = await this.prisma.case.findFirst({
       where: {
         OR: [{ id: normalizedId }, { id: { startsWith: normalizedId } }],
@@ -94,13 +138,20 @@ export class PublicService {
       lifecycleStatus: requestCase.lifecycleStatus,
       decisionStatus: requestCase.decisionStatus,
       createdAt: requestCase.createdAt,
-      phone: requestCase.family?.phone || null,
+      phone: maskPhone(requestCase.family?.phone),
     };
   }
 
   async verifyMember(nationalId: string) {
+    const normalized = nationalId.trim();
+
+    // نتطلّب رقمًا قوميًا كاملًا (14 رقمًا) — نمنع البحث بأجزاء والتعداد
+    if (!/^\d{14}$/.test(normalized)) {
+      throw new NotFoundException('لم يتم العثور على بيانات مطابقة');
+    }
+
     const family = await this.prisma.family.findFirst({
-      where: { nationalId: nationalId.trim() },
+      where: { nationalId: normalized },
       include: {
         cases: {
           orderBy: { createdAt: 'desc' },
@@ -118,7 +169,7 @@ export class PublicService {
       nationalId: family.nationalId,
       status: family.status,
       city: family.city,
-      phone: family.phone,
+      phone: maskPhone(family.phone),
       recentCases: family.cases.map((requestCase) => ({
         id: requestCase.id.slice(0, 8).toUpperCase(),
         caseType: requestCase.caseType,
