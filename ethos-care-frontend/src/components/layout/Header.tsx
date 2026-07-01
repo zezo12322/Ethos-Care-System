@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface HeaderProps {
@@ -49,7 +50,11 @@ export default function Header({ onMenuClick }: HeaderProps) {
             </span>
           </button>
 
-          <div className="flex items-center gap-3 pr-0 sm:pr-4 sm:border-r sm:border-outline-variant/20">
+          <Link
+            href="/dashboard/profile"
+            aria-label="الملف الشخصي"
+            className="flex items-center gap-3 rounded-full pr-0 transition-colors hover:bg-surface-container-high sm:pr-4 sm:border-r sm:border-outline-variant/20"
+          >
             <div className="hidden flex-col items-end sm:flex">
               <span className="text-sm font-bold text-on-surface font-headline">
                 {user ? user.name : "..."}
@@ -64,7 +69,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
             >
               {user?.name?.trim()?.charAt(0) || "؟"}
             </span>
-          </div>
+          </Link>
         </div>
       </div>
     </header>
