@@ -156,8 +156,19 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
           )}
         </nav>
 
-        {/* Logout button */}
-        <div className="mt-4 border-t border-white/10 pt-4">
+        {/* Account: profile + logout */}
+        <div className="mt-4 space-y-2 border-t border-white/10 pt-4">
+          <Link
+            href="/dashboard/profile"
+            onClick={onClose}
+            aria-current={isActive("/dashboard/profile") ? "page" : undefined}
+            className={linkClass("/dashboard/profile")}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">
+              account_circle
+            </span>
+            <span>الملف الشخصي</span>
+          </Link>
           <button
             onClick={() => {
               import("js-cookie").then((Cookies) => {
@@ -174,9 +185,12 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
           </button>
         </div>
 
-        {/* Bottom version badge inside sidebar */}
+        {/* Bottom badge inside sidebar */}
         <div className="mt-auto pb-4 pt-8 text-center">
           <p className="text-[10px] uppercase tracking-widest text-white/55">Version 1.0.0</p>
+          <p className="mt-1 text-[10px] text-white/45">
+            تطوير وتنفيذ <span className="font-bold text-white/70">OptimaTech</span>
+          </p>
         </div>
       </aside>
     </>

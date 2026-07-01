@@ -15,6 +15,12 @@ export interface UpdateUserPayload {
   role?: AppRole;
 }
 
+export interface UpdateProfilePayload {
+  name?: string;
+  currentPassword?: string;
+  newPassword?: string;
+}
+
 export const usersService = {
   getAll: async () => {
     const response = await api.get<AppUser[]>("/users");
@@ -33,5 +39,15 @@ export const usersService = {
 
   remove: async (id: string) => {
     await api.delete(`/users/${id}`);
+  },
+
+  getMe: async () => {
+    const response = await api.get<AppUser>("/users/me");
+    return response.data;
+  },
+
+  updateProfile: async (payload: UpdateProfilePayload) => {
+    const response = await api.patch<AppUser>("/users/me", payload);
+    return response.data;
   },
 };

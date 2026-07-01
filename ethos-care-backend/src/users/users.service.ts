@@ -1,9 +1,16 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 const userSelect = {
   id: true,
@@ -125,5 +132,40 @@ export class UsersService {
 
   async remove(id: string): Promise<SafeUser> {
     return this.prisma.user.delete({ where: { id }, select: userSelect });
+  }
+
+  /** تحديث المستخدم لبياناته بنفسه (الاسم و/أو كلمة المرور) مع التحقق من كلمة المرور الحالية */
+  async updateOwnProfile(
+    id: string,
+    data: UpdateProfileDto,
+  ): Promise<SafeUser> {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('المستخدم غير موجود');
+    }
+
+    const updateData: Prisma.UserUpdateInput = {};
+
+    if (data.name !== undefined && data.name.trim()) {
+      updateData.name = data.name.trim();
+    }
+
+    if (data.newPassword) {
+      const currentValid =
+        !!data.currentPassword &&
+        (await bcrypt.compare(data.currentPassword, user.password));
+      if (!currentValid) {
+        throw new UnauthorizedException('كلمة المرور الحالية غير صحيحة');
+      }
+      updateData.password = await bcrypt.hash(data.newPassword, 10);
+    } else if (data.currentPassword && !data.newPassword) {
+      throw new BadRequestException('يرجى إدخال كلمة المرور الجديدة');
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data: updateData,
+      select: userSelect,
+    });
   }
 }

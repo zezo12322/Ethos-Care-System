@@ -134,8 +134,11 @@ export default function PublicFooter() {
             رقم القيد: <span className="text-white/50 font-mono">1880</span> لسنة 2013 — مديرية التضامن الاجتماعي بني سويف | الموقع: <span className="text-white/50" dir="ltr">lifemakers-bns.com</span>
           </p>
         </div>
-        <div className="flex gap-6">
+        <div className="flex items-center gap-6">
           <Link href="/about#registration" className="hover:text-white">البيانات التسجيلية</Link>
+          <span className="text-white/40">
+            تطوير وتنفيذ <span className="font-bold text-white/60">OptimaTech</span>
+          </span>
         </div>
       </div>
     </footer>
