@@ -45,6 +45,14 @@ model Case {
   family                  Family?       @relation(fields: [familyId], references: [id])
   operation               Operation?    @relation(fields: [operationId], references: [id])
   history                 CaseHistory[]
+
+  @@index([lifecycleStatus])
+  @@index([priority, lifecycleStatus])
+  @@index([completenessStatus])
+  @@index([familyId])
+  @@index([assignedToId])
+  @@index([operationId])
+  @@index([createdAt])
 }
 
 model CaseHistory {
@@ -61,6 +69,9 @@ model CaseHistory {
   performedAt         DateTime @default(now())
   case                Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
   performedBy         User?    @relation(fields: [performedById], references: [id])
+
+  @@index([caseId, performedAt])
+  @@index([performedById])
 }
 
 model Family {
@@ -83,6 +94,8 @@ model Family {
   education      String?
   cases          Case[]
   familyMembers  FamilyMember[]
+
+  @@index([status])
 }
 
 model Operation {
@@ -123,6 +136,10 @@ model Volunteer {
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @updatedAt
   assignments   VolunteerAssignment[]
+
+  @@index([status])
+  @@index([nationalId])
+  @@index([phone])
 }
 
 model VolunteerAssignment {
@@ -139,6 +156,7 @@ model VolunteerAssignment {
   operation   Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
 
   @@unique([volunteerId, operationId])
+  @@index([operationId])
 }
 
 model Partner {
@@ -165,6 +183,9 @@ model News {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   author    User?    @relation(fields: [authorId], references: [id])
+
+  @@index([authorId])
+  @@index([published, date])
 }
 
 model Location {
@@ -197,6 +218,8 @@ model FamilyMember {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   family         Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
 }
 
 // ─── CMS Models ───────────────────────────────────────────────────────────────

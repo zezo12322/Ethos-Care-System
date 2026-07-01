@@ -100,31 +100,38 @@ export class OperationsService {
 
     if (!operation) throw new NotFoundException('Operation not found');
 
-    // Update all cases to COMPLETED
-    if (operation.cases && operation.cases.length > 0) {
-      const caseIds = operation.cases.map((c) => c.id);
-      await this.prisma.case.updateMany({
-        where: { id: { in: caseIds } },
-        data: { lifecycleStatus: 'COMPLETED' },
+    // لا نُكمل إلا الحالات الموجودة فعليًا في مرحلة التنفيذ (احترام آلة الحالات
+    // وعدم تزوير سجل التاريخ لحالات في مراحل أخرى)
+    const executable = (operation.cases ?? []).filter(
+      (c) => c.lifecycleStatus === 'EXECUTION',
+    );
+
+    // كل ذلك داخل transaction واحدة حتى لا يبقى النظام في حالة جزئية
+    return this.prisma.$transaction(async (tx) => {
+      if (executable.length > 0) {
+        const caseIds = executable.map((c) => c.id);
+        await tx.case.updateMany({
+          where: { id: { in: caseIds } },
+          data: { lifecycleStatus: 'COMPLETED', lastActionAt: new Date() },
+        });
+
+        await tx.caseHistory.createMany({
+          data: executable.map((c) => ({
+            caseId: c.id,
+            fromLifecycleStatus: c.lifecycleStatus,
+            toLifecycleStatus: 'COMPLETED',
+            fromDecisionStatus: c.decisionStatus,
+            toDecisionStatus: c.decisionStatus,
+            action: 'complete',
+            reason: `تم التنفيذ عن طريق حملة: ${operation.name}`,
+          })),
+        });
+      }
+
+      return tx.operation.update({
+        where: { id: operationId },
+        data: { status: 'مكتمل', progress: 100 },
       });
-
-      // Add history records for each case
-      const historyData = caseIds.map((id) => ({
-        caseId: id,
-        fromLifecycleStatus: 'APPROVED',
-        toLifecycleStatus: 'COMPLETED',
-        fromDecisionStatus: 'APPROVED',
-        toDecisionStatus: 'APPROVED',
-        action: 'complete',
-        reason: `تم التنفيذ عن طريق حملة: ${operation.name}`,
-      }));
-      await this.prisma.caseHistory.createMany({ data: historyData });
-    }
-
-    // Mark operation as complete
-    return this.prisma.operation.update({
-      where: { id: operationId },
-      data: { status: 'مكتمل', progress: 100 },
     });
   }
 }

@@ -1,17 +1,10 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateCaseDto } from './create-case.dto';
-import { IsOptional, IsString } from 'class-validator';
 
-export class UpdateCaseDto extends PartialType(CreateCaseDto) {
-  @IsString()
-  @IsOptional()
-  lifecycleStatus?: string;
-
-  @IsString()
-  @IsOptional()
-  completenessStatus?: string;
-
-  @IsString()
-  @IsOptional()
-  decisionStatus?: string;
-}
+/**
+ * تعديل بيانات الحالة (المحتوى فقط). حقول دورة الحياة (lifecycleStatus /
+ * decisionStatus / completenessStatus) لا تُقبل هنا عمدًا — تغيير المرحلة
+ * يتم حصريًا عبر مسارات transitions التي تتحقق من التسلسل وتكتب سجل التاريخ.
+ * ValidationPipe (whitelist + forbidNonWhitelisted) يرفض أي محاولة لإرسالها.
+ */
+export class UpdateCaseDto extends PartialType(CreateCaseDto) {}
