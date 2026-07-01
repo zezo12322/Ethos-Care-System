@@ -1,5 +1,8 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { AppController } from './app.controller';
+import { HealthController } from './health/health.controller';
+import { AllExceptionsFilter } from './common/all-exceptions.filter';
 import { AppService } from './app.service';
 import { CasesModule } from './cases/cases.module';
 import { LocationsModule } from './locations/locations.module';
@@ -41,8 +44,18 @@ import {
     CmsModule,
     VolunteersModule,
   ],
-  controllers: [AppController, FamiliesController, OperationsController],
-  providers: [AppService, FamiliesService, OperationsService],
+  controllers: [
+    AppController,
+    HealthController,
+    FamiliesController,
+    OperationsController,
+  ],
+  providers: [
+    AppService,
+    FamiliesService,
+    OperationsService,
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
