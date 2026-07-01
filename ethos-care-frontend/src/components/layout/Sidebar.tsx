@@ -189,7 +189,15 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
         <div className="mt-auto pb-4 pt-8 text-center">
           <p className="text-[10px] uppercase tracking-widest text-white/55">Version 1.0.0</p>
           <p className="mt-1 text-[10px] text-white/45">
-            تطوير وتنفيذ <span className="font-bold text-white/70">OptimaTech</span>
+            تطوير وتنفيذ{" "}
+            <a
+              href="https://www.digitaloptima.tech"
+              target="_blank"
+              rel="noreferrer"
+              className="font-bold text-white/70 hover:text-white"
+            >
+              OptimaTech
+            </a>
           </p>
         </div>
       </aside>

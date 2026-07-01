@@ -137,7 +137,15 @@ export default function PublicFooter() {
         <div className="flex items-center gap-6">
           <Link href="/about#registration" className="hover:text-white">البيانات التسجيلية</Link>
           <span className="text-white/40">
-            تطوير وتنفيذ <span className="font-bold text-white/60">OptimaTech</span>
+            تطوير وتنفيذ{" "}
+            <a
+              href="https://www.digitaloptima.tech"
+              target="_blank"
+              rel="noreferrer"
+              className="font-bold text-white/60 hover:text-white"
+            >
+              OptimaTech
+            </a>
           </span>
         </div>
       </div>
