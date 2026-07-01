@@ -49,10 +49,10 @@ export default function PublicHeader() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 sm:flex">
+        <div className="hidden items-center gap-3 lg:flex">
           <Link
             href="/login"
-            className="hidden rounded-xl border border-primary/20 bg-primary-container px-4 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-primary-fixed/70 lg:inline-flex"
+            className="rounded-xl border border-primary/20 bg-primary-container px-4 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-primary-fixed/70"
           >
             دخول فريق العمل
           </Link>
