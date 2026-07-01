@@ -2,13 +2,22 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { familiesService, FamilyMemberInput } from "@/services/families.service";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 
 export default function NewFamilyPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const { toast } = useToast();
+
+  // الكول سنتر: عرض فقط — لا يُسمح بإنشاء أسرة
+  useEffect(() => {
+    if (user?.role === "CALL_CENTER") {
+      router.replace("/dashboard/families");
+    }
+  }, [user, router]);
   const [membersData, setMembersData] = useState<FamilyMemberInput[]>([{ name: "", age: "", relation: "ابن/ة", education: "لا يدرس" }]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({

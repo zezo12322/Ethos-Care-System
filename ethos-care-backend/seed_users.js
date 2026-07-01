@@ -12,6 +12,7 @@ async function main() {
     { email: 'worker@lifemakers-bns.com',      name: 'worker',          role: 'CASE_WORKER' },
     { email: 'worker2@lifemakers-bns.com',     name: 'worker',          role: 'CASE_WORKER' },
     { email: 'worker3@lifemakers-bns.com',     name: 'worker',          role: 'CASE_WORKER' },
+    { email: 'callcenter@lifemakers-bns.com',  name: 'خدمة المستفيدين', role: 'CALL_CENTER' },
   ];
 
   for (const user of users) {
