@@ -43,7 +43,7 @@ export class VolunteersService {
   }
 
   async findAll(filters: { status?: string; search?: string } = {}) {
-    const where: Prisma.VolunteerWhereInput = {};
+    const where: Prisma.VolunteerWhereInput = { deletedAt: null };
 
     if (filters.status) {
       where.status = filters.status;
@@ -69,8 +69,8 @@ export class VolunteersService {
   }
 
   async findOne(id: string) {
-    const volunteer = await this.prisma.volunteer.findUnique({
-      where: { id },
+    const volunteer = await this.prisma.volunteer.findFirst({
+      where: { id, deletedAt: null },
       include: assignmentInclude,
     });
     if (!volunteer) {
@@ -155,9 +155,13 @@ export class VolunteersService {
     return this.decorate(volunteer);
   }
 
+  // حذف ناعم: نخفي المتطوع من كل المسارات مع الاحتفاظ بسجله وإسناداته
   async remove(id: string) {
     await this.ensureExists(id);
-    return this.prisma.volunteer.delete({ where: { id } });
+    return this.prisma.volunteer.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 
   async assignToOperation(volunteerId: string, data: AssignVolunteerDto) {
@@ -227,8 +231,8 @@ export class VolunteersService {
   }
 
   private async ensureExists(id: string) {
-    const found = await this.prisma.volunteer.findUnique({
-      where: { id },
+    const found = await this.prisma.volunteer.findFirst({
+      where: { id, deletedAt: null },
       select: { id: true },
     });
     if (!found) {

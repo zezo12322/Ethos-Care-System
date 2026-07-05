@@ -16,13 +16,13 @@ export default function DynamicStats() {
     let cancelled = false;
 
     api
-      .get("/stats")
+      .get("/stats/public")
       .then((res) => {
-        if (!cancelled && res.data?.public) {
+        if (!cancelled && res.data) {
           setStats({
-            families: res.data.public.families ?? 0,
-            locations: res.data.public.locations ?? 0,
-            volunteers: res.data.public.volunteers ?? 0,
+            families: res.data.families ?? 0,
+            locations: res.data.locations ?? 0,
+            volunteers: res.data.volunteers ?? 0,
           });
         }
       })

@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFamilyDto } from './dto/create-family.dto';
 import { UpdateFamilyDto } from './dto/update-family.dto';
@@ -14,7 +15,7 @@ export class FamiliesService {
   async findAll(filters: { status?: string; search?: string } = {}) {
     const where: NonNullable<
       Parameters<typeof this.prisma.family.findMany>[0]
-    >['where'] = {};
+    >['where'] = { deletedAt: null };
 
     if (filters.status) {
       where.status = filters.status;
@@ -40,11 +41,12 @@ export class FamiliesService {
   }
 
   async findOne(id: string) {
-    const family = await this.prisma.family.findUnique({
-      where: { id },
+    const family = await this.prisma.family.findFirst({
+      where: { id, deletedAt: null },
       include: {
         familyMembers: true,
         cases: {
+          where: { deletedAt: null },
           orderBy: { createdAt: 'desc' },
         },
       },
@@ -57,12 +59,12 @@ export class FamiliesService {
     return family;
   }
 
-  async create(data: CreateFamilyDto) {
+  async create(data: CreateFamilyDto, createdById?: string) {
     // منع تكرار الأسر بنفس الرقم القومي (الأسرة مصدر واحد لكل عائل)
     const nationalId = data.nationalId?.trim();
     if (nationalId) {
-      const existing = await this.prisma.family.findUnique({
-        where: { nationalId },
+      const existing = await this.prisma.family.findFirst({
+        where: { nationalId, deletedAt: null },
       });
       if (existing) {
         throw new ConflictException(
@@ -92,6 +94,7 @@ export class FamiliesService {
     return this.prisma.family.create({
       data: {
         headName: data.headName || 'بدون اسم',
+        ...(createdById ? { createdById } : {}),
         familyMembers: familyMembersData,
         membersCount: data.membersCount || 1,
         income: data.income ? String(data.income) : '0',
@@ -116,6 +119,7 @@ export class FamiliesService {
               ? `${data.village} - ${data.city}`
               : 'بني سويف',
             description: data.description || null,
+            ...(createdById ? { createdById } : {}),
             lifecycleStatus,
             decisionStatus,
             completenessStatus,
@@ -133,25 +137,47 @@ export class FamiliesService {
   }
 
   async update(id: string, data: UpdateFamilyDto) {
-    return this.prisma.family.update({
-      where: { id },
-      data: {
-        headName: data.headName,
-        membersCount: data.membersCount || 1,
-        income: data.income ? String(data.income) : '0',
-        address: data.address,
-        phone: data.phone,
-        status: data.status,
-        socialStatus: data.socialStatus,
-        job: data.job,
-        education: data.education,
-      },
-    });
+    // نكتب فقط الحقول المُرسَلة فعليًا حتى لا يمحو التعديل الجزئي بيانات قائمة
+    // (مثلاً تعديل الهاتف وحده كان يعيد عدد الأفراد إلى 1 والدخل إلى 0).
+    const updateData: Prisma.FamilyUpdateInput = {};
+    if (data.headName !== undefined) updateData.headName = data.headName;
+    if (data.membersCount !== undefined)
+      updateData.membersCount = data.membersCount;
+    if (data.income !== undefined) updateData.income = String(data.income);
+    if (data.address !== undefined) updateData.address = data.address;
+    if (data.phone !== undefined) updateData.phone = data.phone;
+    if (data.status !== undefined) updateData.status = data.status;
+    if (data.socialStatus !== undefined)
+      updateData.socialStatus = data.socialStatus;
+    if (data.job !== undefined) updateData.job = data.job;
+    if (data.education !== undefined) updateData.education = data.education;
+    if (data.city !== undefined) updateData.city = data.city;
+    if (data.village !== undefined) updateData.village = data.village;
+    if (data.addressDetails !== undefined)
+      updateData.addressDetails = data.addressDetails;
+    if (data.nationalId !== undefined) updateData.nationalId = data.nationalId;
+
+    return this.prisma.family.update({ where: { id }, data: updateData });
   }
 
+  // حذف ناعم: نخفي الأسرة وحالاتها معًا (للحوكمة والتدقيق) دون مسح أي بيانات
   async remove(id: string) {
-    return this.prisma.family.delete({
-      where: { id },
+    const existing = await this.prisma.family.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!existing) throw new NotFoundException('Family not found');
+
+    const now = new Date();
+    return this.prisma.$transaction(async (tx) => {
+      await tx.case.updateMany({
+        where: { familyId: id, deletedAt: null },
+        data: { deletedAt: now },
+      });
+      return tx.family.update({
+        where: { id },
+        data: { deletedAt: now },
+      });
     });
   }
 }

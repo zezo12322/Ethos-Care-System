@@ -1,5 +1,9 @@
+import './config/init-env';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import helmet from 'helmet';
+import compression from 'compression';
 import { AppModule } from './app.module';
 
 function getCorsOrigins(): string[] | true {
@@ -19,12 +23,21 @@ function getCorsOrigins(): string[] | true {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  // خلف Azure App Service / load balancer: نثق ببروكسي واحد لقراءة IP العميل الحقيقي
+  app.set('trust proxy', 1);
+
+  // رؤوس أمان + ضغط الاستجابات
+  app.use(helmet());
+  app.use(compression());
+
+  const corsOrigins = getCorsOrigins();
   app.enableCors({
-    origin: getCorsOrigins(),
+    origin: corsOrigins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true,
+    // لا نجمع بين origin مفتوح (*) وcredentials — إعداد خطير
+    credentials: corsOrigins !== true,
   });
 
   // Enable global validation pipe

@@ -11,6 +11,7 @@ describe('CasesService', () => {
       create: jest.fn(),
       findMany: jest.fn(),
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
     },
@@ -148,7 +149,7 @@ describe('CasesService', () => {
   });
 
   it('auto-links an unlinked case to a family on update', async () => {
-    prisma.case.findUnique.mockResolvedValue({ familyId: null });
+    prisma.case.findFirst.mockResolvedValue({ familyId: null });
     prisma.family.findUnique.mockResolvedValue(null);
     prisma.family.create.mockResolvedValue({ id: 'auto-family' });
     prisma.case.update.mockResolvedValue({ id: 'case-1', familyId: 'auto-family' });
@@ -164,7 +165,7 @@ describe('CasesService', () => {
   });
 
   it('throws when updating a missing case', async () => {
-    prisma.case.findUnique.mockResolvedValue(null);
+    prisma.case.findFirst.mockResolvedValue(null);
 
     await expect(service.update('missing-case', {})).rejects.toThrow(
       NotFoundException,

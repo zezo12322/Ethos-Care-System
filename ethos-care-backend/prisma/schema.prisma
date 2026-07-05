@@ -38,6 +38,8 @@ model Case {
   assignedToId            String?
   operationId             String?
   requiresCommitteeReview Boolean       @default(false)
+  createdById             String?
+  deletedAt               DateTime?
   lastActionAt            DateTime      @default(now())
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
@@ -45,6 +47,15 @@ model Case {
   family                  Family?       @relation(fields: [familyId], references: [id])
   operation               Operation?    @relation(fields: [operationId], references: [id])
   history                 CaseHistory[]
+
+  @@index([lifecycleStatus])
+  @@index([priority, lifecycleStatus])
+  @@index([completenessStatus])
+  @@index([familyId])
+  @@index([assignedToId])
+  @@index([operationId])
+  @@index([createdAt])
+  @@index([deletedAt])
 }
 
 model CaseHistory {
@@ -61,6 +72,9 @@ model CaseHistory {
   performedAt         DateTime @default(now())
   case                Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
   performedBy         User?    @relation(fields: [performedById], references: [id])
+
+  @@index([caseId, performedAt])
+  @@index([performedById])
 }
 
 model Family {
@@ -77,12 +91,17 @@ model Family {
   address        String?
   membersCount   Int            @default(1)
   status         String         @default("تحت التقييم")
+  createdById    String?
+  deletedAt      DateTime?
   lastVisit      DateTime       @default(now())
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   education      String?
   cases          Case[]
   familyMembers  FamilyMember[]
+
+  @@index([status])
+  @@index([deletedAt])
 }
 
 model Operation {
@@ -120,9 +139,15 @@ model Volunteer {
   center        String?               // المركز
   whatsapp      String?               // رقم الواتساب
   address       String?               // العنوان بالتفصيل
+  deletedAt     DateTime?
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @updatedAt
   assignments   VolunteerAssignment[]
+
+  @@index([status])
+  @@index([nationalId])
+  @@index([phone])
+  @@index([deletedAt])
 }
 
 model VolunteerAssignment {
@@ -139,6 +164,7 @@ model VolunteerAssignment {
   operation   Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
 
   @@unique([volunteerId, operationId])
+  @@index([operationId])
 }
 
 model Partner {
@@ -165,6 +191,9 @@ model News {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   author    User?    @relation(fields: [authorId], references: [id])
+
+  @@index([authorId])
+  @@index([published, date])
 }
 
 model Location {
@@ -197,6 +226,8 @@ model FamilyMember {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   family         Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
 }
 
 // ─── CMS Models ───────────────────────────────────────────────────────────────

@@ -222,7 +222,7 @@ export class CasesService {
     await tx.family.update({ where: { id: familyId }, data: headData });
   }
 
-  async create(createCaseDto: CreateCaseDto) {
+  async create(createCaseDto: CreateCaseDto, createdById?: string) {
     const lifecycleStatus = 'DRAFT';
     const completenessStatus = createCaseDto.nationalId
       ? 'COMPLETE'
@@ -251,6 +251,7 @@ export class CasesService {
           lifecycleStatus,
           completenessStatus,
           decisionStatus,
+          ...(createdById ? { createdById } : {}),
         },
       });
 
@@ -270,6 +271,7 @@ export class CasesService {
   async getUrgentQueue() {
     return this.prisma.case.findMany({
       where: {
+        deletedAt: null,
         priority: 'URGENT',
         lifecycleStatus: { notIn: ['COMPLETED'] },
       },
@@ -279,7 +281,7 @@ export class CasesService {
 
   async getMissingNationalIdQueue() {
     return this.prisma.case.findMany({
-      where: { completenessStatus: 'MISSING_NATIONAL_ID' },
+      where: { deletedAt: null, completenessStatus: 'MISSING_NATIONAL_ID' },
       include: { family: true },
     });
   }
@@ -287,6 +289,7 @@ export class CasesService {
   async getUnderReviewQueue() {
     return this.prisma.case.findMany({
       where: {
+        deletedAt: null,
         lifecycleStatus: {
           in: ['REVIEW', 'FIELD_VERIFICATION'],
         },
@@ -298,6 +301,7 @@ export class CasesService {
   async getAwaitingExecutionQueue() {
     return this.prisma.case.findMany({
       where: {
+        deletedAt: null,
         lifecycleStatus: { in: ['APPROVED', 'EXECUTION'] },
       },
       include: { family: true },
@@ -305,7 +309,7 @@ export class CasesService {
   }
 
   findAll(filters: { status?: string; type?: string; search?: string }) {
-    const where: Prisma.CaseWhereInput = {};
+    const where: Prisma.CaseWhereInput = { deletedAt: null };
     if (filters.status) where.lifecycleStatus = filters.status;
     if (filters.type) where.caseType = filters.type;
     if (filters.search) {
@@ -319,12 +323,13 @@ export class CasesService {
   }
 
   async findOne(id: string) {
-    const foundCase = await this.prisma.case.findUnique({
-      where: { id },
+    const foundCase = await this.prisma.case.findFirst({
+      where: { id, deletedAt: null },
       include: {
         family: {
           include: {
             cases: {
+              where: { deletedAt: null },
               orderBy: {
                 createdAt: 'desc',
               },
@@ -333,7 +338,7 @@ export class CasesService {
         },
         history: true,
         operation: true,
-        assignedTo: true,
+        assignedTo: { select: { id: true, name: true, role: true } },
       },
     });
     if (!foundCase) throw new NotFoundException('Case not found');
@@ -341,8 +346,8 @@ export class CasesService {
   }
 
   async update(id: string, updateCaseDto: UpdateCaseDto) {
-    const currentCase = await this.prisma.case.findUnique({
-      where: { id },
+    const currentCase = await this.prisma.case.findFirst({
+      where: { id, deletedAt: null },
       select: { familyId: true },
     });
 
@@ -384,9 +389,8 @@ export class CasesService {
         );
       }
 
-      // إعادة حساب حالة استيفاء الملف عند تغيّر الرقم القومي (إن لم تُحدَّد صراحةً)
+      // إعادة حساب حالة استيفاء الملف عند تغيّر الرقم القومي
       const recomputedCompleteness =
-        updateCaseDto.completenessStatus === undefined &&
         updateCaseDto.nationalId !== undefined
           ? updateCaseDto.nationalId.trim()
             ? 'COMPLETE'
@@ -408,8 +412,17 @@ export class CasesService {
     });
   }
 
+  // حذف ناعم: نحتفظ بالسجل وسجل التاريخ ونخفيه فقط من كل المسارات (للحوكمة والتدقيق)
   async remove(id: string) {
-    return this.prisma.case.delete({ where: { id } });
+    const existing = await this.prisma.case.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!existing) throw new NotFoundException('Case not found');
+    return this.prisma.case.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 
   async transition(
