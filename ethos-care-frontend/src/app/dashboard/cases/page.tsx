@@ -77,6 +77,8 @@ export default function CasesPage() {
   const { user } = useAuth();
   // الكول سنتر: عرض فقط — لا إنشاء/تعديل/حذف
   const canManage = (user?.role ?? "") !== "CALL_CENTER";
+  // الحذف للإدارة فقط (الباحث يعدّل ولا يحذف)
+  const canDelete = ["ADMIN", "CEO", "MANAGER"].includes(user?.role ?? "");
   const [cases, setCases] = useState<CaseRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState("الكل");
@@ -475,7 +477,7 @@ export default function CasesPage() {
                               </span>
                             </Link>
                           )}
-                          {canManage && (
+                          {canDelete && (
                             <button
                               type="button"
                               onClick={() => handleDeleteClick(c.id, c.applicantName)}

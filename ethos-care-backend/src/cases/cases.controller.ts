@@ -42,8 +42,8 @@ export class CasesController {
 
   @Post()
   @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'EXECUTION_OFFICER')
-  create(@Body() createCaseDto: CreateCaseDto) {
-    return this.casesService.create(createCaseDto);
+  create(@Body() createCaseDto: CreateCaseDto, @CurrentUser() user: AuthUser) {
+    return this.casesService.create(createCaseDto, user.id);
   }
 
   @Get('queues/urgent')
@@ -113,8 +113,9 @@ export class CasesController {
     return this.casesService.update(id, updateCaseDto);
   }
 
+  // الحذف للإدارة فقط — الباحث/مسؤول التنفيذ يعدّلون ولا يحذفون
   @Delete(':id')
-  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'EXECUTION_OFFICER')
+  @Roles('ADMIN', 'CEO', 'MANAGER')
   remove(@Param('id') id: string) {
     return this.casesService.remove(id);
   }

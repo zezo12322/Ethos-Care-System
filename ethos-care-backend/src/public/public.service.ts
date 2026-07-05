@@ -114,6 +114,7 @@ export class PublicService {
 
     const requestCase = await this.prisma.case.findFirst({
       where: {
+        deletedAt: null,
         OR: [{ id: normalizedId }, { id: { startsWith: normalizedId } }],
       },
       include: {
@@ -151,9 +152,10 @@ export class PublicService {
     }
 
     const family = await this.prisma.family.findFirst({
-      where: { nationalId: normalized },
+      where: { nationalId: normalized, deletedAt: null },
       include: {
         cases: {
+          where: { deletedAt: null },
           orderBy: { createdAt: 'desc' },
           take: 3,
         },
@@ -197,7 +199,7 @@ export class PublicService {
     ];
     const existing = duplicateConditions.length
       ? await this.prisma.volunteer.findFirst({
-          where: { OR: duplicateConditions },
+          where: { deletedAt: null, OR: duplicateConditions },
         })
       : null;
 

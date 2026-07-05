@@ -15,7 +15,7 @@ export class FamiliesService {
   async findAll(filters: { status?: string; search?: string } = {}) {
     const where: NonNullable<
       Parameters<typeof this.prisma.family.findMany>[0]
-    >['where'] = {};
+    >['where'] = { deletedAt: null };
 
     if (filters.status) {
       where.status = filters.status;
@@ -41,11 +41,12 @@ export class FamiliesService {
   }
 
   async findOne(id: string) {
-    const family = await this.prisma.family.findUnique({
-      where: { id },
+    const family = await this.prisma.family.findFirst({
+      where: { id, deletedAt: null },
       include: {
         familyMembers: true,
         cases: {
+          where: { deletedAt: null },
           orderBy: { createdAt: 'desc' },
         },
       },
@@ -58,12 +59,12 @@ export class FamiliesService {
     return family;
   }
 
-  async create(data: CreateFamilyDto) {
+  async create(data: CreateFamilyDto, createdById?: string) {
     // منع تكرار الأسر بنفس الرقم القومي (الأسرة مصدر واحد لكل عائل)
     const nationalId = data.nationalId?.trim();
     if (nationalId) {
-      const existing = await this.prisma.family.findUnique({
-        where: { nationalId },
+      const existing = await this.prisma.family.findFirst({
+        where: { nationalId, deletedAt: null },
       });
       if (existing) {
         throw new ConflictException(
@@ -93,6 +94,7 @@ export class FamiliesService {
     return this.prisma.family.create({
       data: {
         headName: data.headName || 'بدون اسم',
+        ...(createdById ? { createdById } : {}),
         familyMembers: familyMembersData,
         membersCount: data.membersCount || 1,
         income: data.income ? String(data.income) : '0',
@@ -117,6 +119,7 @@ export class FamiliesService {
               ? `${data.village} - ${data.city}`
               : 'بني سويف',
             description: data.description || null,
+            ...(createdById ? { createdById } : {}),
             lifecycleStatus,
             decisionStatus,
             completenessStatus,
@@ -157,9 +160,24 @@ export class FamiliesService {
     return this.prisma.family.update({ where: { id }, data: updateData });
   }
 
+  // حذف ناعم: نخفي الأسرة وحالاتها معًا (للحوكمة والتدقيق) دون مسح أي بيانات
   async remove(id: string) {
-    return this.prisma.family.delete({
-      where: { id },
+    const existing = await this.prisma.family.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!existing) throw new NotFoundException('Family not found');
+
+    const now = new Date();
+    return this.prisma.$transaction(async (tx) => {
+      await tx.case.updateMany({
+        where: { familyId: id, deletedAt: null },
+        data: { deletedAt: now },
+      });
+      return tx.family.update({
+        where: { id },
+        data: { deletedAt: now },
+      });
     });
   }
 }

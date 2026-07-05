@@ -22,10 +22,12 @@ export class StatsService {
     }
     const [totalFamilies, eligibleFamilies, totalLocations, activeVolunteers] =
       await Promise.all([
-        this.prisma.family.count(),
-        this.prisma.family.count({ where: { status: 'مستحق' } }),
+        this.prisma.family.count({ where: { deletedAt: null } }),
+        this.prisma.family.count({ where: { deletedAt: null, status: 'مستحق' } }),
         this.prisma.location.count(),
-        this.prisma.volunteer.count({ where: { status: 'ACTIVE' } }),
+        this.prisma.volunteer.count({
+          where: { deletedAt: null, status: 'ACTIVE' },
+        }),
       ]);
     const data = {
       families: eligibleFamilies > 0 ? eligibleFamilies : totalFamilies,
@@ -50,9 +52,10 @@ export class StatsService {
       totalLocations,
       totalUsers,
     ] = await Promise.all([
-      this.prisma.case.count(),
+      this.prisma.case.count({ where: { deletedAt: null } }),
       this.prisma.case.count({
         where: {
+          deletedAt: null,
           lifecycleStatus: {
             in: [
               'DRAFT',
@@ -62,8 +65,8 @@ export class StatsService {
           },
         },
       }),
-      this.prisma.family.count(),
-      this.prisma.family.count({ where: { status: 'مستحق' } }),
+      this.prisma.family.count({ where: { deletedAt: null } }),
+      this.prisma.family.count({ where: { deletedAt: null, status: 'مستحق' } }),
       this.prisma.operation.count(),
       this.prisma.location.count(),
       this.prisma.user.count(),

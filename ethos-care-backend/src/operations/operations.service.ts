@@ -72,13 +72,13 @@ export class OperationsService {
 
     // Update the cases to link them to the operation
     await this.prisma.case.updateMany({
-      where: { id: { in: caseIds } },
+      where: { id: { in: caseIds }, deletedAt: null },
       data: { operationId },
     });
 
     // Update operation progress
     const updatedCount = await this.prisma.case.count({
-      where: { operationId },
+      where: { operationId, deletedAt: null },
     });
     const progress = Math.min(
       100,
@@ -103,7 +103,7 @@ export class OperationsService {
     // لا نُكمل إلا الحالات الموجودة فعليًا في مرحلة التنفيذ (احترام آلة الحالات
     // وعدم تزوير سجل التاريخ لحالات في مراحل أخرى)
     const executable = (operation.cases ?? []).filter(
-      (c) => c.lifecycleStatus === 'EXECUTION',
+      (c) => c.lifecycleStatus === 'EXECUTION' && !c.deletedAt,
     );
 
     // كل ذلك داخل transaction واحدة حتى لا يبقى النظام في حالة جزئية

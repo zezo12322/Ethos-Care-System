@@ -15,6 +15,8 @@ import { UpdateFamilyDto } from './dto/update-family.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(
@@ -65,8 +67,11 @@ export class FamiliesController {
 
   @Post()
   @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'EXECUTION_OFFICER')
-  async create(@Body() newFamily: CreateFamilyDto) {
-    const f = await this.familiesService.create(newFamily);
+  async create(
+    @Body() newFamily: CreateFamilyDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const f = await this.familiesService.create(newFamily, user.id);
     return {
       id: f.id,
       headName: f.headName,
@@ -117,8 +122,9 @@ export class FamiliesController {
     };
   }
 
+  // الحذف للإدارة فقط
   @Delete(':id')
-  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'EXECUTION_OFFICER')
+  @Roles('ADMIN', 'CEO', 'MANAGER')
   async remove(@Param('id') id: string) {
     return this.familiesService.remove(id);
   }

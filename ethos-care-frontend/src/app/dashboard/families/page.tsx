@@ -68,6 +68,8 @@ export default function FamiliesPage() {
   const { user } = useAuth();
   // الكول سنتر: عرض فقط — لا إضافة/تعديل/حذف
   const canManage = (user?.role ?? "") !== "CALL_CENTER";
+  // الحذف للإدارة فقط (الباحث يعدّل ولا يحذف)
+  const canDelete = ["ADMIN", "CEO", "MANAGER"].includes(user?.role ?? "");
   const [families, setFamilies] = useState<FamilyRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -548,28 +550,28 @@ export default function FamiliesPage() {
                           </span>
                         </Link>
                         {canManage && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => handleEditClick(family)}
-                              aria-label={`تعديل أسرة ${family.headName}`}
-                              className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-on-primary"
-                            >
-                              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
-                                edit
-                              </span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => void handleDeleteClick(family.id)}
-                              aria-label={`حذف أسرة ${family.headName}`}
-                              className="flex h-9 w-9 items-center justify-center rounded-full bg-error/10 text-error transition-colors hover:bg-error hover:text-on-error"
-                            >
-                              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
-                                delete
-                              </span>
-                            </button>
-                          </>
+                          <button
+                            type="button"
+                            onClick={() => handleEditClick(family)}
+                            aria-label={`تعديل أسرة ${family.headName}`}
+                            className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-on-primary"
+                          >
+                            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                              edit
+                            </span>
+                          </button>
+                        )}
+                        {canDelete && (
+                          <button
+                            type="button"
+                            onClick={() => void handleDeleteClick(family.id)}
+                            aria-label={`حذف أسرة ${family.headName}`}
+                            className="flex h-9 w-9 items-center justify-center rounded-full bg-error/10 text-error transition-colors hover:bg-error hover:text-on-error"
+                          >
+                            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                              delete
+                            </span>
+                          </button>
                         )}
                       </div>
                     </td>

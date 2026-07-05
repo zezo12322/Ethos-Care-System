@@ -14,6 +14,7 @@ export class SearchService {
 
     const cases = await this.prisma.case.findMany({
       where: {
+        deletedAt: null,
         OR: [
           { applicantName: { contains: searchQuery, mode: 'insensitive' } },
           { nationalId: { contains: searchQuery, mode: 'insensitive' } },
@@ -28,6 +29,7 @@ export class SearchService {
 
     const families = await this.prisma.family.findMany({
       where: {
+        deletedAt: null,
         OR: [
           { headName: { contains: searchQuery, mode: 'insensitive' } },
           { nationalId: { contains: searchQuery, mode: 'insensitive' } },
