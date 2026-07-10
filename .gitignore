@@ -17,3 +17,9 @@ dev.db
 *.sqlite-journal
 .DS_Store
 .claude/
+
+# playwright MCP session artifacts
+.playwright-mcp/
+
+# local file storage (uploads, etc.)
+ethos-care-backend/storage/
