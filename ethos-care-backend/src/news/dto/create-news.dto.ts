@@ -1,4 +1,10 @@
-import { IsBoolean, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsDateString,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class CreateNewsDto {
   @IsString()
@@ -20,4 +26,9 @@ export class CreateNewsDto {
   @IsBoolean()
   @IsOptional()
   published?: boolean;
+
+  /** تاريخ نشر الخبر — يسمح بتسجيل خبر بتاريخ سابق. افتراضيًا وقت الإنشاء. */
+  @IsDateString()
+  @IsOptional()
+  date?: string;
 }

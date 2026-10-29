@@ -10,8 +10,13 @@ const emptyForm = {
   category: "فعاليات",
   content: "",
   image: "",
+  date: "",
   published: true,
 };
+
+/** ISO date (yyyy-MM-dd) لحقل <input type="date"> */
+const toDateInputValue = (value?: string) =>
+  value ? new Date(value).toISOString().slice(0, 10) : "";
 
 export default function NewsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -87,6 +92,7 @@ export default function NewsPage() {
       category: item.category || "فعاليات",
       content: item.content,
       image: item.image || "",
+      date: toDateInputValue(item.date),
       published: item.published,
     });
     setIsModalOpen(true);
@@ -100,6 +106,8 @@ export default function NewsPage() {
     const payload = {
       ...formData,
       image: formData.image.trim() || undefined,
+      // input[type=date] يرجّع yyyy-MM-dd — نحوّله لـ ISO كامل ليقبله @IsDateString
+      date: formData.date ? new Date(formData.date).toISOString() : undefined,
     };
 
     try {
@@ -342,6 +350,23 @@ export default function NewsPage() {
                 onChange={(event) => setFormData({ ...formData, category: event.target.value })}
                 className="w-full rounded-2xl border border-outline-variant/50 px-4 py-3 outline-none focus:border-primary"
               />
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-on-surface">
+                  تاريخ الخبر
+                  <span className="font-normal text-on-surface-variant">
+                    {" "}
+                    — اتركه فاضي لتاريخ اليوم
+                  </span>
+                </span>
+                <input
+                  type="date"
+                  value={formData.date}
+                  onChange={(event) =>
+                    setFormData({ ...formData, date: event.target.value })
+                  }
+                  className="w-full rounded-2xl border border-outline-variant/50 px-4 py-3 outline-none focus:border-primary"
+                />
+              </label>
               <textarea
                 required
                 rows={6}
