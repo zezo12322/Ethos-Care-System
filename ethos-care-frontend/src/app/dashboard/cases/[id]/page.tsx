@@ -6,39 +6,26 @@ import { useAuth } from "@/contexts/AuthContext";
 import { casesService } from "@/services/cases.service";
 import { CaseHistoryRecord, CaseRecord } from "@/types/api";
 import { useToast } from "@/components/ui/Toast";
+import { DIRECTOR_ACTIONS, latestDirectorOpinion, lifecycleOf } from "@/lib/caseLabels";
+import { isDirector } from "@/lib/roles";
 
 /* ──────────────────────────────────────────────
- *  Lifecycle (6 stages only):
- *    DRAFT → REVIEW → FIELD_VERIFICATION → APPROVED → EXECUTION → COMPLETED
- *  Researcher (CASE_WORKER) owns first 3
- *  Case Manager (MANAGER/CEO) owns last 3
+ *  Lifecycle:
+ *    DRAFT (مع الباحث) → REVIEW (بانتظار قرار المدير) → APPROVED → EXECUTION → COMPLETED
+ *                                                   ↘ REJECTED
+ *  المتطوع يرفع الحالة، الباحث يرفع قراره (موافقة/رفض) للمدير، والمدير يعتمد.
  * ────────────────────────────────────────────── */
 
 const LIFECYCLE_STEPS = [
-  { key: "DRAFT", label: "مسودة", icon: "edit_note" },
-  { key: "REVIEW", label: "مراجعة", icon: "rate_review" },
-  { key: "FIELD_VERIFICATION", label: "تحقق ميداني", icon: "location_searching" },
-  { key: "APPROVED", label: "موافقة", icon: "check_circle" },
+  { key: "DRAFT", label: "مع الباحث", icon: "edit_note" },
+  { key: "REVIEW", label: "بانتظار قرار المدير", icon: "gavel" },
+  { key: "APPROVED", label: "معتمدة", icon: "check_circle" },
   { key: "EXECUTION", label: "تنفيذ", icon: "engineering" },
   { key: "COMPLETED", label: "مكتمل", icon: "task_alt" },
 ] as const;
 
-const lifecycleMap: Record<string, { label: string; color: string }> = {
-  DRAFT: { label: "مسودة", color: "bg-surface-container text-on-surface-variant" },
-  REVIEW: { label: "مراجعة", color: "bg-warning/15 text-warning" },
-  FIELD_VERIFICATION: { label: "تحقق ميداني", color: "bg-warning/15 text-warning" },
-  APPROVED: { label: "موافقة", color: "bg-success/15 text-success" },
-  EXECUTION: { label: "تنفيذ", color: "bg-primary/15 text-primary" },
-  COMPLETED: { label: "مكتمل", color: "bg-success text-on-success" },
-  // Legacy statuses — render gracefully if they still exist in DB
-  INTAKE_REVIEW: { label: "مراجعة (قديم)", color: "bg-warning/15 text-warning" },
-  COMMITTEE_REVIEW: { label: "مراجعة لجنة (قديم)", color: "bg-warning/15 text-warning" },
-  IN_PROGRESS: { label: "قيد التنفيذ (قديم)", color: "bg-primary/15 text-primary" },
-  REJECTED: { label: "مرفوض (قديم)", color: "bg-error/15 text-error" },
-  TECH_REJECTED: { label: "مرفوض فنياً (قديم)", color: "bg-error text-on-error" },
-  ON_HOLD: { label: "معلق (قديم)", color: "bg-surface-variant text-on-surface-variant" },
-  ARCHIVED: { label: "مؤرشف (قديم)", color: "bg-surface-container text-on-surface-variant" },
-};
+// قرارات الباحث التي يمكن رفعها للمدير
+const ESCALATED_OPINIONS = ["موافقة", "رفض"];
 
 const decisionMap: Record<string, { label: string; bg: string }> = {
   PENDING_DECISION: { label: "قيد القرار", bg: "bg-warning/15 text-warning" },
@@ -54,7 +41,7 @@ const completenessMap: Record<string, { label: string; bg: string }> = {
 };
 
 function getStepIndex(status: string): number {
-  const idx = LIFECYCLE_STEPS.findIndex((s) => s.key === status);
+  const idx = LIFECYCLE_STEPS.findIndex((s) => s.key === (status === "FIELD_VERIFICATION" ? "REVIEW" : status));
   return idx >= 0 ? idx : 0;
 }
 
@@ -63,6 +50,14 @@ function getStepIndex(status: string): number {
  * ────────────────────────────────────────────── */
 
 function CaseLifecycleStepper({ currentStatus }: { currentStatus: string }) {
+  if (currentStatus === "REJECTED") {
+    return (
+      <div className="flex items-center gap-3 rounded-3xl border border-error/30 bg-error/10 p-4 font-bold text-error">
+        <span className="material-symbols-outlined">block</span>
+        رفض المدير هذه الحالة
+      </div>
+    );
+  }
   const currentIdx = getStepIndex(currentStatus);
 
   return (
@@ -70,7 +65,7 @@ function CaseLifecycleStepper({ currentStatus }: { currentStatus: string }) {
       {LIFECYCLE_STEPS.map((step, idx) => {
         const isCompleted = idx < currentIdx;
         const isCurrent = idx === currentIdx;
-        const isResearcher = idx < 3;
+        const isResearcher = idx === 0;
 
         return (
           <React.Fragment key={step.key}>
@@ -109,7 +104,7 @@ function CaseLifecycleStepper({ currentStatus }: { currentStatus: string }) {
                     : "bg-tertiary/10 text-tertiary"
                 }`}
               >
-                {isResearcher ? "الباحث" : "إدارة الحالة"}
+                {isResearcher ? "الباحث" : "المدير"}
               </span>
             </div>
           </React.Fragment>
@@ -134,6 +129,7 @@ export default function CaseDetailsPage() {
   const [historyData, setHistoryData] = useState<CaseHistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [directorNote, setDirectorNote] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
@@ -170,13 +166,15 @@ export default function CaseDetailsPage() {
     };
   }, [id]);
 
-  const handleTransition = async (action: string, promptLabel?: string) => {
+  const handleTransition = async (action: string, promptLabel?: string, presetReason?: string) => {
     try {
       setActionLoading(true);
       const reason =
-        promptLabel && typeof window !== "undefined"
-          ? window.prompt(promptLabel, "تحديث من النظام") || "تحديث من النظام"
-          : "تحديث من النظام";
+        presetReason !== undefined
+          ? presetReason || undefined
+          : promptLabel && typeof window !== "undefined"
+            ? window.prompt(promptLabel, "تحديث من النظام") || "تحديث من النظام"
+            : "تحديث من النظام";
       await casesService.transition(id, action, reason);
       const [updatedCase, updatedHistory] = await Promise.all([
         casesService.getById(id),
@@ -184,9 +182,11 @@ export default function CaseDetailsPage() {
       ]);
       setCaseData(updatedCase);
       setHistoryData(updatedHistory);
+      setDirectorNote("");
     } catch (err) {
       console.error(err);
-      toast("حدث خطأ أثناء محاولة تحديث الحالة", "error");
+      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message;
+      toast(message || "حدث خطأ أثناء محاولة تحديث الحالة", "error");
     } finally {
       setActionLoading(false);
     }
@@ -242,12 +242,13 @@ export default function CaseDetailsPage() {
   const isResearcher =
     currentRole === "CASE_WORKER" ||
     currentRole === "ADMIN";
-  const isCaseManager =
-    currentRole === "MANAGER" ||
-    currentRole === "CEO" ||
-    currentRole === "ADMIN";
+  const isCaseManager = isDirector(currentRole);
+  const opinion = caseData.formData?.support?.specialistOpinion ?? "";
+  const canEscalate = ESCALATED_OPINIONS.includes(opinion);
+  const awaitingDirector = ["REVIEW", "FIELD_VERIFICATION"].includes(caseData.lifecycleStatus);
 
-  const lc = lifecycleMap[caseData.lifecycleStatus] || { label: caseData.lifecycleStatus, color: "bg-surface-container" };
+  const lc = lifecycleOf(caseData.lifecycleStatus);
+  const directorOpinion = latestDirectorOpinion(historyData);
   const ds = decisionMap[caseData.decisionStatus] || { label: caseData.decisionStatus, bg: "bg-surface-container" };
   const cs = completenessMap[caseData.completenessStatus] || { label: caseData.completenessStatus, bg: "bg-surface-container" };
 
@@ -260,7 +261,7 @@ export default function CaseDetailsPage() {
           <nav className="mb-3 flex items-center gap-1.5 text-xs text-on-surface-variant">
             <Link href="/dashboard" className="hover:text-primary transition-colors">لوحة التحكم</Link>
             <span className="material-symbols-outlined text-sm rtl:rotate-180">chevron_right</span>
-            <Link href="/dashboard/cases" className="hover:text-primary transition-colors">الحالات</Link>
+            <Link href={caseData.familyId ? `/dashboard/families/${caseData.familyId}` : "/dashboard/families"} className="hover:text-primary transition-colors">ملف الأسرة</Link>
             <span className="material-symbols-outlined text-sm rtl:rotate-180">chevron_right</span>
             <span className="font-bold text-on-surface">{caseData.id.slice(0, 8).toUpperCase()}</span>
           </nav>
@@ -290,37 +291,22 @@ export default function CaseDetailsPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              {/* ── Researcher Actions (first 3 stages) ── */}
-
-              {/* DRAFT → REVIEW */}
+              {/* ── الباحث: رفع القرار (موافقة/رفض) للمدير ── */}
               {isResearcher && caseData.lifecycleStatus === "DRAFT" && (
-                <button disabled={actionLoading} onClick={() => handleTransition("review", "تعليق الباحث عند رفع الحالة للمراجعة")} className="px-5 py-2 bg-warning text-on-warning hover:bg-warning/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
-                  <span className="material-symbols-outlined">rate_review</span>
-                  رفع للمراجعة
-                </button>
-              )}
-
-              {/* REVIEW → FIELD_VERIFICATION */}
-              {isResearcher && caseData.lifecycleStatus === "REVIEW" && (
-                <button disabled={actionLoading} onClick={() => handleTransition("field_verify", "تعليق الباحث عند بدء التحقق الميداني")} className="px-5 py-2 bg-warning text-on-warning hover:bg-warning/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
-                  <span className="material-symbols-outlined">location_searching</span>
-                  بدء التحقق الميداني
-                </button>
-              )}
-
-              {/* ── Case Manager Actions (last 3 stages) ── */}
-
-              {/* FIELD_VERIFICATION → APPROVED */}
-              {isCaseManager && caseData.lifecycleStatus === "FIELD_VERIFICATION" && (
-                <button disabled={actionLoading} onClick={() => handleTransition("approve", "تعليق مسؤول إدارة الحالة عند الموافقة")} className="px-5 py-2 bg-success text-on-success hover:bg-success/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
-                  <span className="material-symbols-outlined">check_circle</span>
-                  موافقة
+                <button
+                  disabled={actionLoading || !canEscalate}
+                  title={canEscalate ? undefined : "اختر رأي الباحث «موافقة» أو «رفض» من تعديل الكارت أولًا — «استكمال الأوراق» لا يُرفع للمدير"}
+                  onClick={() => handleTransition("review", `تعليق الباحث عند رفع قرار «${opinion}» للمدير`)}
+                  className="px-5 py-2 bg-warning text-on-warning hover:bg-warning/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined">upload</span>
+                  {canEscalate ? `رفع «${opinion}» للمدير` : "استكمال الأوراق"}
                 </button>
               )}
 
               {/* APPROVED → EXECUTION */}
               {isCaseManager && caseData.lifecycleStatus === "APPROVED" && (
-                <button disabled={actionLoading} onClick={() => handleTransition("execute", "تعليق مسؤول إدارة الحالة عند بدء التنفيذ")} className="px-5 py-2 bg-primary text-on-primary hover:bg-primary/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                <button disabled={actionLoading} onClick={() => handleTransition("execute", "تعليق المدير عند بدء التنفيذ")} className="px-5 py-2 bg-primary text-on-primary hover:bg-primary/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
                   <span className="material-symbols-outlined">engineering</span>
                   بدء التنفيذ
                 </button>
@@ -328,15 +314,15 @@ export default function CaseDetailsPage() {
 
               {/* EXECUTION → COMPLETED */}
               {isCaseManager && caseData.lifecycleStatus === "EXECUTION" && (
-                <button disabled={actionLoading} onClick={() => handleTransition("complete", "تعليق مسؤول إدارة الحالة عند إتمام التنفيذ")} className="px-5 py-2 bg-success text-on-success hover:bg-success/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                <button disabled={actionLoading} onClick={() => handleTransition("complete", "تعليق المدير عند إتمام التنفيذ")} className="px-5 py-2 bg-success text-on-success hover:bg-success/90 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
                   <span className="material-symbols-outlined">task_alt</span>
                   تم التنفيذ
                 </button>
               )}
 
-              {/* Case Manager: return to draft from any non-DRAFT stage */}
-              {isCaseManager && caseData.lifecycleStatus !== "DRAFT" && caseData.lifecycleStatus !== "COMPLETED" && (
-                <button disabled={actionLoading} onClick={() => handleTransition("return_to_draft", "تعليق مسؤول إدارة الحالة عند إعادة الحالة للباحث")} className="px-5 py-2 bg-error/10 text-error hover:bg-error/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+              {/* المدير: إعادة للباحث من أي مرحلة */}
+              {isCaseManager && !awaitingDirector && caseData.lifecycleStatus !== "DRAFT" && caseData.lifecycleStatus !== "COMPLETED" && (
+                <button disabled={actionLoading} onClick={() => handleTransition("return_to_draft", "تعليق المدير عند إعادة الحالة للباحث")} className="px-5 py-2 bg-error/10 text-error hover:bg-error/20 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
                   <span className="material-symbols-outlined">assignment_return</span>
                   إعادة للباحث
                 </button>
@@ -350,7 +336,7 @@ export default function CaseDetailsPage() {
                 </Link>
               )}
 
-              {/* الطباعة لمسؤول إدارة الحالة والمدير التنفيذي فقط */}
+              {/* الطباعة للمدير فقط */}
               {isCaseManager && (
                 <button onClick={() => void handleOpenPdf()} disabled={pdfLoading} className="px-5 py-2 bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
                   <span className="material-symbols-outlined text-lg">print</span>
@@ -388,7 +374,7 @@ export default function CaseDetailsPage() {
                    <span className="material-symbols-outlined text-lg">gavel</span>
                  </div>
                  <div>
-                   <span className="text-xs text-on-surface-variant block">قرار مسؤول إدارة الحالة</span>
+                   <span className="text-xs text-on-surface-variant block">قرار المدير</span>
                    <span className="font-bold text-sm">{ds.label}</span>
                  </div>
               </div>
@@ -448,8 +434,8 @@ export default function CaseDetailsPage() {
                 </p>
               </div>
 
+              <div className="mt-8 grid grid-cols-1 gap-4 border-t border-outline-variant/30 pt-6 md:grid-cols-2">
               {caseData.formData?.support ? (
-                <div className="mt-8 grid grid-cols-1 gap-4 border-t border-outline-variant/30 pt-6 md:grid-cols-2">
                   <div className="rounded-2xl bg-surface-container-lowest p-4">
                     <label className="mb-1 block text-sm text-on-surface-variant">
                       رأي الباحث
@@ -461,19 +447,50 @@ export default function CaseDetailsPage() {
                       {caseData.formData.support.specialistNotes || "لا توجد ملاحظات"}
                     </p>
                   </div>
-                  <div className="rounded-2xl bg-surface-container-lowest p-4">
-                    <label className="mb-1 block text-sm text-on-surface-variant">
-                      اعتماد مسؤول إدارة الحالة
-                    </label>
-                    <p className="font-bold text-on-surface">
-                      {caseData.formData.support.managerDecision || "بانتظار الاعتماد"}
-                    </p>
-                    <p className="mt-2 text-sm text-on-surface-variant">
-                      {caseData.formData.support.managerComments || "لا توجد تعليقات"}
-                    </p>
-                  </div>
-                </div>
               ) : null}
+
+                {/* رأي المدير: قراره الأخير وتعليقه، أو خانة القرار لو الحالة بانتظاره */}
+                <div className="rounded-2xl bg-surface-container-lowest p-4">
+                  <label className="mb-1 block text-sm text-on-surface-variant">رأي المدير</label>
+                  {isCaseManager && awaitingDirector ? (
+                    <div className="space-y-3">
+                      <textarea
+                        rows={3}
+                        value={directorNote}
+                        onChange={(event) => setDirectorNote(event.target.value)}
+                        placeholder="اكتب رأيك وسبب قرارك..."
+                        className="w-full rounded-xl border border-outline-variant/50 bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+                      />
+                      <div className="flex flex-wrap gap-2">
+                        <button disabled={actionLoading} onClick={() => handleTransition("approve", undefined, directorNote.trim())} className="flex items-center gap-1.5 rounded-xl bg-success px-4 py-2 text-sm font-bold text-on-success hover:bg-success/90 disabled:opacity-60">
+                          <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                          اعتماد
+                        </button>
+                        <button disabled={actionLoading} onClick={() => handleTransition("reject", undefined, directorNote.trim())} className="flex items-center gap-1.5 rounded-xl bg-error px-4 py-2 text-sm font-bold text-on-error hover:bg-error/90 disabled:opacity-60">
+                          <span className="material-symbols-outlined text-[18px]">block</span>
+                          رفض
+                        </button>
+                        <button disabled={actionLoading} onClick={() => handleTransition("return_to_draft", undefined, directorNote.trim())} className="flex items-center gap-1.5 rounded-xl bg-surface-container-high px-4 py-2 text-sm font-bold text-on-surface hover:bg-surface-container-highest disabled:opacity-60">
+                          <span className="material-symbols-outlined text-[18px]">assignment_return</span>
+                          إعادة للباحث
+                        </button>
+                      </div>
+                    </div>
+                  ) : directorOpinion ? (
+                    <>
+                      <p className="font-bold text-on-surface">{DIRECTOR_ACTIONS[directorOpinion.action]}</p>
+                      <p className="mt-2 text-sm text-on-surface-variant">{directorOpinion.reason || "بدون تعليق"}</p>
+                      <p className="mt-2 text-xs text-on-surface-variant">
+                        {directorOpinion.performedBy?.name ?? "المدير"} · {new Date(directorOpinion.performedAt).toLocaleDateString("ar-EG")}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-on-surface-variant">
+                      {awaitingDirector ? "بانتظار قرار المدير." : "لم يُرفع للمدير بعد."}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="bg-surface border border-outline-variant/30 rounded-3xl p-6 shadow-sm">
@@ -493,7 +510,7 @@ export default function CaseDetailsPage() {
                         </span>
                       </div>
                       <p className="text-sm text-on-surface-variant mt-1">
-                        المرحلة: <span className="font-bold">{lifecycleMap[item.toLifecycleStatus]?.label || item.toLifecycleStatus}</span>
+                        المرحلة: <span className="font-bold">{lifecycleOf(item.toLifecycleStatus).label}</span>
                         {" / "}
                         القرار: <span className="font-bold">{decisionMap[item.toDecisionStatus]?.label || item.toDecisionStatus}</span>
                       </p>

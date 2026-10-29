@@ -1,13 +1,20 @@
 export const APP_ROLES = [
   "ADMIN",
   "CEO",
-  "MANAGER",
   "CASE_WORKER",
-  "EXECUTION_OFFICER",
   "CALL_CENTER",
+  "VOLUNTEER",
 ] as const;
 
 export type AppRole = (typeof APP_ROLES)[number];
+
+export const ROLE_LABELS: Record<AppRole, string> = {
+  ADMIN: "مدير النظام",
+  CEO: "المدير التنفيذي",
+  CASE_WORKER: "باحث",
+  CALL_CENTER: "خدمة المستفيدين",
+  VOLUNTEER: "متطوع",
+};
 
 export interface AppUser {
   id: string;
@@ -104,8 +111,6 @@ export interface CaseIntakeFormData {
     association: string;
     detailedAddress: string;
     attachments: string[];
-    tamweenSupport: boolean;
-    tamweenBeneficiaries: string;
   };
   family: {
     linkedFamilyId: string;
@@ -157,8 +162,6 @@ export interface CaseIntakeFormData {
     specialistName: string;
     specialistNotes: string;
     specialistOpinion: string;
-    managerDecision: string;
-    managerComments: string;
     disabilitySupportType: string;
     disabilitySupportDescription: string;
     disabilitySupportCost: string;
@@ -203,21 +206,6 @@ export interface FamilyRecord {
   cases?: CaseRecord[];
 }
 
-export interface OperationRecord {
-  id: string;
-  name: string;
-  type: string;
-  date: string;
-  target: number;
-  achieved: number;
-  status: string;
-  progress: number;
-  volunteers: number;
-  budget?: string | null;
-  location?: string | null;
-  cases?: CaseRecord[];
-}
-
 export interface CaseRecord {
   id: string;
   applicantName: string;
@@ -232,13 +220,11 @@ export interface CaseRecord {
   description?: string | null;
   formData?: CaseIntakeFormData | null;
   familyId?: string | null;
-  operationId?: string | null;
   requiresCommitteeReview?: boolean;
   lastActionAt?: string;
   createdAt: string;
   updatedAt?: string;
   family?: FamilyRecord | null;
-  operation?: OperationRecord | null;
   assignedTo?: AppUser | null;
   history?: CaseHistoryRecord[];
 }
@@ -317,69 +303,12 @@ export interface VerifyMemberResponse {
   }>;
 }
 
-export interface VolunteerAssignmentRecord {
-  id: string;
-  volunteerId: string;
-  operationId: string;
-  role?: string | null;
-  attended: boolean;
-  hours: number;
-  notes?: string | null;
-  operation?: {
-    id: string;
-    name: string;
-    type?: string;
-    date?: string;
-    status?: string;
-  };
-}
-
-export interface VolunteerRecord {
-  id: string;
-  name: string;
-  phone?: string | null;
-  email?: string | null;
-  age?: number | null;
-  preferredArea?: string | null;
-  skills?: string | null;
-  status: string;
-  notes?: string | null;
-  source: string;
-  nationalId?: string | null;
-  birthDate?: string | null;
-  education?: string | null;
-  schoolYear?: string | null;
-  center?: string | null;
-  whatsapp?: string | null;
-  address?: string | null;
-  createdAt: string;
-  updatedAt: string;
-  assignments: VolunteerAssignmentRecord[];
-  totalHours: number;
-  assignmentsCount: number;
-}
-
 export interface ContactMessagePayload {
   name: string;
   phone: string;
   email?: string;
   topic: string;
   message: string;
-}
-
-export interface VolunteerApplicationPayload {
-  name: string;
-  phone: string;
-  preferredArea: string;
-  nationalId?: string;
-  birthDate?: string;
-  education?: string;
-  schoolYear?: string;
-  center?: string;
-  whatsapp?: string;
-  email?: string;
-  address?: string;
-  notes?: string;
 }
 
 export interface SubmissionResponse {

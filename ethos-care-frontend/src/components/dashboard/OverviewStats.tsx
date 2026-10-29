@@ -6,7 +6,6 @@ import api from "@/lib/api";
 interface StatsResponse {
   cases: { total: number; pending: number };
   families: { total: number; eligible: number };
-  operations: { total: number; totalBudget: number };
 }
 
 const fmt = (n: number) => n.toLocaleString("en-US");
@@ -40,12 +39,12 @@ export default function OverviewStats() {
 
   // شريط إحصائي موحّد (لا كروت متطابقة عائمة ولا ألوان قوس قزح)
   const stripClass =
-    "grid grid-cols-2 gap-px overflow-hidden rounded-3xl border border-outline-variant/30 bg-outline-variant/25 lg:grid-cols-4";
+    "grid grid-cols-2 gap-px overflow-hidden rounded-3xl border border-outline-variant/30 bg-outline-variant/25";
 
   if (loading) {
     return (
       <div className={stripClass} aria-busy="true" aria-label="جاري تحميل الإحصائيات">
-        {[0, 1, 2, 3].map((i) => (
+        {[0, 1].map((i) => (
           <div key={i} className="h-[104px] animate-pulse bg-surface-container-low" />
         ))}
       </div>
@@ -72,18 +71,6 @@ export default function OverviewStats() {
       value: fmt(stats.families.total),
       sub: `${fmt(stats.families.eligible)} مستحق`,
       icon: "family_restroom",
-    },
-    {
-      label: "العمليات الحالية",
-      value: fmt(stats.operations.total),
-      sub: "قوافل وعمليات",
-      icon: "medical_services",
-    },
-    {
-      label: "الميزانية المصروفة",
-      value: `${fmt(stats.operations.totalBudget)} ج.م`,
-      sub: "إجمالي الميزانيات",
-      icon: "payments",
     },
   ];
 

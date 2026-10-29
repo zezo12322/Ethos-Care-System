@@ -36,6 +36,20 @@ export class FamiliesService {
     return this.prisma.family.findMany({
       where,
       orderBy: { createdAt: 'desc' },
+      // ملخص الحالات لكل أسرة — الأسرة هي القائمة الرئيسية وفلاترها بالمرحلة/الأولوية
+      include: {
+        cases: {
+          select: {
+            id: true,
+            caseType: true,
+            lifecycleStatus: true,
+            priority: true,
+            lastActionAt: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
     });
   }
 
@@ -46,6 +60,15 @@ export class FamiliesService {
         familyMembers: true,
         cases: {
           orderBy: { createdAt: 'desc' },
+          include: {
+            assignedTo: { select: { id: true, name: true } },
+            history: {
+              orderBy: { performedAt: 'desc' },
+              include: {
+                performedBy: { select: { id: true, name: true, role: true } },
+              },
+            },
+          },
         },
       },
     });
@@ -65,18 +88,16 @@ export class FamiliesService {
         where: { nationalId },
       });
       if (existing) {
-        throw new ConflictException(
-          'يوجد بالفعل أسرة مسجّلة بنفس الرقم القومي. افتح ملف الأسرة القائم وأضف الحالة عليه بدلًا من إنشاء أسرة جديدة.',
-        );
+        // نرجّع رقم الأسرة القائمة عشان الواجهة تفتح ملفها مباشرة
+        throw new ConflictException({
+          message:
+            'يوجد بالفعل أسرة مسجّلة بنفس الرقم القومي. افتح ملف الأسرة القائم وأضف الحالة عليه بدلًا من إنشاء أسرة جديدة.',
+          familyId: existing.id,
+        });
       }
     }
 
-    const lifecycleStatus = 'DRAFT';
-    const decisionStatus = 'PENDING_DECISION';
-    const completenessStatus = data.nationalId
-      ? 'COMPLETE'
-      : 'MISSING_NATIONAL_ID';
-
+    // الأسرة أولًا: ملف الأسرة يُنشأ وحده، والحالات تُضاف من داخله باستمارة الحالة الكاملة
     const familyMembersData =
       data.membersDetails && data.membersDetails.length > 0
         ? {
@@ -105,29 +126,7 @@ export class FamiliesService {
         city: data.city || 'بني سويف - المركز',
         village: data.village || null,
         addressDetails: data.addressDetails || null,
-        nationalId: data.nationalId || null,
-        cases: {
-          create: {
-            applicantName: data.headName || 'بدون اسم',
-            nationalId: data.nationalId || null,
-            caseType: data.caseType || 'تمكين اقتصادي',
-            priority: data.priority || 'NORMAL',
-            location: data.village
-              ? `${data.village} - ${data.city}`
-              : 'بني سويف',
-            description: data.description || null,
-            lifecycleStatus,
-            decisionStatus,
-            completenessStatus,
-            history: {
-              create: {
-                toLifecycleStatus: lifecycleStatus,
-                toDecisionStatus: decisionStatus,
-                action: 'CREATED_WITH_FAMILY',
-              },
-            },
-          },
-        },
+        nationalId: nationalId || null,
       },
     });
   }

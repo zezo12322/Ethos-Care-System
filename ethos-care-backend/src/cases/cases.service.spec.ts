@@ -59,7 +59,10 @@ describe('CasesService', () => {
   it('links to the explicitly chosen family without creating a new one', async () => {
     prisma.family.findUnique.mockResolvedValue({ id: 'family-1' });
     prisma.family.update.mockResolvedValue({ id: 'family-1' });
-    prisma.case.create.mockResolvedValue({ id: 'case-1', familyId: 'family-1' });
+    prisma.case.create.mockResolvedValue({
+      id: 'case-1',
+      familyId: 'family-1',
+    });
     prisma.caseHistory.create.mockResolvedValue({ id: 'history-1' });
 
     await service.create({
@@ -79,46 +82,21 @@ describe('CasesService', () => {
     );
   });
 
-  it('reuses an existing family with the same national ID instead of duplicating', async () => {
-    prisma.family.findUnique.mockResolvedValue({ id: 'family-nid' });
-    prisma.family.update.mockResolvedValue({ id: 'family-nid' });
-    prisma.case.create.mockResolvedValue({ id: 'case-2', familyId: 'family-nid' });
-    prisma.caseHistory.create.mockResolvedValue({ id: 'history-2' });
-
-    await service.create({
-      applicantName: 'Reused Head',
-      nationalId: '12345678901234',
-      caseType: 'دعم',
-    });
-
-    expect(prisma.family.findUnique).toHaveBeenCalledWith({
-      where: { nationalId: '12345678901234' },
-    });
-    expect(prisma.family.create).not.toHaveBeenCalled();
-    expect(prisma.case.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ familyId: 'family-nid' }),
-      }),
-    );
-  });
-
-  it('creates a new family when none matches so every case is linked', async () => {
+  it('refuses to create a case without an existing family', async () => {
     prisma.family.findUnique.mockResolvedValue(null);
-    prisma.family.create.mockResolvedValue({ id: 'new-family' });
-    prisma.case.create.mockResolvedValue({ id: 'case-3', familyId: 'new-family' });
-    prisma.caseHistory.create.mockResolvedValue({ id: 'history-3' });
 
-    await service.create({
-      applicantName: 'Brand New',
-      caseType: 'دعم',
-    });
-
-    expect(prisma.family.create).toHaveBeenCalled();
-    expect(prisma.case.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ familyId: 'new-family' }),
+    await expect(
+      service.create({ applicantName: 'No Family', caseType: 'دعم' }),
+    ).rejects.toThrow('أنشئ ملف الأسرة أولًا');
+    await expect(
+      service.create({
+        applicantName: 'Ghost Family',
+        caseType: 'دعم',
+        familyId: 'missing',
       }),
-    );
+    ).rejects.toThrow('أنشئ ملف الأسرة أولًا');
+    expect(prisma.family.create).not.toHaveBeenCalled();
+    expect(prisma.case.create).not.toHaveBeenCalled();
   });
 
   it('syncs family members from the form into the family record', async () => {
@@ -126,7 +104,10 @@ describe('CasesService', () => {
     prisma.family.update.mockResolvedValue({ id: 'family-1' });
     prisma.familyMember.deleteMany.mockResolvedValue({ count: 0 });
     prisma.familyMember.createMany.mockResolvedValue({ count: 1 });
-    prisma.case.create.mockResolvedValue({ id: 'case-4', familyId: 'family-1' });
+    prisma.case.create.mockResolvedValue({
+      id: 'case-4',
+      familyId: 'family-1',
+    });
     prisma.caseHistory.create.mockResolvedValue({ id: 'history-4' });
 
     await service.create({
@@ -151,7 +132,10 @@ describe('CasesService', () => {
     prisma.case.findUnique.mockResolvedValue({ familyId: null });
     prisma.family.findUnique.mockResolvedValue(null);
     prisma.family.create.mockResolvedValue({ id: 'auto-family' });
-    prisma.case.update.mockResolvedValue({ id: 'case-1', familyId: 'auto-family' });
+    prisma.case.update.mockResolvedValue({
+      id: 'case-1',
+      familyId: 'auto-family',
+    });
 
     await service.update('case-1', { applicantName: 'Head' });
 
@@ -169,5 +153,37 @@ describe('CasesService', () => {
     await expect(service.update('missing-case', {})).rejects.toThrow(
       NotFoundException,
     );
+  });
+
+  it('refuses to raise «استكمال الأوراق» to the director', async () => {
+    prisma.case.findUnique.mockResolvedValue({
+      id: 'case-9',
+      lifecycleStatus: 'DRAFT',
+      decisionStatus: 'PENDING_DECISION',
+      formData: { support: { specialistOpinion: 'استكمال الأوراق' } },
+    });
+
+    await expect(
+      service.transition('case-9', 'REVIEW', 'PENDING_DECISION', 'review'),
+    ).rejects.toThrow('قبل الرفع للمدير');
+    expect(prisma.case.update).not.toHaveBeenCalled();
+  });
+
+  it('raises «موافقة» to the director', async () => {
+    prisma.case.findUnique.mockResolvedValue({
+      id: 'case-9',
+      lifecycleStatus: 'DRAFT',
+      decisionStatus: 'PENDING_DECISION',
+      formData: { support: { specialistOpinion: 'موافقة' } },
+    });
+    prisma.case.update.mockResolvedValue({
+      id: 'case-9',
+      lifecycleStatus: 'REVIEW',
+    });
+    prisma.caseHistory.create.mockResolvedValue({});
+
+    await expect(
+      service.transition('case-9', 'REVIEW', 'PENDING_DECISION', 'review'),
+    ).resolves.toMatchObject({ lifecycleStatus: 'REVIEW' });
   });
 });

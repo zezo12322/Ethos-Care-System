@@ -6,13 +6,31 @@ import {
 import { Prisma } from '@prisma/client';
 
 /** المراحل المسموح الانتقال منها لكل إجراء (حماية تسلسل دورة حياة الحالة) */
+// FIELD_VERIFICATION لم تعد مرحلة في المسار؛ تبقى مصدرًا للحالات القديمة فقط
 const TRANSITION_SOURCES: Record<string, string[]> = {
   review: ['DRAFT'],
-  field_verify: ['REVIEW'],
-  approve: ['FIELD_VERIFICATION'],
+  approve: ['REVIEW', 'FIELD_VERIFICATION'],
+  reject: ['REVIEW', 'FIELD_VERIFICATION'],
   execute: ['APPROVED'],
   complete: ['EXECUTION'],
-  return_to_draft: ['REVIEW', 'FIELD_VERIFICATION', 'APPROVED', 'EXECUTION'],
+  return_to_draft: [
+    'REVIEW',
+    'FIELD_VERIFICATION',
+    'APPROVED',
+    'EXECUTION',
+    'REJECTED',
+  ],
+};
+
+// قرارات الباحث التي تُرفع للمدير؛ «استكمال الأوراق» يبقى عند الباحث
+export const ESCALATED_OPINIONS = ['موافقة', 'رفض'];
+
+export const opinionOf = (formData: unknown): string | undefined => {
+  const support = (formData as { support?: { specialistOpinion?: unknown } })
+    ?.support;
+  return typeof support?.specialistOpinion === 'string'
+    ? support.specialistOpinion
+    : undefined;
 };
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCaseDto } from './dto/create-case.dto';
@@ -188,7 +206,11 @@ export class CasesService {
   ): Promise<void> {
     const headData: Prisma.FamilyUpdateInput = { lastVisit: new Date() };
     const setIfPresent = (key: string, value?: string | null) => {
-      if (value !== undefined && value !== null && String(value).trim() !== '') {
+      if (
+        value !== undefined &&
+        value !== null &&
+        String(value).trim() !== ''
+      ) {
         (headData as Record<string, unknown>)[key] = value;
       }
     };
@@ -232,17 +254,19 @@ export class CasesService {
 
     // Atomic transaction — create case + record history together
     return this.prisma.$transaction(async (tx) => {
-      // كل حالة لازم تكون مرتبطة بأسرة (ربط صريح / بحث بالرقم القومي / إنشاء تلقائي)
-      const familyId = await this.resolveFamilyId(
-        tx,
-        {
-          applicantName: createCaseDto.applicantName,
-          nationalId: createCaseDto.nationalId,
-          explicitFamilyId: createCaseDto.familyId,
-        },
-        person,
-        members,
-      );
+      // الأسرة هي المصدر الوحيد للحالة: لا حالة بدون ملف أسرة قائم
+      const family = createCaseDto.familyId?.trim()
+        ? await tx.family.findUnique({
+            where: { id: createCaseDto.familyId.trim() },
+          })
+        : null;
+      if (!family) {
+        throw new BadRequestException(
+          'الحالة لازم تتسجل على ملف أسرة. أنشئ ملف الأسرة أولًا ثم أضف الحالة من داخله.',
+        );
+      }
+      await this.syncFamily(tx, family.id, person, members);
+      const familyId = family.id;
 
       const newCase = await tx.case.create({
         data: {
@@ -332,7 +356,6 @@ export class CasesService {
           },
         },
         history: true,
-        operation: true,
         assignedTo: true,
       },
     });
@@ -353,11 +376,8 @@ export class CasesService {
     const { person, members } = this.extractFamilyForm(updateCaseDto.formData);
 
     return this.prisma.$transaction(async (tx) => {
-      // تحديد الأسرة الهدف: ربط صريح جديد، وإلا الأسرة الحالية، وإلا بحث/إنشاء
+      // الحالة تبقى على أسرتها؛ الحالات القديمة غير المربوطة تُربط بالرقم القومي/إنشاء تلقائي
       let targetFamilyId: string | null = currentCase.familyId ?? null;
-      if (updateCaseDto.familyId !== undefined) {
-        targetFamilyId = updateCaseDto.familyId.trim() || null;
-      }
 
       if (targetFamilyId) {
         const existing = await tx.family.findUnique({
@@ -427,6 +447,15 @@ export class CasesService {
     if (allowedFrom && !allowedFrom.includes(currentCase.lifecycleStatus)) {
       throw new BadRequestException(
         'لا يمكن تنفيذ هذا الإجراء من المرحلة الحالية للحالة.',
+      );
+    }
+
+    if (
+      action === 'review' &&
+      !ESCALATED_OPINIONS.includes(opinionOf(currentCase.formData) ?? '')
+    ) {
+      throw new BadRequestException(
+        'اختر قرار الباحث «موافقة» أو «رفض» قبل الرفع للمدير. «استكمال الأوراق» يبقى عند الباحث.',
       );
     }
 

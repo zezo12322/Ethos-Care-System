@@ -3,14 +3,24 @@
 import Link from "next/link";
 import React, {
   startTransition,
+  use,
   useDeferredValue,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { familiesService } from "@/services/families.service";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
-import { FamilyRecord } from "@/types/api";
+import { CaseRecord, FamilyRecord } from "@/types/api";
+import {
+  ACTIVE_STAGES,
+  isOpenCase,
+  isStale,
+  lifecycleOf,
+  priorityOf,
+  STALE_DAYS,
+} from "@/lib/caseLabels";
 import SortableTh from "@/components/ui/SortableTh";
 import {
   useTableSort,
@@ -55,15 +65,25 @@ const FAMILY_STATUS_RANK: Record<string, number> = {
   "غير مستحق": 0,
 };
 
+const openCasesOf = (family: FamilyRecord): CaseRecord[] =>
+  (family.cases ?? []).filter(isOpenCase);
+
 const FAMILY_SORT_COMPARATORS: Record<string, SortComparator<FamilyRecord>> = {
   name: (a, b) => compareText(a.headName, b.headName),
   members: (a, b) => compareNumber(a.membersCount, b.membersCount),
   income: (a, b) => compareNumber(parseIncome(a.income), parseIncome(b.income)),
   lastVisit: (a, b) => compareDate(a.lastVisit, b.lastVisit),
   status: (a, b) => compareByRank(FAMILY_STATUS_RANK, a.status, b.status),
+  cases: (a, b) => compareNumber(openCasesOf(a).length, openCasesOf(b).length),
 };
 
-export default function FamiliesPage() {
+export default function FamiliesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ priority?: string; stage?: string; stale?: string; edit?: string }>;
+}) {
+  // فلاتر قادمة من لوحة المدير (عاجل / متوقفة) أو من زر "تعديل الملف" في صفحة الأسرة
+  const params = use(searchParams);
   const { toast } = useToast();
   const { user } = useAuth();
   // الكول سنتر: عرض فقط — لا إضافة/تعديل/حذف
@@ -75,6 +95,10 @@ export default function FamiliesPage() {
   const [searchInput, setSearchInput] = useState("");
   const deferredSearch = useDeferredValue(searchInput.trim());
   const [statusFilter, setStatusFilter] = useState<FamilyStatusFilter>("ALL");
+  const [stageFilter, setStageFilter] = useState(params.stage ?? "ALL");
+  const [priorityFilter, setPriorityFilter] = useState(params.priority ?? "ALL");
+  const [staleOnly, setStaleOnly] = useState(params.stale === "1");
+  const editHandled = useRef(false);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingFamily, setEditingFamily] = useState<EditingFamilyState | null>(
@@ -130,6 +154,15 @@ export default function FamiliesPage() {
     setIsEditModalOpen(true);
   };
 
+  useEffect(() => {
+    if (editHandled.current || !params.edit || families.length === 0) return;
+    const target = families.find((family) => family.id === params.edit);
+    if (target) {
+      editHandled.current = true;
+      handleEditClick(target);
+    }
+  }, [families, params.edit]);
+
   const handleUpdateFamily = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -170,27 +203,33 @@ export default function FamiliesPage() {
     }
   };
 
+  // فلترة الأسر بحسب حالاتها (المرحلة / الأولوية / التوقف)
+  const caseFiltersActive = stageFilter !== "ALL" || priorityFilter !== "ALL" || staleOnly;
+  const visibleFamilies = families.filter((family) => {
+    const cases = family.cases ?? [];
+    if (stageFilter !== "ALL" && !cases.some((c) => c.lifecycleStatus === stageFilter)) {
+      return false;
+    }
+    if (
+      priorityFilter !== "ALL" &&
+      !cases.some((c) => isOpenCase(c) && c.priority === priorityFilter)
+    ) {
+      return false;
+    }
+    return !staleOnly || cases.some(isStale);
+  });
+
+  const allOpenCases = visibleFamilies.flatMap(openCasesOf);
   const summary = {
-    totalFamilies: families.length,
-    totalMembers: families.reduce(
-      (total, family) => total + (family.membersCount || 0),
-      0,
-    ),
-    eligibleFamilies: families.filter((family) => family.status === "مستحق")
+    totalFamilies: visibleFamilies.length,
+    eligibleFamilies: visibleFamilies.filter((family) => family.status === "مستحق")
       .length,
-    averageIncome:
-      families.length > 0
-        ? Math.round(
-            families.reduce(
-              (total, family) => total + parseIncome(family.income),
-              0,
-            ) / families.length,
-          )
-        : 0,
+    openCases: allOpenCases.length,
+    urgentCases: allOpenCases.filter((c) => c.priority === "URGENT").length,
   };
 
   const { sorted: sortedFamilies, sort, toggleSort } = useTableSort(
-    families,
+    visibleFamilies,
     FAMILY_SORT_COMPARATORS,
   );
 
@@ -206,8 +245,10 @@ export default function FamiliesPage() {
         "الهاتف",
         "حالة التقييم",
         "آخر زيارة",
+        "حالات مفتوحة",
+        "مرحلة آخر حالة",
       ],
-      ...families.map((family) => [
+      ...visibleFamilies.map((family) => [
         family.id,
         family.headName,
         family.nationalId || "",
@@ -217,6 +258,8 @@ export default function FamiliesPage() {
         family.phone || "",
         family.status,
         family.lastVisit || "",
+        openCasesOf(family).length,
+        family.cases?.[0] ? lifecycleOf(family.cases[0].lifecycleStatus).label : "",
       ]),
     ];
 
@@ -242,11 +285,11 @@ export default function FamiliesPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="border-r-4 border-secondary pr-4">
           <h1 className="text-3xl font-bold font-headline text-on-surface">
-            إدارة ملفات الأسر
+            الأسر والحالات
           </h1>
           <p className="mt-1 text-sm text-on-surface-variant">
-            شاشة أخف لإدارة الأسر بالبحث المباشر، فلترة الاستحقاق، وتحديث
-            السجلات بسرعة.
+            كل أسرة ملف واحد يضم أفرادها وحالاتها. افتح الأسرة لمتابعة حالاتها
+            أو إضافة حالة جديدة.
           </p>
         </div>
 
@@ -286,22 +329,22 @@ export default function FamiliesPage() {
             tone: "text-primary bg-primary/10",
           },
           {
-            label: "إجمالي الأفراد",
-            value: formatNumber(summary.totalMembers),
-            icon: "groups",
-            tone: "text-primary bg-primary/10",
-          },
-          {
             label: "أسر مستحقة",
             value: formatNumber(summary.eligibleFamilies),
             icon: "verified_user",
             tone: "text-success bg-success/10",
           },
           {
-            label: "متوسط الدخل",
-            value: `${formatNumber(summary.averageIncome)} ج.م`,
-            icon: "payments",
-            tone: "text-tertiary bg-tertiary/10",
+            label: "حالات مفتوحة",
+            value: formatNumber(summary.openCases),
+            icon: "folder_open",
+            tone: "text-primary bg-primary/10",
+          },
+          {
+            label: "حالات عاجلة مفتوحة",
+            value: formatNumber(summary.urgentCases),
+            icon: "emergency",
+            tone: "text-error bg-error/10",
           },
         ].map((card, i) => (
           <div
@@ -364,8 +407,44 @@ export default function FamiliesPage() {
               <option value="غير مستحق">غير مستحق</option>
             </select>
 
+            <select
+              value={stageFilter}
+              onChange={(event) => setStageFilter(event.target.value)}
+              aria-label="مرحلة الحالة"
+              className="rounded-xl border border-outline-variant/50 bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+            >
+              <option value="ALL">كل مراحل الحالات</option>
+              {ACTIVE_STAGES.map((stage) => (
+                <option key={stage} value={stage}>
+                  {lifecycleOf(stage).label}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={priorityFilter}
+              onChange={(event) => setPriorityFilter(event.target.value)}
+              aria-label="أولوية الحالة"
+              className="rounded-xl border border-outline-variant/50 bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+            >
+              <option value="ALL">كل الأولويات</option>
+              <option value="URGENT">عاجل</option>
+              <option value="HIGH">عالي</option>
+              <option value="NORMAL">عادي</option>
+            </select>
+
+            <label className="flex items-center gap-2 rounded-xl border border-outline-variant/50 bg-white px-3 py-2 text-sm">
+              <input
+                type="checkbox"
+                checked={staleOnly}
+                onChange={(event) => setStaleOnly(event.target.checked)}
+                className="h-4 w-4 accent-primary"
+              />
+              متوقفة +{STALE_DAYS} أيام
+            </label>
+
             <span className="rounded-full bg-white px-3 py-2 text-xs font-bold text-on-surface-variant">
-              {loading ? "..." : `${formatNumber(families.length)} نتيجة`}
+              {loading ? "..." : `${formatNumber(visibleFamilies.length)} نتيجة`}
             </span>
           </div>
         </div>
@@ -387,6 +466,14 @@ export default function FamiliesPage() {
                   onSort={toggleSort}
                 >
                   اسم العائل / رقم الملف
+                </SortableTh>
+                <SortableTh
+                  sortKey="cases"
+                  activeKey={sort.key}
+                  direction={sort.direction}
+                  onSort={toggleSort}
+                >
+                  الحالات
                 </SortableTh>
                 <SortableTh
                   sortKey="members"
@@ -432,29 +519,29 @@ export default function FamiliesPage() {
               {loading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i}>
-                    <td colSpan={8} className="px-6 py-3">
+                    <td colSpan={9} className="px-6 py-3">
                       <div className="h-10 animate-pulse rounded-xl bg-surface-container-low" />
                     </td>
                   </tr>
                 ))
-              ) : families.length === 0 ? (
+              ) : visibleFamilies.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-16 text-center">
+                  <td colSpan={9} className="px-6 py-16 text-center">
                     <span
                       className="material-symbols-outlined mb-3 text-5xl text-outline"
                       aria-hidden="true"
                     >
-                      {searchInput.trim() || statusFilter !== "ALL"
+                      {searchInput.trim() || statusFilter !== "ALL" || caseFiltersActive
                         ? "search_off"
                         : "groups"}
                     </span>
-                    {searchInput.trim() || statusFilter !== "ALL" ? (
+                    {searchInput.trim() || statusFilter !== "ALL" || caseFiltersActive ? (
                       <>
                         <p className="mb-1 text-base font-bold text-on-surface">
                           لا توجد أسر مطابقة
                         </p>
                         <p className="text-sm text-on-surface-variant">
-                          جرّب تعديل البحث أو فلتر الاستحقاق.
+                          جرّب تعديل البحث أو الفلاتر.
                         </p>
                       </>
                     ) : (
@@ -497,6 +584,9 @@ export default function FamiliesPage() {
                         {family.id.substring(0, 8)}
                         {family.nationalId ? ` • ${family.nationalId}` : ""}
                       </p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <FamilyCasesCell family={family} />
                     </td>
                     <td className="hidden px-6 py-4 sm:table-cell">
                       <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface-container-high px-3 py-1 text-xs font-bold text-on-surface">
@@ -711,6 +801,36 @@ export default function FamiliesPage() {
             </form>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+function FamilyCasesCell({ family }: { family: FamilyRecord }) {
+  const cases = family.cases ?? [];
+  if (cases.length === 0) {
+    return <span className="text-xs text-on-surface-variant">لا توجد حالات</span>;
+  }
+  const open = openCasesOf(family);
+  const stage = lifecycleOf(cases[0].lifecycleStatus);
+  const flagged = open.find((c) => c.priority === "URGENT") ?? open.find((c) => c.priority === "HIGH");
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="text-xs font-bold text-on-surface">
+        {formatNumber(open.length)} مفتوحة / {formatNumber(cases.length)}
+      </span>
+      <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${stage.color}`}>
+        {stage.label}
+      </span>
+      {flagged && (
+        <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${priorityOf(flagged.priority).color}`}>
+          {priorityOf(flagged.priority).label}
+        </span>
+      )}
+      {cases.some(isStale) && (
+        <span className="rounded-full bg-warning/10 px-2 py-0.5 text-[11px] font-bold text-warning">
+          متوقفة
+        </span>
       )}
     </div>
   );

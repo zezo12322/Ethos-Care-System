@@ -177,7 +177,7 @@ export default function LocationsPage() {
   const centersCount = centerNodes.length;
   const villagesCount = locations.filter((location) => location.type === "قرية").length;
   const associationsCount = locations.filter((location) => location.type === "جمعية").length;
-  const canManageLocations = ["ADMIN", "CEO", "MANAGER"].includes(user?.role ?? "");
+  const canManageLocations = ["ADMIN", "CEO"].includes(user?.role ?? "");
 
   const openCreateModal = (context: CreationContext) => {
     if (!canManageLocations) {
@@ -335,7 +335,7 @@ export default function LocationsPage() {
             إدارة هرمية مباشرة: المركز يضم قرى، وكل قرية تضم جمعياتها المحلية.
           </p>
           <p className="mt-2 text-xs text-on-surface-variant">
-            الإدارة متاحة لمدير النظام والمدير التنفيذي ومسؤول إدارة الحالة، وباقي
+            الإدارة متاحة لمدير النظام والمدير التنفيذي، وباقي
             الأدوار لها حق الاستعراض فقط.
           </p>
         </div>

@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { ROLE_LABELS } from "@/types/api";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -10,14 +11,7 @@ interface HeaderProps {
 
 export default function Header({ onMenuClick }: HeaderProps) {
   const { user } = useAuth();
-  const roleNames: Record<string, string> = {
-    ADMIN: "مدير النظام",
-    CEO: "المدير التنفيذي",
-    MANAGER: "مسؤول إدارة الحالة",
-    CASE_WORKER: "باحث",
-    EXECUTION_OFFICER: "مسؤول التنفيذ",
-    CALL_CENTER: "خدمة المستفيدين",
-  };
+  const roleNames: Record<string, string> = ROLE_LABELS;
 
   return (
     <header className="sticky top-0 z-40 bg-surface/80 backdrop-blur-md border-b border-outline-variant/10">

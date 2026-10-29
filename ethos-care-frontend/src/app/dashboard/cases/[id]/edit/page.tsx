@@ -45,7 +45,7 @@ export default function EditCasePage() {
         console.error(error);
         if (!cancelled) {
           toast("تعذر تحميل بيانات الحالة.", "error");
-          router.push("/dashboard/cases");
+          router.push("/dashboard/families");
         }
       } finally {
         if (!cancelled) {
@@ -77,7 +77,9 @@ export default function EditCasePage() {
     try {
       await casesService.remove(id);
       toast("تم حذف الحالة.", "success");
-      router.push("/dashboard/cases");
+      router.push(
+        caseRecord?.familyId ? `/dashboard/families/${caseRecord.familyId}` : "/dashboard/families",
+      );
     } catch (error) {
       console.error(error);
       toast("حدث خطأ أثناء حذف الحالة.", "error");

@@ -15,6 +15,7 @@ export class NewsService {
         category: data.category || 'فعاليات',
         image: data.image,
         published: data.published ?? true,
+        ...(data.date ? { date: new Date(data.date) } : {}),
       },
     });
   }
@@ -43,6 +44,7 @@ export class NewsService {
         category: data.category,
         image: data.image,
         published: data.published,
+        ...(data.date ? { date: new Date(data.date) } : {}),
       },
     });
   }

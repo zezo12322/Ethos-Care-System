@@ -7,6 +7,8 @@ export interface CreateNewsPayload {
   category: string;
   image?: string;
   published: boolean;
+  /** ISO datetime — لتسجيل خبر بتاريخ سابق. بدونه يُستخدم وقت الإنشاء. */
+  date?: string;
 }
 
 export const newsService = {

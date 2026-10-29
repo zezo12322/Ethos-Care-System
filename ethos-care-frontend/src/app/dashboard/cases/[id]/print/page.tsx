@@ -9,7 +9,7 @@ import { CaseRecord } from "@/types/api";
 import { useToast } from "@/components/ui/Toast";
 import { useAuth } from "@/contexts/AuthContext";
 
-const CAN_PRINT_ROLES = ["ADMIN", "CEO", "MANAGER"];
+const CAN_PRINT_ROLES = ["ADMIN", "CEO"];
 
 export default function CasePrintPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,7 +19,7 @@ export default function CasePrintPage() {
   const [caseRecord, setCaseRecord] = useState<CaseRecord | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // الطباعة لمسؤول إدارة الحالة والمدير التنفيذي فقط
+  // الطباعة للمدير فقط
   useEffect(() => {
     if (user && !CAN_PRINT_ROLES.includes(user.role)) {
       router.replace(`/dashboard/cases/${id}`);

@@ -19,7 +19,6 @@ import {
   readCache,
   writeCache,
   LOCATIONS_CACHE_KEY,
-  FAMILIES_CACHE_KEY,
 } from "@/lib/offlineCache";
 import { useToast } from "@/components/ui/Toast";
 import SyncStatusBar from "./SyncStatusBar";
@@ -30,7 +29,6 @@ function isNetworkError(error: unknown): boolean {
 }
 
 type CasePriority = "NORMAL" | "HIGH" | "URGENT";
-type ManagerDecision = "PENDING" | "APPROVE" | "RETURN" | "REJECT";
 
 interface CaseFormDraft {
   caseType: string;
@@ -43,6 +41,8 @@ interface CaseFormDraft {
 interface CaseIntakeFormProps {
   mode: "create" | "edit";
   caseRecord?: CaseRecord | null;
+  /** إنشاء حالة من داخل ملف أسرة: تُربط بها وتُحمَّل بياناتها تلقائيًا */
+  initialFamilyId?: string;
   currentUserName: string;
   currentUserRole: string;
   onSubmit: (payload: CreateCaseDto) => Promise<void>;
@@ -67,6 +67,7 @@ const CASE_TYPES = [
   "منح دراسية",
   "تمكين اقتصادي",
   "مواد غذائية",
+  "دعم موسمي",
   "مرافق وخدمات",
   "تجهيز عرائس",
 ] as const;
@@ -79,7 +80,8 @@ const CASE_TYPE_TO_SUPPORT_CATEGORIES: Record<string, string[]> = {
   "دعم طبي": ["دعم طبي"],
   "منح دراسية": ["المنح الدراسية"],
   "تمكين اقتصادي": ["المساعدات المالية"],
-  "مواد غذائية": ["دعم موسمي"],
+  "مواد غذائية": ["مواد غذائية"],
+  "دعم موسمي": ["دعم موسمي"],
   "مرافق وخدمات": ["المرافق"],
   "تجهيز عرائس": ["تجهيز عرائس"],
 };
@@ -91,18 +93,15 @@ const PRIORITY_OPTIONS: Array<{ label: string; value: CasePriority }> = [
   { label: "عاجل", value: "URGENT" },
 ];
 
-const RESEARCHER_OPINIONS = [
-  "يوصى بالدعم",
-  "يحتاج استكمال",
-  "لا يوصى بالدعم حاليًا",
-] as const;
+// قرار الباحث: «استكمال الأوراق» يبقى عند الباحث، «موافقة/رفض» يُرفعان للمدير
+const RESEARCHER_OPINIONS = ["استكمال الأوراق", "موافقة", "رفض"] as const;
 
-const MANAGER_DECISIONS: Array<{ label: string; value: ManagerDecision }> = [
-  { label: "بانتظار الاعتماد", value: "PENDING" },
-  { label: "اعتماد", value: "APPROVE" },
-  { label: "إعادة للباحث", value: "RETURN" },
-  { label: "رفض", value: "REJECT" },
-];
+// تحويل قيم رأي الباحث القديمة للقيم الجديدة
+const LEGACY_OPINIONS: Record<string, string> = {
+  "يوصى بالدعم": "موافقة",
+  "يحتاج استكمال": "استكمال الأوراق",
+  "لا يوصى بالدعم حاليًا": "رفض",
+};
 
 const RELATION_OPTIONS = [
   "زوج",
@@ -244,14 +243,21 @@ const SUPPORT_CATALOG: Array<{ category: string; items: string[] }> = [
     items: ["أثاث", "أجهزة منزلية", "ترميم منزل"],
   },
   {
+    category: "مواد غذائية",
+    items: ["سلة غذائية", "لحوم"],
+  },
+  {
     category: "دعم موسمي",
-    items: ["سلة غذائية", "لحوم", "كسوة موسمية", "معارض كساء"],
+    items: ["كسوة موسمية", "معارض كساء"],
   },
   {
     category: "تجهيز عرائس",
     items: ["تجهيز عرائس"],
   },
 ];
+
+// أقسام دعم بلا خانة وصف (اختيار + تكلفة فقط)
+const NO_DESCRIPTION_CATEGORIES = new Set(["مواد غذائية", "دعم موسمي"]);
 
 const DISABILITY_SUPPORT_OPTIONS = [
   "كرسي متحرك",
@@ -473,8 +479,10 @@ function mergeSupportItems(existingItems?: CaseIntakeSupportItem[]) {
   }
 
   return baseItems.map((item) => {
-    const found = existingItems.find((candidate) => candidate.id === item.id);
-    return found ? { ...item, ...found } : item;
+    const found =
+      existingItems.find((candidate) => candidate.id === item.id) ??
+      existingItems.find((candidate) => candidate.name === item.name);
+    return found ? { ...item, ...found, id: item.id, category: item.category } : item;
   });
 }
 
@@ -554,8 +562,6 @@ function buildInitialFormData(
           caseRecord?.family?.address ??
           "",
         attachments: existing?.person.attachments ?? [],
-        tamweenSupport: existing?.person.tamweenSupport ?? false,
-        tamweenBeneficiaries: existing?.person.tamweenBeneficiaries ?? "1",
       },
       family: {
         linkedFamilyId: existing?.family.linkedFamilyId ?? caseRecord?.familyId ?? "",
@@ -633,10 +639,9 @@ function buildInitialFormData(
         specialistName: existing?.support.specialistName ?? currentUserName,
         specialistNotes: mergedDescription,
         specialistOpinion:
-          existing?.support.specialistOpinion ?? RESEARCHER_OPINIONS[0],
-        managerDecision:
-          (existing?.support.managerDecision as string | undefined) ?? "PENDING",
-        managerComments: existing?.support.managerComments ?? "",
+          LEGACY_OPINIONS[existing?.support.specialistOpinion ?? ""] ??
+          existing?.support.specialistOpinion ??
+          RESEARCHER_OPINIONS[0],
         disabilitySupportType: existing?.support.disabilitySupportType ?? "",
         disabilitySupportDescription:
           existing?.support.disabilitySupportDescription ?? "",
@@ -701,6 +706,7 @@ function pairsFromEntries(entries: Array<[string, string]>) {
 export default function CaseIntakeForm({
   mode,
   caseRecord,
+  initialFamilyId,
   currentUserName,
   currentUserRole,
   onSubmit,
@@ -708,7 +714,9 @@ export default function CaseIntakeForm({
 }: CaseIntakeFormProps) {
   const draftKey = caseRecord?.id
     ? `case-draft-${caseRecord.id}`
-    : "case-draft-new";
+    : initialFamilyId
+      ? `case-draft-new-${initialFamilyId}`
+      : "case-draft-new";
 
   // Build the API payload from a draft. Shared by the online submit path and the
   // offline sync handler, so a queued submission is sent identically once back online.
@@ -724,7 +732,8 @@ export default function CaseIntakeForm({
           source.formData.person.center,
           source.formData.person.village,
         ) || "غير محدد",
-      familyId: source.formData.family.linkedFamilyId || undefined,
+      // الحالة تُسجَّل دائمًا على أسرة: أسرة الاستمارة أو الأسرة التي فُتحت منها
+      familyId: source.formData.family.linkedFamilyId || initialFamilyId || undefined,
       formData: {
         ...source.formData,
         person: {
@@ -743,7 +752,7 @@ export default function CaseIntakeForm({
         },
       },
     }),
-    [currentUserName],
+    [currentUserName, initialFamilyId],
   );
 
   const {
@@ -792,10 +801,7 @@ export default function CaseIntakeForm({
   const [sectionsOpen, setSectionsOpen] = useState<Record<string, boolean>>(
     Object.fromEntries(SECTION_IDS.map((id) => [id, true])),
   );
-  // نبدأ من الكاش المحلي حتى تظهر المراكز/الأسر فورًا حتى بدون اتصال
-  const [families, setFamilies] = useState<FamilyRecord[]>(
-    () => readCache<FamilyRecord[]>(FAMILIES_CACHE_KEY) ?? [],
-  );
+  // نبدأ من الكاش المحلي حتى تظهر المراكز فورًا حتى بدون اتصال
   const [locations, setLocations] = useState<LocationRecord[]>(
     () => readCache<LocationRecord[]>(LOCATIONS_CACHE_KEY) ?? [],
   );
@@ -819,9 +825,8 @@ export default function CaseIntakeForm({
     );
 
   const hasManagerAccess =
-    currentUserRole === "MANAGER" ||
-    currentUserRole === "CEO" ||
-    currentUserRole === "ADMIN";
+    currentUserRole === "CEO" || currentUserRole === "ADMIN";
+  const isVolunteer = currentUserRole === "VOLUNTEER";
 
   // Auto-save draft to localStorage on every change
   const isInitialMount = useRef(true);
@@ -842,20 +847,13 @@ export default function CaseIntakeForm({
 
     const loadOptions = async () => {
       try {
-        const [familyRows, locationRows] = await Promise.all([
-          familiesService.getAll(),
-          locationsService.getAll(),
-        ]);
-
-        if (!cancelled) {
-          setFamilies(familyRows);
-          setLocations(locationRows);
-          // تحديث الكاش لاستخدامه عند العمل بدون اتصال لاحقًا
-          writeCache(FAMILIES_CACHE_KEY, familyRows);
-          writeCache(LOCATIONS_CACHE_KEY, locationRows);
-        }
+        const locationRows = await locationsService.getAll();
+        if (cancelled) return;
+        setLocations(locationRows);
+        // تحديث الكاش لاستخدامه عند العمل بدون اتصال لاحقًا
+        writeCache(LOCATIONS_CACHE_KEY, locationRows);
       } catch (error) {
-        // بدون اتصال أو فشل الطلب — نبقي على القوائم المخزّنة محليًا (المحمّلة من الكاش)
+        // بدون اتصال — نبقي على القائمة المخزّنة محليًا
         console.error(error);
       }
     };
@@ -1276,20 +1274,7 @@ export default function CaseIntakeForm({
     }));
   };
 
-  // اختيار أسرة = تحميل بياناتها فورًا (الأسرة هي المصدر الوحيد لرب الأسرة وأفرادها)
-  const applyFamily = (familyId: string) => {
-    // "بدون أسرة" — نمسح الربط فقط دون مسح البيانات المُدخلة
-    if (!familyId) {
-      updateFamily("linkedFamilyId", "");
-      return;
-    }
-
-    const family = families.find((item) => item.id === familyId);
-    if (!family) {
-      updateFamily("linkedFamilyId", familyId);
-      return;
-    }
-
+  const applyFamilyRecord = useCallback((family: FamilyRecord) => {
     setDraft((current) => ({
       ...current,
       formData: {
@@ -1313,12 +1298,40 @@ export default function CaseIntakeForm({
         },
         family: {
           ...current.formData.family,
-          linkedFamilyId: familyId,
+          linkedFamilyId: family.id,
           members: buildFamilyMembersFromRecord(family),
         },
       },
     }));
-  };
+  }, []);
+
+  // حالة جديدة من ملف أسرة: نحمّل بيانات الأسرة وأفرادها من الخادم
+  useEffect(() => {
+    if (mode !== "create" || !initialFamilyId) return;
+    let cancelled = false;
+    familiesService
+      .getById(initialFamilyId)
+      .catch(() => null)
+      .then((family) => {
+        if (cancelled) return;
+        if (family) {
+          applyFamilyRecord(family);
+          return;
+        }
+        // بدون اتصال: نكتفي بالربط حتى تُسجَّل الحالة على نفس الأسرة
+        setDraft((current) => ({
+          ...current,
+          formData: {
+            ...current.formData,
+            family: { ...current.formData.family, linkedFamilyId: initialFamilyId },
+          },
+        }));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, initialFamilyId, applyFamilyRecord]);
+
 
   const updateFamilyMember = (
     memberId: string,
@@ -1470,6 +1483,8 @@ export default function CaseIntakeForm({
       setSaving(true);
       await onSubmit(payload);
       clearLocalDraft();
+      // لو الصفحة بقيت مفتوحة بعد الإنشاء (المتطوع) نبدأ استمارة جديدة فارغة
+      if (mode === "create") setDraft(buildInitialFormData(undefined, currentUserName));
     } catch (error) {
       // A genuine network failure while nominally "online": queue it instead of losing it.
       if (mode === "create" && isNetworkError(error)) {
@@ -1542,7 +1557,7 @@ export default function CaseIntakeForm({
             </h1>
             <p className="mt-2 text-sm text-on-surface-variant">
               نموذج خفيف وعملي: رب الأسرة، أفراد الأسرة، السكن، الحيازة،
-              المالية، ثم الدعم والاعتماد.
+              المالية، ثم الدعم وقرار الباحث.
             </p>
           </div>
           <div className="grid gap-3 text-sm text-on-surface-variant sm:grid-cols-2">
@@ -1929,25 +1944,6 @@ export default function CaseIntakeForm({
             </div>
           </div>
 
-          <label className="xl:col-span-2 flex items-center gap-3 rounded-2xl border border-outline-variant/40 bg-surface-container-low px-4 py-3 text-sm font-medium text-on-surface">
-            <input
-              type="checkbox"
-              checked={draft.formData.person.tamweenSupport}
-              onChange={(event) => updatePerson("tamweenSupport", event.target.checked)}
-              className="h-4 w-4 accent-primary"
-            />
-            مستفيد من التموين
-          </label>
-          <label className="xl:col-span-1">
-            <span className="mb-2 block text-sm font-bold text-on-surface">
-              عدد المستفيدين
-            </span>
-            <input
-              value={draft.formData.person.tamweenBeneficiaries}
-              onChange={(event) => updatePerson("tamweenBeneficiaries", event.target.value)}
-              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-            />
-          </label>
           <label className="xl:col-span-3 flex items-center gap-3 rounded-2xl border border-outline-variant/40 bg-surface-container-low px-4 py-3 text-sm font-medium text-on-surface">
             <input
               type="checkbox"
@@ -1978,40 +1974,6 @@ export default function CaseIntakeForm({
           </label>
         }
       >
-        <div className="grid gap-5 md:grid-cols-4">
-          <label className="md:col-span-3">
-            <span className="mb-2 block text-sm font-bold text-on-surface">
-              ربط بأسرة مسجلة
-            </span>
-            <select
-              value={draft.formData.family.linkedFamilyId}
-              onChange={(event) => applyFamily(event.target.value)}
-              className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-            >
-              <option value="">بدون ربط — أسرة جديدة من بيانات رب الأسرة</option>
-              {families.map((family) => (
-                <option key={family.id} value={family.id}>
-                  {family.headName} {family.nationalId ? `- ${family.nationalId}` : ""}
-                </option>
-              ))}
-            </select>
-            <span className="mt-2 block text-xs font-medium text-on-surface-variant">
-              عند الاختيار تُحمَّل بيانات الأسرة وأفرادها تلقائيًا. لو تركته بدون
-              ربط، يُنشئ النظام أسرة من الرقم القومي لرب الأسرة (أو يربط بالأسرة
-              القائمة بنفس الرقم) تلقائيًا عند الحفظ.
-            </span>
-          </label>
-          <div className="flex items-end">
-            <button
-              type="button"
-              onClick={() => applyFamily(draft.formData.family.linkedFamilyId)}
-              disabled={!draft.formData.family.linkedFamilyId}
-              className="w-full rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm font-bold text-primary transition-colors hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              إعادة تحميل بيانات الأسرة
-            </button>
-          </div>
-        </div>
 
         <div className="space-y-4">
           {draft.formData.family.members.length === 0 ? (
@@ -2701,8 +2663,8 @@ export default function CaseIntakeForm({
 
       <SectionCard
         id="support"
-        title="الدعم والاعتماد"
-        subtitle="أنواع الدعم في نهاية النموذج مع خانة اعتماد لمسؤول إدارة الحالة."
+        title="الدعم وقرار الباحث"
+        subtitle="أنواع الدعم المطلوبة، ثم ملخص الحالة وملاحظات الباحث وقراره."
         open={sectionsOpen.support}
         onToggle={toggleSection}
       >
@@ -2865,6 +2827,7 @@ export default function CaseIntakeForm({
                           </label>
                         ) : null}
                         <div className="grid gap-3 md:grid-cols-2">
+                          {!NO_DESCRIPTION_CATEGORIES.has(group.category) && (
                           <input
                             value={item.notes ?? ""}
                             onChange={(event) =>
@@ -2878,6 +2841,7 @@ export default function CaseIntakeForm({
                             }
                             className="rounded-2xl border border-outline-variant/40 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
                           />
+                          )}
                           <input
                             value={item.cost ?? ""}
                             onChange={(event) =>
@@ -2950,7 +2914,7 @@ export default function CaseIntakeForm({
           </div>
           ) : null}
 
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div>
             <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest/60 p-5">
               <h3 className="mb-4 text-lg font-bold text-on-surface">
                 ملخص الحالة وملاحظات الباحث
@@ -2958,7 +2922,7 @@ export default function CaseIntakeForm({
               <div className="grid gap-4">
                 <label className="block">
                   <span className="mb-2 block text-sm font-bold text-on-surface">
-                    الباحث
+                    {isVolunteer ? "مُدخل البيانات" : "الباحث"}
                   </span>
                   <input
                     disabled
@@ -2966,6 +2930,7 @@ export default function CaseIntakeForm({
                     className="w-full rounded-2xl border border-outline-variant/40 bg-surface-container-low py-3 px-4 text-sm text-on-surface"
                   />
                 </label>
+                {!isVolunteer && (
                 <label className="block">
                   <span className="mb-2 block text-sm font-bold text-on-surface">
                     رأي الباحث
@@ -2984,6 +2949,7 @@ export default function CaseIntakeForm({
                     ))}
                   </select>
                 </label>
+                )}
                 <label className="block">
                   <span className="mb-2 block text-sm font-bold text-on-surface">
                     ملخص الحالة / الاحتياج وملاحظات الباحث
@@ -3006,57 +2972,6 @@ export default function CaseIntakeForm({
                     }
                     placeholder="اكتب ملخص الحالة والاحتياج وملاحظات الباحث (مثال: وصف الغرف، تفاصيل إضافية...)"
                     className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary"
-                  />
-                </label>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest/60 p-5">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <h3 className="text-lg font-bold text-on-surface">
-                  اعتماد مسؤول إدارة الحالة
-                </h3>
-                {!hasManagerAccess ? (
-                  <span className="rounded-full bg-surface-container px-3 py-1 text-xs font-bold text-on-surface-variant">
-                    للعرض فقط
-                  </span>
-                ) : null}
-              </div>
-              <div className="grid gap-4">
-                <label className="block">
-                  <span className="mb-2 block text-sm font-bold text-on-surface">
-                    قرار الاعتماد
-                  </span>
-                  <select
-                    disabled={!hasManagerAccess}
-                    value={draft.formData.support.managerDecision}
-                    onChange={(event) =>
-                      updateSupport(
-                        "managerDecision",
-                        event.target.value as ManagerDecision,
-                      )
-                    }
-                    className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary disabled:bg-surface-container-low"
-                  >
-                    {MANAGER_DECISIONS.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-2 block text-sm font-bold text-on-surface">
-                    تعليقات مسؤول إدارة الحالة
-                  </span>
-                  <textarea
-                    rows={4}
-                    disabled={!hasManagerAccess}
-                    value={draft.formData.support.managerComments}
-                    onChange={(event) =>
-                      updateSupport("managerComments", event.target.value)
-                    }
-                    className="w-full rounded-2xl border border-outline-variant/50 bg-white py-3 px-4 text-sm outline-none focus:border-primary disabled:bg-surface-container-low"
                   />
                 </label>
               </div>

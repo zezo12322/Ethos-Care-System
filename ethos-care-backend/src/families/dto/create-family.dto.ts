@@ -87,15 +87,4 @@ export class CreateFamilyDto {
   @IsString()
   @IsOptional()
   status?: string;
-  @IsString()
-  @IsOptional()
-  caseType?: string;
-
-  @IsString()
-  @IsOptional()
-  priority?: string;
-
-  @IsString()
-  @IsOptional()
-  description?: string;
 }

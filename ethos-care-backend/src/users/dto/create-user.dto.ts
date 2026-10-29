@@ -3,10 +3,9 @@ import { IsEmail, IsIn, IsString, MinLength } from 'class-validator';
 export const APP_ROLES = [
   'ADMIN',
   'CEO',
-  'MANAGER',
   'CASE_WORKER',
-  'EXECUTION_OFFICER',
   'CALL_CENTER',
+  'VOLUNTEER',
 ] as const;
 
 export class CreateUserDto {

@@ -11,14 +11,9 @@ import {
 } from "react";
 import { casesService } from "@/services/cases.service";
 import { familiesService } from "@/services/families.service";
-import { operationsService } from "@/services/operations.service";
-import {
-  CaseRecord,
-  FamilyRecord,
-  OperationRecord,
-} from "@/types/api";
+import { CaseRecord, FamilyRecord } from "@/types/api";
 
-type DatasetKey = "cases" | "families" | "operations";
+type DatasetKey = "cases" | "families";
 
 interface ExtractPreset {
   id: string;
@@ -34,7 +29,6 @@ interface ExtractPreset {
   };
   matchesCase?: (item: CaseRecord) => boolean;
   matchesFamily?: (item: FamilyRecord) => boolean;
-  matchesOperation?: (item: OperationRecord) => boolean;
 }
 
 const DATASET_META: Record<
@@ -49,8 +43,8 @@ const DATASET_META: Record<
   cases: {
     label: "الحالات",
     icon: "folder_shared",
-    sourceHref: "/dashboard/cases",
-    sourceLabel: "إدارة الحالات",
+    sourceHref: "/dashboard/families",
+    sourceLabel: "ملفات الأسر",
   },
   families: {
     label: "الأسر",
@@ -58,26 +52,20 @@ const DATASET_META: Record<
     sourceHref: "/dashboard/families",
     sourceLabel: "إدارة الأسر",
   },
-  operations: {
-    label: "العمليات",
-    icon: "medical_services",
-    sourceHref: "/dashboard/operations",
-    sourceLabel: "إدارة العمليات",
-  },
 };
 
 const CASE_LIFECYCLE_LABELS: Record<string, string> = {
-  DRAFT: "مسودة",
-  REVIEW: "مراجعة",
+  DRAFT: "مع الباحث",
+  REVIEW: "بانتظار قرار المدير",
   FIELD_VERIFICATION: "تحقق ميداني",
-  APPROVED: "موافقة",
+  APPROVED: "معتمدة",
   EXECUTION: "تنفيذ",
   COMPLETED: "مكتمل",
   // Legacy
   INTAKE_REVIEW: "مراجعة (قديم)",
   COMMITTEE_REVIEW: "لجنة (قديم)",
   IN_PROGRESS: "تنفيذ (قديم)",
-  REJECTED: "مرفوض (قديم)",
+  REJECTED: "مرفوضة",
   ON_HOLD: "معلق (قديم)",
   ARCHIVED: "مؤرشف (قديم)",
   TECH_REJECTED: "مرفوض فنياً (قديم)",
@@ -155,34 +143,6 @@ const EXTRACT_PRESETS: ExtractPreset[] = [
       badge: "bg-tertiary/10 text-tertiary",
     },
     matchesFamily: (item) => item.status === "مستحق",
-  },
-  {
-    id: "operations-active",
-    dataset: "operations",
-    title: "كشف العمليات الجارية",
-    description: "العمليات والحملات المفتوحة حاليًا مع نسب الإنجاز والمستهدف.",
-    icon: "volunteer_activism",
-    badge: "ميداني",
-    tone: {
-      card: "border-tertiary/20 bg-tertiary/5",
-      icon: "bg-tertiary text-on-tertiary",
-      badge: "bg-tertiary/10 text-tertiary",
-    },
-    matchesOperation: (item) => item.status !== "مكتمل",
-  },
-  {
-    id: "operations-completed",
-    dataset: "operations",
-    title: "كشف العمليات المكتملة",
-    description: "الأعمال التي أُغلقت فعليًا ويمكن استخدامها في التقارير الدورية.",
-    icon: "inventory",
-    badge: "أرشفة",
-    tone: {
-      card: "border-outline-variant/40 bg-surface-container-low",
-      icon: "bg-surface-container-highest text-on-surface-variant",
-      badge: "bg-surface-container-high text-on-surface-variant",
-    },
-    matchesOperation: (item) => item.status === "مكتمل",
   },
 ];
 
@@ -295,19 +255,6 @@ const buildFamilySearchText = (item: FamilyRecord) =>
     .join(" ")
     .toLowerCase();
 
-const buildOperationSearchText = (item: OperationRecord) =>
-  [
-    item.id,
-    item.name,
-    item.type,
-    item.status,
-    item.location,
-    item.budget,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
 const getCaseLifecycleTone = (status: string) => {
   switch (status) {
     case "APPROVED":
@@ -345,30 +292,15 @@ const getFamilyStatusTone = (status: string) => {
   }
 };
 
-const getOperationStatusTone = (status: string) => {
-  switch (status) {
-    case "مكتمل":
-      return "bg-success/15 text-success";
-    case "جاري":
-      return "bg-primary/15 text-primary";
-    case "تجهيز":
-      return "bg-warning/15 text-warning";
-    default:
-      return "bg-surface-container text-on-surface-variant";
-  }
-};
-
 export default function ReportsPage() {
   const { toast } = useToast();
   const [cases, setCases] = useState<CaseRecord[]>([]);
   const [families, setFamilies] = useState<FamilyRecord[]>([]);
-  const [operations, setOperations] = useState<OperationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sourceErrors, setSourceErrors] = useState<Record<DatasetKey, string>>({
     cases: "",
     families: "",
-    operations: "",
   });
   const [downloadingCaseId, setDownloadingCaseId] = useState<string | null>(null);
 
@@ -382,8 +314,6 @@ export default function ReportsPage() {
   const [caseType, setCaseType] = useState("ALL");
   const [casePriority, setCasePriority] = useState("ALL");
   const [familyStatus, setFamilyStatus] = useState("ALL");
-  const [operationStatus, setOperationStatus] = useState("ALL");
-  const [operationType, setOperationType] = useState("ALL");
 
   const loadData = async () => {
     setLoading(true);
@@ -391,16 +321,14 @@ export default function ReportsPage() {
     const results = await Promise.allSettled([
       casesService.getAll(),
       familiesService.getAll(),
-      operationsService.getAll(),
     ]);
 
     const nextSourceErrors: Record<DatasetKey, string> = {
       cases: "",
       families: "",
-      operations: "",
     };
 
-    const [casesResult, familiesResult, operationsResult] = results;
+    const [casesResult, familiesResult] = results;
 
     if (casesResult.status === "fulfilled") {
       setCases(casesResult.value);
@@ -414,13 +342,6 @@ export default function ReportsPage() {
     } else {
       console.error(familiesResult.reason);
       nextSourceErrors.families = "تعذر تحميل بيانات الأسر.";
-    }
-
-    if (operationsResult.status === "fulfilled") {
-      setOperations(operationsResult.value);
-    } else {
-      console.error(operationsResult.reason);
-      nextSourceErrors.operations = "تعذر تحميل بيانات العمليات.";
     }
 
     setSourceErrors(nextSourceErrors);
@@ -453,8 +374,6 @@ export default function ReportsPage() {
     setCaseType("ALL");
     setCasePriority("ALL");
     setFamilyStatus("ALL");
-    setOperationStatus("ALL");
-    setOperationType("ALL");
   };
 
   const handleDatasetChange = (nextDataset: DatasetKey) => {
@@ -472,8 +391,6 @@ export default function ReportsPage() {
     setCaseType("ALL");
     setCasePriority("ALL");
     setFamilyStatus("ALL");
-    setOperationStatus("ALL");
-    setOperationType("ALL");
   };
 
   const activePreset =
@@ -486,14 +403,6 @@ export default function ReportsPage() {
 
   const familyStatusOptions = Array.from(
     new Set(families.map((item) => item.status).filter(Boolean)),
-  ).sort((left, right) => left.localeCompare(right, "ar"));
-
-  const operationTypeOptions = Array.from(
-    new Set(operations.map((item) => item.type).filter(Boolean)),
-  ).sort((left, right) => left.localeCompare(right, "ar"));
-
-  const operationStatusOptions = Array.from(
-    new Set(operations.map((item) => item.status).filter(Boolean)),
   ).sort((left, right) => left.localeCompare(right, "ar"));
 
   const filteredCases = cases.filter((item) => {
@@ -544,33 +453,6 @@ export default function ReportsPage() {
     return withinDateRange(item.lastVisit, dateFrom, dateTo);
   });
 
-  const filteredOperations = operations.filter((item) => {
-    if (
-      activePreset?.dataset === "operations" &&
-      activePreset.matchesOperation &&
-      !activePreset.matchesOperation(item)
-    ) {
-      return false;
-    }
-
-    if (operationStatus !== "ALL" && item.status !== operationStatus) {
-      return false;
-    }
-
-    if (operationType !== "ALL" && item.type !== operationType) {
-      return false;
-    }
-
-    if (
-      deferredSearch &&
-      !buildOperationSearchText(item).includes(deferredSearch)
-    ) {
-      return false;
-    }
-
-    return withinDateRange(item.date, dateFrom, dateTo);
-  });
-
   const summaryCards =
     dataset === "cases"
       ? [
@@ -596,58 +478,30 @@ export default function ReportsPage() {
             icon: "task_alt",
           },
         ]
-      : dataset === "families"
-        ? [
-            {
-              label: "إجمالي الأسر",
-              value: formatNumber(filteredFamilies.length),
-              icon: "group",
-            },
-            {
-              label: "إجمالي الأفراد",
-              value: formatNumber(
-                filteredFamilies.reduce(
-                  (total, item) => total + (item.membersCount || 0),
-                  0,
-                ),
+      : [
+          {
+            label: "إجمالي الأسر",
+            value: formatNumber(filteredFamilies.length),
+            icon: "group",
+          },
+          {
+            label: "إجمالي الأفراد",
+            value: formatNumber(
+              filteredFamilies.reduce(
+                (total, item) => total + (item.membersCount || 0),
+                0,
               ),
-              icon: "groups",
-            },
-            {
-              label: "أسر مستحقة",
-              value: formatNumber(
-                filteredFamilies.filter((item) => item.status === "مستحق").length,
-              ),
-              icon: "verified_user",
-            },
-          ]
-        : [
-            {
-              label: "إجمالي العمليات",
-              value: formatNumber(filteredOperations.length),
-              icon: "medical_services",
-            },
-            {
-              label: "المستهدف الكلي",
-              value: formatNumber(
-                filteredOperations.reduce(
-                  (total, item) => total + (item.target || 0),
-                  0,
-                ),
-              ),
-              icon: "flag",
-            },
-            {
-              label: "المنجز الحالي",
-              value: formatNumber(
-                filteredOperations.reduce(
-                  (total, item) => total + (item.achieved || 0),
-                  0,
-                ),
-              ),
-              icon: "trending_up",
-            },
-          ];
+            ),
+            icon: "groups",
+          },
+          {
+            label: "أسر مستحقة",
+            value: formatNumber(
+              filteredFamilies.filter((item) => item.status === "مستحق").length,
+            ),
+            icon: "verified_user",
+          },
+        ];
 
   const handleExport = () => {
     const today = new Date().toISOString().split("T")[0];
@@ -680,56 +534,26 @@ export default function ReportsPage() {
       return;
     }
 
-    if (dataset === "families") {
-      downloadCsv(`extract_families_${today}.csv`, [
-        [
-          "رقم الملف",
-          "اسم العائل",
-          "عدد الأفراد",
-          "الدخل",
-          "العنوان",
-          "الهاتف",
-          "حالة التقييم",
-          "آخر زيارة",
-        ],
-        ...filteredFamilies.map((item) => [
-          item.id,
-          item.headName,
-          item.membersCount,
-          item.income || "",
-          item.address || "",
-          item.phone || "",
-          item.status,
-          formatDate(item.lastVisit),
-        ]),
-      ]);
-      return;
-    }
-
-    downloadCsv(`extract_operations_${today}.csv`, [
+    downloadCsv(`extract_families_${today}.csv`, [
       [
-        "رقم العملية",
-        "اسم العملية",
-        "النوع",
-        "الحالة",
-        "التاريخ",
-        "المستهدف",
-        "المنجز",
-        "نسبة الإنجاز",
-        "المتطوعون",
-        "الموقع",
+        "رقم الملف",
+        "اسم العائل",
+        "عدد الأفراد",
+        "الدخل",
+        "العنوان",
+        "الهاتف",
+        "حالة التقييم",
+        "آخر زيارة",
       ],
-      ...filteredOperations.map((item) => [
+      ...filteredFamilies.map((item) => [
         item.id,
-        item.name,
-        item.type,
+        item.headName,
+        item.membersCount,
+        item.income || "",
+        item.address || "",
+        item.phone || "",
         item.status,
-        formatDate(item.date),
-        item.target,
-        item.achieved,
-        `${item.progress || 0}%`,
-        item.volunteers,
-        item.location || "غير محدد",
+        formatDate(item.lastVisit),
       ]),
     ]);
   };
@@ -775,9 +599,6 @@ export default function ReportsPage() {
               </span>
               <span className="rounded-full bg-white/90 px-3 py-1.5">
                 {formatNumber(families.length)} أسرة
-              </span>
-              <span className="rounded-full bg-white/90 px-3 py-1.5">
-                {formatNumber(operations.length)} عملية
               </span>
             </div>
           </div>
@@ -828,10 +649,7 @@ export default function ReportsPage() {
             const count =
               preset.dataset === "cases"
                 ? cases.filter((item) => preset.matchesCase?.(item)).length
-                : preset.dataset === "families"
-                  ? families.filter((item) => preset.matchesFamily?.(item)).length
-                  : operations.filter((item) => preset.matchesOperation?.(item))
-                      .length;
+                : families.filter((item) => preset.matchesFamily?.(item)).length;
 
             const isActive = preset.id === activePresetId;
 
@@ -1067,45 +885,6 @@ export default function ReportsPage() {
           </div>
         )}
 
-        {dataset === "operations" && (
-          <div className="grid grid-cols-1 gap-4 px-5 pb-5 md:grid-cols-3">
-            <div>
-              <label className="mb-2 block text-sm font-bold text-on-surface">
-                حالة العملية
-              </label>
-              <select
-                value={operationStatus}
-                onChange={(event) => setOperationStatus(event.target.value)}
-                className="w-full rounded-2xl border border-outline-variant/40 bg-surface-container-lowest px-4 py-3 text-sm outline-none focus:border-primary"
-              >
-                <option value="ALL">كل الحالات</option>
-                {operationStatusOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-bold text-on-surface">
-                نوع العملية
-              </label>
-              <select
-                value={operationType}
-                onChange={(event) => setOperationType(event.target.value)}
-                className="w-full rounded-2xl border border-outline-variant/40 bg-surface-container-lowest px-4 py-3 text-sm outline-none focus:border-primary"
-              >
-                <option value="ALL">كل الأنواع</option>
-                {operationTypeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
       </section>
 
       <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -1150,9 +929,7 @@ export default function ReportsPage() {
               <span className="rounded-full bg-surface-container-high px-3 py-1.5 text-xs font-bold text-on-surface">
                 {dataset === "cases"
                   ? `${formatNumber(filteredCases.length)} نتيجة`
-                  : dataset === "families"
-                    ? `${formatNumber(filteredFamilies.length)} نتيجة`
-                    : `${formatNumber(filteredOperations.length)} نتيجة`}
+                  : `${formatNumber(filteredFamilies.length)} نتيجة`}
               </span>
               {activePreset && (
                 <span className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">
@@ -1282,7 +1059,7 @@ export default function ReportsPage() {
                 )}
               </tbody>
             </table>
-          ) : dataset === "families" ? (
+          ) : (
             <table className="w-full min-w-[980px] border-collapse text-right">
               <thead className="bg-surface-container-lowest text-sm text-on-surface-variant">
                 <tr>
@@ -1360,105 +1137,6 @@ export default function ReportsPage() {
                           >
                             <span className="material-symbols-outlined text-[18px]">
                               visibility
-                            </span>
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          ) : (
-            <table className="w-full min-w-[980px] border-collapse text-right">
-              <thead className="bg-surface-container-lowest text-sm text-on-surface-variant">
-                <tr>
-                  <th className="px-5 py-4 font-bold">العملية</th>
-                  <th className="px-5 py-4 font-bold">النوع</th>
-                  <th className="px-5 py-4 font-bold">الحالة</th>
-                  <th className="px-5 py-4 font-bold">التاريخ</th>
-                  <th className="px-5 py-4 font-bold">المستهدف</th>
-                  <th className="px-5 py-4 font-bold">المنجز</th>
-                  <th className="px-5 py-4 font-bold">المتطوعون</th>
-                  <th className="px-5 py-4 font-bold">المكان</th>
-                  <th className="px-5 py-4 font-bold text-center">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant/20 text-sm">
-                {activeDatasetError ? (
-                  <tr>
-                    <td
-                      colSpan={9}
-                      className="px-5 py-10 text-center text-error"
-                    >
-                      {activeDatasetError}
-                    </td>
-                  </tr>
-                ) : filteredOperations.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={9}
-                      className="px-5 py-10 text-center text-on-surface-variant"
-                    >
-                      لا توجد عمليات مطابقة للفلاتر الحالية.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredOperations.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="transition-colors hover:bg-surface-container"
-                    >
-                      <td className="px-5 py-4">
-                        <p className="font-bold text-on-surface">{item.name}</p>
-                        <p className="mt-1 text-[11px] font-mono text-on-surface-variant">
-                          {item.id.slice(0, 8).toUpperCase()}
-                        </p>
-                      </td>
-                      <td className="px-5 py-4 text-on-surface-variant">
-                        {item.type}
-                      </td>
-                      <td className="px-5 py-4">
-                        <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${getOperationStatusTone(item.status)}`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-on-surface-variant">
-                        {formatDate(item.date)}
-                      </td>
-                      <td className="px-5 py-4 text-on-surface-variant">
-                        {formatNumber(item.target || 0)}
-                      </td>
-                      <td className="px-5 py-4">
-                        <div className="space-y-1">
-                          <p className="font-bold text-on-surface">
-                            {formatNumber(item.achieved || 0)}
-                          </p>
-                          <div className="h-2 w-28 overflow-hidden rounded-full bg-surface-container-highest">
-                            <div
-                              className="h-full rounded-full bg-primary"
-                              style={{ width: `${Math.min(item.progress || 0, 100)}%` }}
-                            />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 text-on-surface-variant">
-                        {formatNumber(item.volunteers || 0)}
-                      </td>
-                      <td className="px-5 py-4 text-on-surface-variant">
-                        {item.location || "غير محدد"}
-                      </td>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center justify-center">
-                          <Link
-                            href="/dashboard/operations"
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-white"
-                            title="فتح العمليات"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">
-                              open_in_new
                             </span>
                           </Link>
                         </div>

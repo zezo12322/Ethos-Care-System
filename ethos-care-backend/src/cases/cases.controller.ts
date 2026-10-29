@@ -25,14 +25,7 @@ import { CasePdfService } from './case-pdf.service';
 import { buildCasePdfFilename } from './utils/case-pdf-filename';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(
-  'ADMIN',
-  'CEO',
-  'MANAGER',
-  'CASE_WORKER',
-  'EXECUTION_OFFICER',
-  'CALL_CENTER',
-)
+@Roles('ADMIN', 'CEO', 'CASE_WORKER', 'CALL_CENTER')
 @Controller('cases')
 export class CasesController {
   constructor(
@@ -41,7 +34,7 @@ export class CasesController {
   ) {}
 
   @Post()
-  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'EXECUTION_OFFICER')
+  @Roles('ADMIN', 'CEO', 'CASE_WORKER', 'VOLUNTEER')
   create(@Body() createCaseDto: CreateCaseDto) {
     return this.casesService.create(createCaseDto);
   }
@@ -86,7 +79,7 @@ export class CasesController {
   }
 
   @Get(':id/pdf')
-  @Roles('ADMIN', 'CEO', 'MANAGER')
+  @Roles('ADMIN', 'CEO')
   async downloadPdf(
     @Param('id') id: string,
     @Res({ passthrough: true }) response: Response,
@@ -108,25 +101,26 @@ export class CasesController {
   }
 
   @Patch(':id')
-  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'EXECUTION_OFFICER')
+  @Roles('ADMIN', 'CEO', 'CASE_WORKER')
   update(@Param('id') id: string, @Body() updateCaseDto: UpdateCaseDto) {
     return this.casesService.update(id, updateCaseDto);
   }
 
   @Delete(':id')
-  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'EXECUTION_OFFICER')
+  @Roles('ADMIN', 'CEO', 'CASE_WORKER')
   remove(@Param('id') id: string) {
     return this.casesService.remove(id);
   }
 
   /* ──────────────────────────────────────────────
    *  Lifecycle:  DRAFT → REVIEW → FIELD_VERIFICATION → APPROVED → EXECUTION → COMPLETED
-   *  First 3 stages  → Researcher  (CASE_WORKER)
-   *  Last  3 stages  → Case Manager (MANAGER / CEO)
+   *  Volunteer submits → DRAFT (with the researcher)
+   *  Researcher (CASE_WORKER) → REVIEW (raised to the director)
+   *  Director (CEO) → APPROVED / REJECTED → EXECUTION → COMPLETED
    *  ADMIN can do everything.
    * ────────────────────────────────────────────── */
 
-  // Researcher: DRAFT → REVIEW
+  // Researcher: DRAFT → REVIEW (موافقة/رفض فقط تُرفع للمدير)
   @Post(':id/transitions/review')
   @Roles('ADMIN', 'CASE_WORKER')
   transitionReview(
@@ -144,27 +138,9 @@ export class CasesController {
     );
   }
 
-  // Researcher: REVIEW → FIELD_VERIFICATION
-  @Post(':id/transitions/field_verify')
-  @Roles('ADMIN', 'CASE_WORKER')
-  transitionFieldVerify(
-    @Param('id') id: string,
-    @Body() body: TransitionCaseDto,
-    @CurrentUser() user: AuthUser,
-  ) {
-    return this.casesService.transition(
-      id,
-      'FIELD_VERIFICATION',
-      'PENDING_DECISION',
-      'field_verify',
-      body.reason,
-      user.id,
-    );
-  }
-
-  // Case Manager: FIELD_VERIFICATION → APPROVED
+  // Director: REVIEW → APPROVED
   @Post(':id/transitions/approve')
-  @Roles('ADMIN', 'CEO', 'MANAGER')
+  @Roles('ADMIN', 'CEO')
   transitionApprove(
     @Param('id') id: string,
     @Body() body: TransitionCaseDto,
@@ -180,9 +156,27 @@ export class CasesController {
     );
   }
 
-  // Case Manager: APPROVED → EXECUTION
+  // Director: REVIEW → REJECTED
+  @Post(':id/transitions/reject')
+  @Roles('ADMIN', 'CEO')
+  transitionReject(
+    @Param('id') id: string,
+    @Body() body: TransitionCaseDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.casesService.transition(
+      id,
+      'REJECTED',
+      'REJECTED',
+      'reject',
+      body.reason,
+      user.id,
+    );
+  }
+
+  // Director: APPROVED → EXECUTION
   @Post(':id/transitions/execute')
-  @Roles('ADMIN', 'CEO', 'MANAGER')
+  @Roles('ADMIN', 'CEO')
   transitionExecute(
     @Param('id') id: string,
     @Body() body: TransitionCaseDto,
@@ -198,9 +192,9 @@ export class CasesController {
     );
   }
 
-  // Case Manager: EXECUTION → COMPLETED
+  // Director: EXECUTION → COMPLETED
   @Post(':id/transitions/complete')
-  @Roles('ADMIN', 'CEO', 'MANAGER')
+  @Roles('ADMIN', 'CEO')
   transitionComplete(
     @Param('id') id: string,
     @Body() body: TransitionCaseDto,
@@ -216,9 +210,9 @@ export class CasesController {
     );
   }
 
-  // Case Manager: return to DRAFT (any stage)
+  // Director: return to the researcher (any stage)
   @Post(':id/transitions/return_to_draft')
-  @Roles('ADMIN', 'CEO', 'MANAGER')
+  @Roles('ADMIN', 'CEO')
   transitionReturnToDraft(
     @Param('id') id: string,
     @Body() body: TransitionCaseDto,

@@ -16,13 +16,13 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'EXECUTION_OFFICER')
+@Roles('ADMIN', 'CEO', 'CASE_WORKER', 'VOLUNTEER')
 @Controller('locations')
 export class LocationsController {
   constructor(private readonly locationsService: LocationsService) {}
 
   @Post()
-  @Roles('ADMIN', 'CEO', 'MANAGER')
+  @Roles('ADMIN', 'CEO')
   create(@Body() createLocationDto: CreateLocationDto) {
     return this.locationsService.create(createLocationDto);
   }
@@ -38,7 +38,7 @@ export class LocationsController {
   }
 
   @Patch(':id')
-  @Roles('ADMIN', 'CEO', 'MANAGER')
+  @Roles('ADMIN', 'CEO')
   update(
     @Param('id') id: string,
     @Body() updateLocationDto: UpdateLocationDto,
@@ -47,7 +47,7 @@ export class LocationsController {
   }
 
   @Delete(':id')
-  @Roles('ADMIN', 'CEO', 'MANAGER')
+  @Roles('ADMIN', 'CEO')
   remove(@Param('id') id: string) {
     return this.locationsService.remove(id);
   }
