@@ -13,6 +13,16 @@ export default function ServiceWorkerRegistrar() {
       return;
     }
 
+    // في التطوير أسماء ملفات /_next/static ثابتة بين التعديلات، فالكاش يقدّم كودًا قديمًا:
+    // نشغّل الـ service worker في الإنتاج فقط ونزيل أي نسخة مسجّلة سابقًا أثناء التطوير
+    if (process.env.NODE_ENV !== "production") {
+      void navigator.serviceWorker
+        .getRegistrations()
+        .then((registrations) => registrations.forEach((r) => void r.unregister()));
+      void caches?.keys().then((keys) => keys.forEach((key) => void caches.delete(key)));
+      return;
+    }
+
     const register = () => {
       navigator.serviceWorker.register("/sw.js").catch(() => {
         /* non-fatal */

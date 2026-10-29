@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
 import type { CasesService } from './cases.service';
 
 type CaseReportRecord = Awaited<ReturnType<CasesService['findOne']>>;
@@ -67,6 +65,9 @@ export class CasePdfService {
    *    عبر @sparticuz/chromium. يمكن دائمًا تجاوز ذلك بـ CHROME_EXECUTABLE_PATH.
    */
   private async launchBrowser() {
+    // تحميل كسول: @sparticuz/chromium حزمة ESM فقط، واستيرادها في أعلى الملف
+    // يُسقط التطبيق كله عند الإقلاع على بيئات serverless (ERR_REQUIRE_ESM)
+    const { default: puppeteer } = await import('puppeteer-core');
     const localBrowser = this.tryResolveLocalBrowser();
     if (localBrowser) {
       return puppeteer.launch({
@@ -76,6 +77,7 @@ export class CasePdfService {
       });
     }
 
+    const { default: chromium } = await import('@sparticuz/chromium');
     return puppeteer.launch({
       executablePath: await chromium.executablePath(),
       headless: true,

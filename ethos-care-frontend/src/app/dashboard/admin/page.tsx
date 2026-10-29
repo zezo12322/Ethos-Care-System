@@ -5,17 +5,8 @@ import {
   usersService,
   type UpdateUserPayload,
 } from "@/services/users.service";
-import { APP_ROLES, AppRole, AppUser } from "@/types/api";
+import { APP_ROLES, AppRole, AppUser, ROLE_LABELS as roleLabels } from "@/types/api";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-
-const roleLabels: Record<AppRole, string> = {
-  ADMIN: "مدير النظام",
-  CEO: "المدير التنفيذي",
-  MANAGER: "مسؤول إدارة الحالة",
-  CASE_WORKER: "باحث",
-  EXECUTION_OFFICER: "مسؤول التنفيذ",
-  CALL_CENTER: "موظف كول سنتر",
-};
 
 const emptyForm = {
   name: "",

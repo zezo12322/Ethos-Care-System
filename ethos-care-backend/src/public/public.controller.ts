@@ -2,7 +2,6 @@ import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { PublicService } from './public.service';
 import { RequestAidDto } from './dto/request-aid.dto';
 import { ContactMessageDto } from './dto/contact-message.dto';
-import { VolunteerApplicationDto } from './dto/volunteer-application.dto';
 
 @Controller('public')
 export class PublicController {
@@ -26,10 +25,5 @@ export class PublicController {
   @Post('contact')
   contact(@Body() data: ContactMessageDto) {
     return this.publicService.saveContactMessage(data);
-  }
-
-  @Post('volunteer')
-  volunteer(@Body() data: VolunteerApplicationDto) {
-    return this.publicService.saveVolunteerApplication(data);
   }
 }

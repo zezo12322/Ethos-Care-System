@@ -5,14 +5,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(
-  'ADMIN',
-  'CEO',
-  'MANAGER',
-  'CASE_WORKER',
-  'EXECUTION_OFFICER',
-  'CALL_CENTER',
-)
+@Roles('ADMIN', 'CEO', 'CASE_WORKER', 'CALL_CENTER')
 @Controller('search')
 export class SearchController {
   constructor(private readonly searchService: SearchService) {}

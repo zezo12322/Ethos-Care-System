@@ -8,17 +8,14 @@ import { ServicesModule } from './services/services.module';
 import { DocumentTypesModule } from './document-types/document-types.module';
 import { AuthModule } from './auth/auth.module';
 import { FamiliesController } from './families/families.controller';
-import { OperationsController } from './operations/operations.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { FamiliesService } from './families/families.service';
-import { OperationsService } from './operations/operations.service';
 import { StatsModule } from './stats/stats.module';
 import { SearchModule } from './search/search.module';
 import { UsersModule } from './users/users.module';
 import { NewsModule } from './news/news.module';
 import { PublicModule } from './public/public.module';
 import { CmsModule } from './cms/cms.module';
-import { VolunteersModule } from './volunteers/volunteers.module';
 import {
   RateLimitMiddleware,
   AuthRateLimitMiddleware,
@@ -39,10 +36,9 @@ import {
     NewsModule,
     PublicModule,
     CmsModule,
-    VolunteersModule,
   ],
-  controllers: [AppController, FamiliesController, OperationsController],
-  providers: [AppService, FamiliesService, OperationsService],
+  controllers: [AppController, FamiliesController],
+  providers: [AppService, FamiliesService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -6,7 +6,6 @@ import {
   SubmissionResponse,
   VerifyMemberResponse,
   VerifyRequestResponse,
-  VolunteerApplicationPayload,
 } from "@/types/api";
 
 export const publicService = {
@@ -31,11 +30,6 @@ export const publicService = {
 
   submitContact: async (payload: ContactMessagePayload) => {
     const response = await api.post<SubmissionResponse>("/public/contact", payload);
-    return response.data;
-  },
-
-  submitVolunteer: async (payload: VolunteerApplicationPayload) => {
-    const response = await api.post<SubmissionResponse>("/public/volunteer", payload);
     return response.data;
   },
 };

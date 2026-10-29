@@ -2,6 +2,7 @@
 
 import React from "react";
 import { CaseRecord } from "@/types/api";
+import { DIRECTOR_ACTIONS, latestDirectorOpinion } from "@/lib/caseLabels";
 
 interface CasePrintViewProps {
   caseRecord: CaseRecord;
@@ -75,15 +76,9 @@ function formatPriority(priority: string) {
   return priority || "غير محدد";
 }
 
-function formatManagerDecision(value?: string) {
-  if (value === "APPROVE") return "اعتماد";
-  if (value === "RETURN") return "إعادة للباحث";
-  if (value === "REJECT") return "رفض";
-  return "بانتظار الاعتماد";
-}
-
 export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
   const formData = caseRecord.formData;
+  const directorOpinion = latestDirectorOpinion(caseRecord.history);
   const familyMembers = formData?.family?.members ?? [];
   const possessionItems = formData?.possessions?.items ?? [];
   const selectedSupportItems =
@@ -103,7 +98,7 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
             <div>
               <div className="text-sm text-white/80">بيان حالة</div>
               <h1 className="mt-1 text-3xl font-bold">
-                {formData?.person.fullName || caseRecord.applicantName}
+                {formData?.person?.fullName || caseRecord.applicantName}
               </h1>
               <p className="mt-2 text-sm text-white/85">
                 رقم الحالة: {caseRecord.id.slice(0, 8).toUpperCase()}
@@ -152,47 +147,41 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
           items={[
             {
               label: "الاسم كامل",
-              value: formData?.person.fullName || caseRecord.applicantName,
+              value: formData?.person?.fullName || caseRecord.applicantName,
             },
             {
               label: "الرقم القومي",
-              value: formData?.person.nationalId || caseRecord.nationalId,
+              value: formData?.person?.nationalId || caseRecord.nationalId,
             },
-            { label: "الديانة", value: formData?.person.religion },
-            { label: "العمر", value: formData?.person.age },
-            { label: "النوع", value: formData?.person.gender },
-            { label: "رقم المحمول", value: formData?.person.mobile },
-            { label: "الوظيفة", value: formData?.person.job },
-            { label: "الدخل الشهري", value: formData?.person.monthlyIncome },
-            { label: "المؤهل التعليمي", value: formData?.person.educationState },
+            { label: "الديانة", value: formData?.person?.religion },
+            { label: "العمر", value: formData?.person?.age },
+            { label: "النوع", value: formData?.person?.gender },
+            { label: "رقم المحمول", value: formData?.person?.mobile },
+            { label: "الوظيفة", value: formData?.person?.job },
+            { label: "الدخل الشهري", value: formData?.person?.monthlyIncome },
+            { label: "المؤهل التعليمي", value: formData?.person?.educationState },
             {
               label: "نوع التعليم",
-              value: formData?.person.educationState === "طالب" ? formData?.person.educationType : "غير منطبق",
+              value: formData?.person?.educationState === "طالب" ? formData?.person?.educationType : "غير منطبق",
             },
             {
               label: "المرحلة الدراسية",
-              value: formData?.person.educationState === "طالب" ? formData?.person.educationStage : "غير منطبق",
+              value: formData?.person?.educationState === "طالب" ? formData?.person?.educationStage : "غير منطبق",
             },
             {
               label: "الصف الدراسي",
-              value: formData?.person.educationState === "طالب" ? formData?.person.schoolYear : "غير منطبق",
+              value: formData?.person?.educationState === "طالب" ? formData?.person?.schoolYear : "غير منطبق",
             },
-            { label: "المركز", value: formData?.person.center },
-            { label: "القرية", value: formData?.person.village },
-            { label: "الجمعية", value: formData?.person.association },
-            {
-              label: "الدعم التمويني",
-              value: formData?.person.tamweenSupport
-                ? `مستفيد - عدد المستفيدين ${formData.person.tamweenBeneficiaries || "غير محدد"}`
-                : "غير مستفيد",
-            },
+            { label: "المركز", value: formData?.person?.center },
+            { label: "القرية", value: formData?.person?.village },
+            { label: "الجمعية", value: formData?.person?.association },
           ]}
         />
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-outline-variant/30 bg-white px-4 py-3">
             <div className="text-xs text-on-surface-variant">العنوان التفصيلي</div>
             <div className="mt-1 whitespace-pre-wrap text-sm font-medium text-on-surface">
-              {formData?.person.detailedAddress || "غير محدد"}
+              {formData?.person?.detailedAddress || "غير محدد"}
             </div>
           </div>
           <div className="rounded-2xl border border-outline-variant/30 bg-white px-4 py-3">
@@ -205,7 +194,7 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
         <div className="mt-4 rounded-2xl border border-outline-variant/30 bg-white px-4 py-3">
           <div className="text-xs text-on-surface-variant">المرفقات</div>
           <div className="mt-2 flex flex-wrap gap-2">
-            {formData?.person.attachments?.length ? (
+            {formData?.person?.attachments?.length ? (
               formData.person.attachments.map((item) => (
                 <span
                   key={item}
@@ -265,37 +254,37 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
       <Section title="بيانات السكن">
         <DetailGrid
           items={[
-            { label: "عدد الغرف", value: formData?.housing.roomsCount },
-            { label: "طبيعة السكن", value: formData?.housing.residencyType },
+            { label: "عدد الغرف", value: formData?.housing?.roomsCount },
+            { label: "طبيعة السكن", value: formData?.housing?.residencyType },
             {
               label: "قيمة الإيجار",
               value:
-                formData?.housing.residencyType === "إيجار"
-                  ? formData?.housing.rentAmount
+                formData?.housing?.residencyType === "إيجار"
+                  ? formData?.housing?.rentAmount
                   : "غير منطبق",
             },
-            { label: "طبيعة دورات المياه", value: formData?.housing.bathroomType },
-            { label: "حالة دورات المياه", value: formData?.housing.bathroomState },
-            { label: "الكهرباء", value: formData?.housing.electricity },
-            { label: "عداد المياه", value: formData?.housing.water },
-            { label: "طرمبة المياه", value: formData?.housing.waterPump },
-            { label: "أجهزة الطبخ", value: formData?.housing.cookware },
-            { label: "التلفاز", value: formData?.housing.tv },
-            { label: "الثلاجة", value: formData?.housing.fridge },
-            { label: "الغسالة", value: formData?.housing.washingMachine },
-            { label: "فرن خبيز", value: formData?.housing.oven },
-            { label: "كومبيوتر", value: formData?.housing.computer },
-            { label: "إنترنت", value: formData?.housing.internet },
+            { label: "طبيعة دورات المياه", value: formData?.housing?.bathroomType },
+            { label: "حالة دورات المياه", value: formData?.housing?.bathroomState },
+            { label: "الكهرباء", value: formData?.housing?.electricity },
+            { label: "عداد المياه", value: formData?.housing?.water },
+            { label: "طرمبة المياه", value: formData?.housing?.waterPump },
+            { label: "أجهزة الطبخ", value: formData?.housing?.cookware },
+            { label: "التلفاز", value: formData?.housing?.tv },
+            { label: "الثلاجة", value: formData?.housing?.fridge },
+            { label: "الغسالة", value: formData?.housing?.washingMachine },
+            { label: "فرن خبيز", value: formData?.housing?.oven },
+            { label: "كومبيوتر", value: formData?.housing?.computer },
+            { label: "إنترنت", value: formData?.housing?.internet },
           ]}
         />
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           {(
             [
-              ["السقف", formData?.housing.roof],
-              ["الأرضية", formData?.housing.floor],
-              ["المدخل", formData?.housing.entrance],
-              ["الحوائط", formData?.housing.walls],
-              ["وسيلة المواصلات", formData?.housing.transport],
+              ["السقف", formData?.housing?.roof],
+              ["الأرضية", formData?.housing?.floor],
+              ["المدخل", formData?.housing?.entrance],
+              ["الحوائط", formData?.housing?.walls],
+              ["وسيلة المواصلات", formData?.housing?.transport],
             ] as Array<[string, string[] | undefined]>
           ).map(([label, values]) => (
             <div
@@ -327,7 +316,7 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
           items={[
             {
               label: "هل توجد حيازات؟",
-              value: formData?.possessions.hasPossessions || "غير محدد",
+              value: formData?.possessions?.hasPossessions || "غير محدد",
             },
           ]}
         />
@@ -387,7 +376,7 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
         <div className="mt-4 rounded-2xl border border-outline-variant/30 bg-white px-4 py-3">
           <div className="text-xs text-on-surface-variant">صافي الدخل الشهري</div>
           <div className="mt-1 text-base font-bold text-on-surface">
-            {formData?.finance.netMonthlyIncome || "0"}
+            {formData?.finance?.netMonthlyIncome || "0"}
           </div>
         </div>
       </Section>
@@ -397,12 +386,12 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
           items={[
             {
               label: "درجة التصنيف",
-              value: formData?.classification.degree || "غير محدد",
+              value: formData?.classification?.degree || "غير محدد",
             },
           ]}
         />
         <div className="mt-4 flex flex-wrap gap-2">
-          {formData?.classification.tags?.length ? (
+          {formData?.classification?.tags?.length ? (
             formData.classification.tags.map((item) => (
               <span
                 key={item}
@@ -469,37 +458,34 @@ export default function CasePrintView({ caseRecord }: CasePrintViewProps) {
           <div className="rounded-2xl border border-outline-variant/30 bg-white px-4 py-3">
             <div className="text-xs text-on-surface-variant">الباحث</div>
             <div className="mt-1 text-sm font-bold text-on-surface">
-              {formData?.support.specialistName || "غير محدد"}
+              {formData?.support?.specialistName || "غير محدد"}
             </div>
           </div>
           <div className="rounded-2xl border border-outline-variant/30 bg-white px-4 py-3">
             <div className="text-xs text-on-surface-variant">رأي الباحث</div>
             <div className="mt-1 text-sm font-bold text-on-surface">
-              {formData?.support.specialistOpinion || "غير محدد"}
+              {formData?.support?.specialistOpinion || "غير محدد"}
             </div>
           </div>
         </div>
         <div className="mt-4 rounded-2xl border border-outline-variant/30 bg-white px-4 py-3">
           <div className="text-xs text-on-surface-variant">ملاحظات الباحث</div>
           <div className="mt-1 whitespace-pre-wrap text-sm font-medium text-on-surface">
-            {formData?.support.specialistNotes || "لا توجد ملاحظات"}
+            {formData?.support?.specialistNotes || "لا توجد ملاحظات"}
           </div>
         </div>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-outline-variant/30 bg-white px-4 py-3">
-            <div className="text-xs text-on-surface-variant">قرار مسؤول إدارة الحالة</div>
-            <div className="mt-1 text-sm font-bold text-on-surface">
-              {formatManagerDecision(formData?.support.managerDecision)}
-            </div>
+        <div className="mt-4 rounded-2xl border border-outline-variant/30 bg-white px-4 py-3">
+          <div className="text-xs text-on-surface-variant">رأي المدير</div>
+          <div className="mt-1 text-sm font-bold text-on-surface">
+            {directorOpinion ? DIRECTOR_ACTIONS[directorOpinion.action] : "لم يصدر بعد"}
           </div>
-          <div className="rounded-2xl border border-outline-variant/30 bg-white px-4 py-3">
-            <div className="text-xs text-on-surface-variant">تعليقات مسؤول إدارة الحالة</div>
+          {directorOpinion?.reason ? (
             <div className="mt-1 whitespace-pre-wrap text-sm font-medium text-on-surface">
-              {formData?.support.managerComments || "لا توجد تعليقات"}
+              {directorOpinion.reason}
             </div>
-          </div>
+          ) : null}
         </div>
-        {formData?.support.disabilitySupportType ? (
+        {formData?.support?.disabilitySupportType ? (
           <div className="mt-4 rounded-2xl border border-outline-variant/30 bg-white px-4 py-3">
             <div className="text-xs text-on-surface-variant">دعم ذوي الإعاقة</div>
             <div className="mt-1 text-sm font-bold text-on-surface">

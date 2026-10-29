@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RequestAidDto } from './dto/request-aid.dto';
 import { ContactMessageDto } from './dto/contact-message.dto';
-import { VolunteerApplicationDto } from './dto/volunteer-application.dto';
 import { appendFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 
@@ -11,10 +10,40 @@ export class PublicService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createRequestAid(data: RequestAidDto) {
+    const nationalId = data.nationalId?.trim() || null;
+    const existing = nationalId
+      ? await this.prisma.family.findUnique({ where: { nationalId } })
+      : null;
+    const caseData = {
+      applicantName: data.applicantName,
+      nationalId,
+      caseType: data.aidType,
+      priority: 'NORMAL',
+      location: data.village ? `${data.village} - ${data.city}` : data.city,
+      description: data.description,
+      lifecycleStatus: 'DRAFT',
+      completenessStatus: nationalId ? 'COMPLETE' : 'MISSING_NATIONAL_ID',
+      decisionStatus: 'PENDING_DECISION',
+      history: {
+        create: {
+          toLifecycleStatus: 'DRAFT',
+          toDecisionStatus: 'PENDING_DECISION',
+          action: 'CREATED_PUBLIC_REQUEST',
+        },
+      },
+    };
+
+    if (existing) {
+      const requestCase = await this.prisma.case.create({
+        data: { ...caseData, familyId: existing.id },
+      });
+      return this.toRequestAidResponse(requestCase);
+    }
+
     const family = await this.prisma.family.create({
       data: {
         headName: data.applicantName,
-        nationalId: data.nationalId || null,
+        nationalId,
         phone: data.phone,
         city: data.city,
         village: data.village || null,
@@ -23,30 +52,7 @@ export class PublicService {
         status: 'تحت التقييم',
         socialStatus: 'غير محدد',
         lastVisit: new Date(),
-        cases: {
-          create: {
-            applicantName: data.applicantName,
-            nationalId: data.nationalId || null,
-            caseType: data.aidType,
-            priority: 'NORMAL',
-            location: data.village
-              ? `${data.village} - ${data.city}`
-              : data.city,
-            description: data.description,
-            lifecycleStatus: 'DRAFT',
-            completenessStatus: data.nationalId
-              ? 'COMPLETE'
-              : 'MISSING_NATIONAL_ID',
-            decisionStatus: 'PENDING_DECISION',
-            history: {
-              create: {
-                toLifecycleStatus: 'DRAFT',
-                toDecisionStatus: 'PENDING_DECISION',
-                action: 'CREATED_PUBLIC_REQUEST',
-              },
-            },
-          },
-        },
+        cases: { create: caseData },
       },
       include: {
         cases: {
@@ -56,8 +62,13 @@ export class PublicService {
       },
     });
 
-    const requestCase = family.cases[0];
+    return this.toRequestAidResponse(family.cases[0]);
+  }
 
+  private toRequestAidResponse(requestCase: {
+    id: string;
+    lifecycleStatus: string;
+  }) {
     return {
       requestId: requestCase.id.slice(0, 8).toUpperCase(),
       fullRequestId: requestCase.id,
@@ -135,56 +146,10 @@ export class PublicService {
     };
   }
 
-  async saveVolunteerApplication(data: VolunteerApplicationDto) {
-    const nationalId = data.nationalId?.trim() || null;
-    const phone = data.phone?.trim() || null;
-
-    // منع التكرار: لو فيه متطوّع بنفس الرقم القومي أو الهاتف، لا ننشئ سجلًا جديدًا
-    const duplicateConditions = [
-      ...(nationalId ? [{ nationalId }] : []),
-      ...(phone ? [{ phone }] : []),
-    ];
-    const existing = duplicateConditions.length
-      ? await this.prisma.volunteer.findFirst({
-          where: { OR: duplicateConditions },
-        })
-      : null;
-
-    if (!existing) {
-      // نسجّل طلب التطوع في قاعدة البيانات كمتطوّع "قيد المراجعة" ليظهر للإدارة
-      await this.prisma.volunteer.create({
-        data: {
-          name: data.name,
-          phone,
-          nationalId,
-          birthDate: data.birthDate || null,
-          education: data.education || null,
-          schoolYear: data.schoolYear || null,
-          center: data.center || null,
-          whatsapp: data.whatsapp || null,
-          email: data.email || null,
-          address: data.address || null,
-          preferredArea: data.preferredArea || null,
-          notes: data.notes || null,
-          status: 'PENDING',
-          source: 'PUBLIC_FORM',
-        },
-      });
-    }
-
-    // نحتفظ دائمًا بنسخة في الملف كنسخة احتياطية
-    await this.appendSubmission('volunteer-applications.jsonl', data);
-
-    return {
-      message: existing
-        ? 'طلبك مسجّل لدينا بالفعل وسيتم التواصل معك. شكرًا لاهتمامك بالتطوع.'
-        : 'تم استلام طلب التطوع وسيتم مراجعته من فريق الجمعية',
-      submittedAt: new Date().toISOString(),
-    };
-  }
-
   private async appendSubmission(fileName: string, payload: unknown) {
-    const storageDir = join(process.cwd(), 'storage');
+    // على الاستضافات serverless القرص للقراءة فقط: SUBMISSIONS_DIR=/tmp
+    const storageDir =
+      process.env.SUBMISSIONS_DIR ?? join(process.cwd(), 'storage');
     await mkdir(storageDir, { recursive: true });
 
     const record = JSON.stringify({

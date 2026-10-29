@@ -28,9 +28,6 @@ export interface CreateFamilyDto {
   membersDetails?: FamilyMemberInput[];
   membersCount?: number;
   status?: string;
-  caseType?: string;
-  priority?: "NORMAL" | "HIGH" | "URGENT";
-  description?: string;
 }
 
 export const familiesService = {

@@ -31,9 +31,6 @@ export default function NewFamilyPage() {
     city: "بني سويف - المركز",
     village: "",
     addressDetails: "",
-    caseType: "تمكين اقتصادي",
-    priority: "NORMAL" as "NORMAL" | "HIGH" | "URGENT",
-    description: ""
   });
 
   
@@ -74,17 +71,21 @@ export default function NewFamilyPage() {
     
     setLoading(true);
     try {
-      await familiesService.create({
+      const family = await familiesService.create({
         ...formData,
         membersDetails: membersData,
         membersCount: membersData.length + 1, // +1 for the head
         address: `${formData.village} - ${formData.city}`,
       });
-      router.push("/dashboard/families");
+      // الأسرة أولًا: بعد فتح الملف نكمل مباشرة بتسجيل أول حالة عليه
+      toast("تم إنشاء ملف الأسرة — سجّل الحالة الآن.", "success");
+      router.push(`/dashboard/cases/new?familyId=${family.id}`);
     } catch (error) {
       console.error("Error creating family", error);
       const response = (
-        error as { response?: { status?: number; data?: { message?: string } } }
+        error as {
+          response?: { status?: number; data?: { message?: string; familyId?: string } };
+        }
       ).response;
       if (response?.status === 409) {
         // أسرة بنفس الرقم القومي موجودة بالفعل — نعرض رسالة الخادم الواضحة
@@ -93,6 +94,14 @@ export default function NewFamilyPage() {
             "يوجد بالفعل أسرة بنفس الرقم القومي. افتح ملفها وأضف الحالة عليه.",
           "warning",
         );
+        if (response.data?.familyId) {
+          // المتطوع لا يفتح ملفات الأسر؛ يضيف الحالة مباشرة على الأسرة القائمة
+          router.push(
+            user?.role === "VOLUNTEER"
+              ? `/dashboard/cases/new?familyId=${response.data.familyId}`
+              : `/dashboard/families/${response.data.familyId}`,
+          );
+        }
       } else {
         toast("حدث خطأ أثناء تسجيل الأسرة", "error");
       }
@@ -240,39 +249,6 @@ export default function NewFamilyPage() {
           </section>
 
 
-          <section className="bg-white p-6 md:p-8">
-             <div className="mb-6 flex justify-between items-center">
-               <h2 className="text-lg font-bold font-headline flex items-center gap-2 text-primary">
-                <span className="material-symbols-outlined">description</span>
-                بيانات التدخل (الحالة المرتبطة بالأسرة)
-              </h2>
-             </div>
-             
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-on-surface mb-2">نوع التدخل المطلوب</label>
-                  <select name="caseType" value={formData.caseType} onChange={handleChange} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 py-3 outline-none focus:border-primary transition-colors text-on-surface">
-                    <option>تمكين اقتصادي</option>
-                    <option>تدخل طبي</option>
-                    <option>سكن كريم</option>
-                    <option>تعليم</option>
-                    <option>أخرى</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-on-surface mb-2">أولوية التدخل</label>
-                  <select name="priority" value={formData.priority} onChange={handleChange} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 py-3 outline-none focus:border-primary transition-colors text-on-surface">
-                    <option value="NORMAL">عادي</option>
-                    <option value="HIGH">عالي</option>
-                    <option value="URGENT">عاجل</option>
-                  </select>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-on-surface mb-2">وصف الحالة / ملاحظات الباحث</label>
-                  <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 py-3 outline-none focus:border-primary transition-colors text-on-surface" placeholder="اكتب تفاصيل احتياج الأسرة للتدخل..."></textarea>
-                </div>
-             </div>
-          </section>
 
         </div>
         
@@ -284,7 +260,7 @@ export default function NewFamilyPage() {
             disabled={loading}
             onClick={handleSubmit}
             className="px-8 py-2.5 bg-primary text-white hover:bg-primary-container rounded-xl font-bold transition-colors shadow-md disabled:opacity-50">
-            {loading ? "جاري التسجيل..." : "تسجيل الأسرة"}
+            {loading ? "جاري التسجيل..." : "تسجيل الأسرة ومتابعة للحالة"}
           </button>
         </div>
       </div>

@@ -17,37 +17,20 @@ interface NavItem {
   roles: string[];
 }
 
-const ALL_STAFF = [
-  "ADMIN",
-  "CEO",
-  "MANAGER",
-  "CASE_WORKER",
-  "EXECUTION_OFFICER",
-  "CALL_CENTER",
-];
-
 const NAV_ITEMS: NavItem[] = [
-  { href: "/dashboard", icon: "dashboard", label: "الرئيسية", roles: ALL_STAFF },
+  { href: "/dashboard", icon: "dashboard", label: "الرئيسية", roles: ["ADMIN", "CEO", "CALL_CENTER"] },
+  { href: "/dashboard/families/new", icon: "note_add", label: "رفع حالة", roles: ["VOLUNTEER"] },
   {
-    href: "/dashboard/operations",
-    icon: "settings_accessibility",
-    label: "العمليات",
-    roles: ["ADMIN", "MANAGER", "EXECUTION_OFFICER", "CEO", "CASE_WORKER"],
+    href: "/dashboard/families",
+    icon: "family_restroom",
+    label: "الأسر",
+    roles: ["ADMIN", "CEO", "CASE_WORKER", "CALL_CENTER"],
   },
-  { href: "/dashboard/cases", icon: "folder_shared", label: "الحالات", roles: ALL_STAFF },
-  { href: "/dashboard/families", icon: "family_restroom", label: "الأسر", roles: ALL_STAFF },
-  {
-    href: "/dashboard/volunteers",
-    icon: "volunteer_activism",
-    label: "المتطوعون",
-    roles: ["ADMIN", "CEO", "MANAGER"],
-  },
-  { href: "/dashboard/search", icon: "search", label: "البحث", roles: ALL_STAFF },
   {
     href: "/dashboard/reports",
     icon: "table_view",
     label: "الاستخراجات",
-    roles: ["ADMIN", "CEO", "MANAGER", "EXECUTION_OFFICER"],
+    roles: ["ADMIN", "CEO"],
   },
   { href: "/dashboard/cms", icon: "edit_note", label: "محتوى الموقع", roles: ["ADMIN", "CEO"] },
   { href: "/dashboard/partners", icon: "handshake", label: "الشركاء", roles: ["ADMIN", "CEO"] },
@@ -56,14 +39,14 @@ const NAV_ITEMS: NavItem[] = [
     href: "/dashboard/locations",
     icon: "location_on",
     label: "النطاق الجغرافي",
-    roles: ["ADMIN", "CEO", "MANAGER", "CASE_WORKER", "EXECUTION_OFFICER"],
+    roles: ["ADMIN", "CEO"],
   },
 ];
 
 export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   const { user } = useAuth();
   const pathname = usePathname();
-  const userRole = user?.role || "CASE_WORKER";
+  const userRole = user?.role ?? "";
 
   const isAuthorized = (allowedRoles: string[]) => allowedRoles.includes(userRole);
 

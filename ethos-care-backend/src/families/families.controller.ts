@@ -17,14 +17,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(
-  'ADMIN',
-  'CEO',
-  'MANAGER',
-  'CASE_WORKER',
-  'EXECUTION_OFFICER',
-  'CALL_CENTER',
-)
+@Roles('ADMIN', 'CEO', 'CASE_WORKER', 'CALL_CENTER')
 @Controller('families')
 export class FamiliesController {
   constructor(private familiesService: FamiliesService) {}
@@ -55,16 +48,18 @@ export class FamiliesController {
       status: f.status,
       createdAt: f.createdAt.toISOString(),
       updatedAt: f.updatedAt.toISOString(),
+      cases: f.cases,
     }));
   }
 
   @Get(':id')
+  @Roles('ADMIN', 'CEO', 'CASE_WORKER', 'CALL_CENTER', 'VOLUNTEER')
   async findOne(@Param('id') id: string) {
     return this.familiesService.findOne(id);
   }
 
   @Post()
-  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'EXECUTION_OFFICER')
+  @Roles('ADMIN', 'CEO', 'CASE_WORKER', 'VOLUNTEER')
   async create(@Body() newFamily: CreateFamilyDto) {
     const f = await this.familiesService.create(newFamily);
     return {
@@ -91,7 +86,7 @@ export class FamiliesController {
   }
 
   @Patch(':id')
-  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'EXECUTION_OFFICER')
+  @Roles('ADMIN', 'CEO', 'CASE_WORKER')
   async update(@Param('id') id: string, @Body() updateData: UpdateFamilyDto) {
     const f = await this.familiesService.update(id, updateData);
     return {
@@ -118,7 +113,7 @@ export class FamiliesController {
   }
 
   @Delete(':id')
-  @Roles('ADMIN', 'CEO', 'MANAGER', 'CASE_WORKER', 'EXECUTION_OFFICER')
+  @Roles('ADMIN', 'CEO', 'CASE_WORKER')
   async remove(@Param('id') id: string) {
     return this.familiesService.remove(id);
   }

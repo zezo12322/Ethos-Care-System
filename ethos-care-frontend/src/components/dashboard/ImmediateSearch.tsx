@@ -108,7 +108,12 @@ export default function ImmediateSearch() {
                         بيانات الأسرة
                       </p>
                       <h3 className="truncate text-xl font-extrabold text-on-surface">
-                        {result.family.headName}
+                        <Link
+                          href={`/dashboard/families/${result.family.id}`}
+                          className="hover:text-primary hover:underline"
+                        >
+                          {result.family.headName}
+                        </Link>
                       </h3>
                       <p className="mt-1 text-sm text-on-surface-variant">
                         {result.family.address}
